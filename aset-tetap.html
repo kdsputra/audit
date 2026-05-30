@@ -98,7 +98,7 @@
   .banner b{font-weight:600}
   .banner ul{margin:8px 0 0 20px}
   /* stats */
-  .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:24px}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px}
   .stat{
     background:var(--card);border:1px solid #e8e8ed;border-radius:16px;padding:20px;
     box-shadow:0 4px 16px rgba(0,0,0,0.01);
@@ -163,6 +163,7 @@
   .narr p:last-child{margin-bottom:0}
   .narr b{color:var(--text)}
   .period-tag{font-size:12px;color:var(--muted);font-weight:500;margin-bottom:14px}
+  .print-doc-title{display:none;font-size:11pt;font-weight:700;letter-spacing:-0.01em;margin-bottom:2mm;color:#000}
   .hidden{display:none}
   footer{text-align:center;font-size:12.5px;color:var(--muted);padding:24px 24px 48px;line-height:1.8;font-weight:400}
   /* toast */
@@ -198,19 +199,72 @@
   .close-btn{background:none;border:none;cursor:pointer;color:var(--muted);padding:4px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:0.15s}
   .close-btn:hover{background:#e8e8ed;color:var(--text)}
 
-  @media(max-width:1024px){.stats{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:1024px){.stats{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}}
   @media(max-width:720px){
-    .stats{grid-template-columns:repeat(2,1fr)}
+    .stats{grid-template-columns:repeat(auto-fit,minmax(140px,1fr))}
     .card{padding:24px}
     header{padding:32px 24px}
     .detail-grid{grid-template-columns:1fr;gap:16px 0}
   }
+  @media(max-width:420px){
+    .stats{grid-template-columns:1fr 1fr}
+    .stat{padding:14px}
+    .stat .val{font-size:16px}
+    .stat .val.sm{font-size:14px}
+  }
   @media print{
-    body{background:#fff}
+    /* Seluruh laporan dicetak A4 LANDSCAPE — metode orientasi paling andal di semua
+       browser (tanpa trik rotasi), agar tabel detail yang lebar (23 kolom) muat,
+       tidak terpotong, dan tidak tumpang tindih. */
+    @page{size:A4 landscape;margin:10mm}
+    html,body{background:#fff !important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    /* sembunyikan kontrol & elemen non-cetak */
     header,footer,.drop,.or,.btn-row,#step1,#step2,#calcBtn,#openGuideBtn,select,.modal-overlay,.bond-list,#toast,.no-print{display:none !important}
-    .card{box-shadow:none;border:1px solid #ccc;page-break-inside:avoid}
-    .container{margin:0;max-width:100%}
-    .tbl-wrap{max-height:none;overflow:visible}
+    .container{margin:0;padding:0;max-width:100%}
+    #results{display:block !important}
+    .stats{display:none !important} /* kartu statistik tidak dicetak agar ringkas */
+    .landscape-inner{display:block;position:static;width:auto;height:auto;transform:none} /* netralkan pembungkus */
+
+    /* setiap section satu blok, mulai di halaman baru, dengan judulnya */
+    #results>.card{box-shadow:none;border:none;border-radius:0;padding:0;margin:0;position:static;overflow:visible;page-break-inside:auto;break-inside:auto}
+    #results>.card+.card{page-break-before:always;break-before:page}
+    .card-head{margin-bottom:6px;padding-bottom:6px;border-bottom:2px solid #1d1d1f;page-break-after:avoid;break-after:avoid}
+    .card-head .step-num{display:none !important}
+    .card-head h2{font-size:14pt;letter-spacing:-0.01em}
+    .period-tag{font-size:10pt;color:#000;margin-bottom:8px;page-break-after:avoid;break-after:avoid}
+    .print-doc-title{display:block !important}
+
+    /* TABEL: layout fixed + lebar 100% → mengisi lebar halaman landscape, teks membungkus,
+       tidak pernah terpotong di kanan; header diulang tiap halaman. */
+    .tbl-wrap,.calk{max-height:none !important;overflow:visible !important;border:none !important;border-radius:0 !important;background:#fff !important;padding:0 !important}
+    table{width:100% !important;table-layout:fixed;border-collapse:collapse;page-break-inside:auto}
+    #kkTable{font-size:7.5pt}   /* tabel detail 23 kolom pada lebar landscape ~277mm */
+    #recapTable{font-size:8pt}
+    #schedTable{font-size:9pt}
+    .calk table{min-width:0 !important;font-size:9pt}
+    thead{display:table-header-group}
+    tfoot{display:table-row-group}
+    tr{page-break-inside:avoid;break-inside:avoid}
+    thead th,tbody td,tfoot td{
+      white-space:normal !important;word-break:break-word;overflow-wrap:anywhere;
+      padding:3px 4px !important;border:0.5px solid #d0d0d0 !important;
+      position:static !important;vertical-align:top;line-height:1.25;
+    }
+    #kkTable th,#kkTable td{padding:2px 3px !important}
+    thead th{background:#eee !important;font-weight:700}
+    #kkTable thead th{font-size:7.5pt !important}
+    #recapTable thead th{font-size:8pt !important}
+    tfoot td,tr.total td{background:#eee !important;border-top:1.5px solid #000 !important}
+    .calk thead th{background:#fff !important;border-bottom:1.5px solid #000 !important}
+    .calk .sec td{background:#f0f0f0 !important;font-weight:700}
+    .calk .nbv td{background:#eef4fb !important;border-top:1.5px solid #000 !important;border-bottom:1.5px solid #000 !important}
+    .calk .item td:first-child{padding-left:10px !important}
+    .pill{border:0.5px solid #999;padding:1px 4px;font-size:7pt;color:#000 !important;background:#fff !important}
+
+    .detail-grid{grid-template-columns:1fr 1fr;gap:0 24px;background:#fff;border:0.5px solid #ccc;padding:10px;font-size:9pt;page-break-inside:avoid}
+    .narr{font-size:9pt;line-height:1.5}
+    .narr p{page-break-inside:avoid}
+    h2,h3,h4{page-break-after:avoid}
   }
 </style></head><body>
 
@@ -299,7 +353,9 @@
   <div id="results" class="hidden">
     <div class="stats" id="stats"></div>
 
-    <div class="card">
+    <div class="card" id="cardDetail">
+     <div class="landscape-inner">
+      <div class="print-doc-title">Kertas Kerja Aset Tetap</div>
       <div class="card-head">
         <div class="step-num" style="background:#1d1d1f;color:#fff">&#10003;</div>
         <h2>Kertas Kerja Aset Tetap (Detail per Aset)</h2>
@@ -316,17 +372,21 @@
       </div>
       <div class="period-tag" id="periodTag1"></div>
       <div class="tbl-wrap"><table id="kkTable"></table></div>
+     </div>
     </div>
 
     <div class="card">
+      <div class="print-doc-title">Kertas Kerja Aset Tetap</div>
       <div class="card-head">
         <div class="step-num" style="background:#1d1d1f;color:#fff">&#10003;</div>
         <h2>Rekapitulasi per Kelompok Aset</h2>
       </div>
+      <div class="period-tag" id="periodTag3"></div>
       <div class="tbl-wrap"><table id="recapTable"></table></div>
     </div>
 
     <div class="card">
+      <div class="print-doc-title">Catatan Atas Laporan Keuangan (CALK) &mdash; Aset Tetap</div>
       <div class="card-head">
         <div class="step-num" style="background:#1d1d1f;color:#fff">&#10003;</div>
         <h2>Catatan Atas Laporan Keuangan (CALK) &mdash; Aset Tetap</h2>
@@ -337,11 +397,13 @@
     </div>
 
     <div class="card">
+      <div class="print-doc-title">Jadwal Penyusutan Aset Tetap</div>
       <div class="card-head">
         <div class="step-num" style="background:#1d1d1f;color:#fff">&#10003;</div>
         <h2>Jadwal Penyusutan per Aset</h2>
       </div>
       <select id="assetSelect" class="no-print"></select>
+      <div class="period-tag" id="schedTag"></div>
       <div id="schedMeta"></div>
       <div class="tbl-wrap"><table id="schedTable"></table></div>
     </div>
@@ -972,6 +1034,7 @@ function renderResults(){
   const periodLbl='Periode '+longDate(pStart)+' s.d. '+longDate(pEnd);
   document.getElementById('periodTag1').textContent=periodLbl;
   document.getElementById('periodTag2').textContent=periodLbl;
+  const pt3=document.getElementById('periodTag3');if(pt3)pt3.textContent=periodLbl;
 
   /* fitur yang aktif menentukan kolom tambahan yang ditampilkan */
   const useReklas=(t.reklasIn>0.5||t.reklasOut>0.5);
@@ -989,7 +1052,7 @@ function renderResults(){
   if(useImpair)stats+=statCard('Rugi Penurunan Nilai',acc(t.impairLoss),true);
   const sc=document.getElementById('stats');
   sc.innerHTML=stats;
-  sc.style.gridTemplateColumns='repeat('+(5+(useReval?1:0)+(useImpair?1:0))+',1fr)';
+  /* lebar kolom diatur via CSS auto-fit/minmax agar membungkus otomatis di layar kecil (tanpa scroll horizontal) */
 
   /* ---- detail working paper (kolom dinamis) ---- */
   const cols=[];
@@ -1158,6 +1221,7 @@ function renderCALK(ag,t){
 
 function renderSchedule(idx){
   const a=assets[idx];
+  const stag=document.getElementById('schedTag');if(stag)stag.textContent=a.name+' \u00b7 '+(a.catEnd||a.kelompok);
   const extra=[];
   if(a.cip)extra.push(['Jenis Aset','Aset Dalam Penyelesaian (belum disusutkan)']);
   if(a.reklasFrom){

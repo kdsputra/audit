@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Kalkulator Amortisasi Lease</title><script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script><style>
+<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Perhitungan Lease (PSAK 73)</title><script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script><style>
   :root{
     --bg:#f5f5f7; --card:#ffffff; --text:#1d1d1f; --muted:#86868b;
     --border:#d2d2d7; --accent:#0066cc; --accent-dark:#0044aa; --accent-light:#f5f5f7;
@@ -182,6 +182,26 @@
     header{padding:32px 24px}
     .detail-grid{grid-template-columns:1fr;gap:16px 0}
   }
+  /* ===== CALK (gaya catatan atas laporan keuangan) ===== */
+  .period-tag{font-size:12px;color:var(--muted);font-weight:500;margin-bottom:14px}
+  .calk{background:var(--card);border:1px solid #e8e8ed;border-radius:14px;padding:8px 0;overflow:auto}
+  .calk table{font-size:13px;min-width:640px}
+  .calk thead th{background:#fff;border-bottom:1.5px solid #1d1d1f;text-transform:none;padding:10px 16px;position:static}
+  .calk .sec td{background:#fafafa;font-weight:700;letter-spacing:-0.01em;border-top:1px solid #e8e8ed;border-bottom:1px solid #e8e8ed;color:var(--text)}
+  .calk .item td:first-child{padding-left:32px;color:#333}
+  .calk .sub td{font-weight:700;border-top:1.5px solid #1d1d1f}
+  .calk .nbv td{font-weight:700;background:#eef4fb;border-top:2px solid #1d1d1f;border-bottom:2px solid #1d1d1f;color:#0d2f57}
+  .calk .ll td{font-weight:700;background:#fef6ee;border-top:2px solid #1d1d1f;border-bottom:2px solid #1d1d1f;color:#7a3b00}
+  .calk tbody td{white-space:nowrap}
+  .calk tbody tr:hover{background:transparent}
+  .calk + .calk{margin-top:18px}
+  .calk-title{font-size:13px;font-weight:700;letter-spacing:-0.01em;margin:26px 0 10px}
+  .calk-title:first-child{margin-top:6px}
+  .narr{font-size:13.5px;line-height:1.7;color:#333;margin-top:20px;background:#fafafa;border:1px solid #e8e8ed;border-radius:14px;padding:20px 24px}
+  .narr p{margin-bottom:10px}
+  .narr p:last-child{margin-bottom:0}
+  .narr b{color:var(--text)}
+  tfoot td, tr.total td{background:#f5f5f7;font-weight:700;border-top:2px solid #1d1d1f;color:var(--text)}
 </style></head><body>
 
 <header>
@@ -192,8 +212,8 @@
       </svg>
     </div>
     <div>
-      <h1>Kalkulator Amortisasi Lease</h1>
-      <p>PSAK 73 / IFRS 16 &middot; Liabilitas Sewa &amp; ROU Asset &middot; Bulk Import Excel &middot; DTA/DTL</p>
+      <h1>Perhitungan Lease</h1>
+      <p>PSAK 73 / IFRS 16 &middot; Amortisasi &middot; Liabilitas Sewa &amp; ROU Asset &middot; DTA/DTL &middot; CALK</p>
     </div>
     <button class="btn btn-ghost" id="openGuideBtn" style="margin-left:auto;">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
@@ -275,6 +295,39 @@
       <div id="schedMeta"></div>
       <div class="tbl-wrap"><table id="schedTable"></table></div>
     </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="step-num" style="background:#1d1d1f;color:#fff">&#10003;</div>
+        <h2>Catatan Atas Laporan Keuangan (CALK) &mdash; Aset Hak-Guna (ROU)</h2>
+      </div>
+      <div class="period-tag" id="periodTagROU"></div>
+      <div class="calk" id="calkROU"></div>
+      <div class="narr" id="narrROU"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="step-num" style="background:#1d1d1f;color:#fff">&#10003;</div>
+        <h2>Catatan Atas Laporan Keuangan (CALK) &mdash; Liabilitas Sewa</h2>
+      </div>
+      <div class="period-tag" id="periodTagLL"></div>
+      <div class="calk-title">Mutasi Liabilitas Sewa</div>
+      <div class="calk" id="calkLL"></div>
+      <div class="calk-title">Klasifikasi Liabilitas Sewa</div>
+      <div class="calk" id="calkLLSplit"></div>
+      <div class="calk-title">Analisis Jatuh Tempo Pembayaran Sewa (Tidak Terdiskonto)</div>
+      <div class="calk" id="calkLLMaturity"></div>
+      <div class="narr" id="narrLL"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="step-num" style="background:#1d1d1f;color:#fff">&#10003;</div>
+        <h2>Ringkasan CALK per Kontrak Sewa</h2>
+      </div>
+      <div class="tbl-wrap"><table id="recapTable"></table></div>
+    </div>
   </div>
 </div>
 
@@ -347,9 +400,11 @@
 
 <script>
 const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const BULAN=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 let leases=[];
 let currentCutoff=null;
 let taxRate=0.22;
+let pStart=null,pEnd=null;   /* periode CALK (rollforward) = 1 Jan tahun cut-off s.d. cut-off */
 
 /* ---------- helpers ---------- */
 function toast(msg){
@@ -403,6 +458,17 @@ function parseNumber(v){
   return isNaN(n)?null:n;
 }
 function escapeHtml(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+/* angka akuntansi: 0 -> dash, negatif dalam kurung */
+function acc(n){
+  if(n===null||n===undefined||n==='-'||n==='')return '-';
+  let v=Math.round(Number(n));
+  if(v===0)return '-';
+  if(v<0)return '('+Math.abs(v).toLocaleString('en-US')+')';
+  return v.toLocaleString('en-US');
+}
+/* nilai bertanda: positif apa adanya, negatif dalam kurung, 0 -> dash */
+function signed(n){return acc(n);}
+function longDate(d){if(!d)return '-';return d.getDate()+' '+BULAN[d.getMonth()]+' '+d.getFullYear();}
 
 /* ---------- core lease calculation ---------- */
 function buildLeaseSchedule(lease){
@@ -738,7 +804,14 @@ function calculate(){
     l.dtl_at_cutoff = l.ll_at_cutoff * taxRate;
   });
   
+  /* ---- CALK rollforward (year-to-date: 1 Jan tahun cut-off s.d. cut-off) ---- */
+  pStart = new Date(cutoffYear, 0, 1);
+  pEnd = cutoff;
+  const perLeaseCALK = leases.map(computeLease);
+  const tCALK = aggregate(perLeaseCALK);
+
   renderResults();
+  renderCALK(perLeaseCALK, tCALK);
   toast('Perhitungan selesai.');
 }
 
@@ -863,6 +936,217 @@ function renderSchedule(idx){
   document.getElementById('schedTable').innerHTML = h;
 }
 
+/* ===================== CALK (rollforward ROU & Liabilitas Sewa) ===================== */
+/* Periode CALK diturunkan dari cut-off: pStart = 1 Jan tahun cut-off, pEnd = cut-off (year-to-date),
+   sehingga Saldo Akhir CALK konsisten dengan nilai "@ Cut-off" pada tabel ringkasan. */
+function computeLease(l){
+  const rows=l.rows;
+  const commence=l.startDate;
+  const maturity=rows[rows.length-1].date;       // baris terminal (akhir masa sewa)
+  const initROU=l.initialROU, initLL=l.initialLL;
+
+  const commencedBeforePeriod = commence < pStart;
+  const commencesInPeriod = commence>=pStart && commence<=pEnd;
+  const maturesInPeriod = maturity>=pStart && maturity<=pEnd;
+  const maturedBeforePeriod = maturity < pStart;
+  const onBookAtOpen = commencedBeforePeriod && !maturedBeforePeriod;
+
+  const rowsBeforeStart = rows.filter(r=>r.date < pStart);
+  const lastBefore = rowsBeforeStart.length?rowsBeforeStart[rowsBeforeStart.length-1]:null;
+  const inPeriod = rows.filter(r=>r.date>=pStart && r.date<=pEnd);
+
+  /* ---- ROU ---- */
+  const grossOpen = onBookAtOpen ? initROU : 0;
+  const netOpen = onBookAtOpen ? (lastBefore?lastBefore.rou_end:initROU) : 0;
+  const accDepOpen = grossOpen - netOpen;
+
+  const grossAdd = commencesInPeriod ? initROU : 0;
+  const depExp = inPeriod.reduce((s,r)=>s+r.rou_exp,0);
+  const grossDisp = maturesInPeriod ? initROU : 0;
+  const accDepDisp = maturesInPeriod ? initROU : 0;   // ROU habis tersusut pada akhir masa sewa
+
+  const grossClose = grossOpen + grossAdd - grossDisp;
+  const accDepClose = accDepOpen + depExp - accDepDisp;
+  const netClose = grossClose - accDepClose;
+
+  /* ---- Liabilitas Sewa ---- */
+  const llOpen = onBookAtOpen ? (lastBefore?lastBefore.ll_end:initLL) : 0;
+  const llAdd = commencesInPeriod ? initLL : 0;
+  const llInterest = inPeriod.reduce((s,r)=>s+r.ll_exp,0);
+  const llPayment = inPeriod.reduce((s,r)=>s+r.ll_payment,0);
+  const llClose = llOpen + llAdd + llInterest - llPayment;
+
+  /* current vs non-current pada tanggal neraca (cut-off) */
+  const oneYear = addMonths(pEnd,12);
+  const rowsToOneYear = rows.filter(r=>r.date<=oneYear);
+  const llAtOneYear = (commence<=oneYear && !(maturity<pStart)) ? (rowsToOneYear.length?rowsToOneYear[rowsToOneYear.length-1].ll_end:initLL) : 0;
+  let llNonCurrent = Math.max(0,Math.min(llAtOneYear,llClose));
+  let llCurrent = Math.max(0,llClose - llNonCurrent);
+
+  /* analisis jatuh tempo (tidak terdiskonto): pembayaran setelah tanggal neraca */
+  const y1=addMonths(pEnd,12), y5=addMonths(pEnd,60);
+  let mat1=0,mat15=0,mat5=0;
+  l.payments.forEach(p=>{
+    if(p.date<=pEnd)return;
+    if(p.date<=y1)mat1+=p.amount;
+    else if(p.date<=y5)mat15+=p.amount;
+    else mat5+=p.amount;
+  });
+
+  return {
+    lease_id:l.lease_id, status:l.status,
+    grossOpen,netOpen,accDepOpen,grossAdd,depExp,grossDisp,accDepDisp,grossClose,accDepClose,netClose,
+    llOpen,llAdd,llInterest,llPayment,llClose,llCurrent,llNonCurrent,
+    mat1,mat15,mat5,
+    commencesInPeriod,maturesInPeriod
+  };
+}
+
+function aggregate(perLease){
+  const t={};
+  const keys=['grossOpen','netOpen','accDepOpen','grossAdd','depExp','grossDisp','accDepDisp','grossClose','accDepClose','netClose',
+    'llOpen','llAdd','llInterest','llPayment','llClose','llCurrent','llNonCurrent','mat1','mat15','mat5'];
+  keys.forEach(k=>t[k]=0);
+  let addCount=0,dispCount=0;
+  perLease.forEach(p=>{
+    keys.forEach(k=>t[k]+=p[k]);
+    if(p.commencesInPeriod)addCount++;
+    if(p.maturesInPeriod)dispCount++;
+  });
+  t.addCount=addCount; t.dispCount=dispCount;
+  t.matTotal=t.mat1+t.mat15+t.mat5;
+  t.financeCharge=t.matTotal-t.llClose;   // beban keuangan masa depan (imputed interest)
+  return t;
+}
+
+function renderCALK(perLease,t){
+  const periodLbl='Untuk periode '+longDate(pStart)+' s.d. '+longDate(pEnd)+' (tahun berjalan s.d. tanggal cut-off)';
+  document.getElementById('periodTagROU').textContent=periodLbl;
+  document.getElementById('periodTagLL').textContent=periodLbl;
+  renderCALK_ROU(perLease,t);
+  renderCALK_LL(perLease,t);
+  renderRecap(perLease,t);
+}
+
+/* ===== CALK ROU: section Biaya Perolehan / Akumulasi Penyusutan / Nilai Buku Neto ===== */
+function renderCALK_ROU(perLease,t){
+  const yStart=longDate(pStart), yEnd=longDate(pEnd);
+  const cols=[{h:'Saldo Awal',sub:yStart},{h:'Penambahan'},{h:'Pengurangan'},{h:'Saldo Akhir',sub:yEnd}];
+  const span=cols.length+1;
+  const tdCell=v=>'<td class="num">'+(v===null||v===''?'':signed(v))+'</td>';
+  const headRow='<tr><th>Keterangan</th>'+cols.map(c=>'<th class="num">'+c.h+(c.sub?'<br><span style="font-weight:400;color:var(--muted)">'+c.sub+'</span>':'')+'</th>').join('')+'</tr>';
+  let html='<table><thead>'+headRow+'</thead><tbody>';
+
+  const costV=p=>[p.grossOpen,p.grossAdd,-p.grossDisp,p.grossClose];
+  const depV =p=>[-p.accDepOpen,-p.depExp,p.accDepDisp,-p.accDepClose];
+
+  const section=(title,jml,rows,valFn,totVals)=>{
+    html+='<tr class="sec"><td colspan="'+span+'">'+title+'</td></tr>';
+    rows.forEach(p=>{html+='<tr class="item"><td>'+escapeHtml(p.lease_id)+'</td>'+valFn(p).map(tdCell).join('')+'</tr>';});
+    html+='<tr class="sub"><td>'+jml+'</td>'+totVals.map(tdCell).join('')+'</tr>';
+  };
+
+  section('Biaya Perolehan','Jumlah Biaya Perolehan',perLease,costV,
+    [t.grossOpen,t.grossAdd,-t.grossDisp,t.grossClose]);
+  section('Akumulasi Penyusutan','Jumlah Akumulasi Penyusutan',perLease,depV,
+    [-t.accDepOpen,-t.depExp,t.accDepDisp,-t.accDepClose]);
+
+  const nbvCells=[acc(t.netOpen),'','',acc(t.netClose)].map(v=>'<td class="num">'+v+'</td>').join('');
+  html+='<tr class="nbv"><td>Nilai Buku Neto</td>'+nbvCells+'</tr>';
+  html+='</tbody></table>';
+  document.getElementById('calkROU').innerHTML=html;
+
+  /* narasi ROU */
+  let n='';
+  n+='<p>Aset hak-guna merupakan hak Perusahaan untuk menggunakan aset sewaan selama masa sewa, diakui pada tanggal dimulainya sewa sebesar nilai awal liabilitas sewa ditambah pembayaran sewa di muka, dan disusutkan dengan metode <b>garis lurus</b> selama masa sewa sesuai PSAK 73.</p>';
+  n+='<p>Mutasi aset hak-guna untuk periode yang berakhir pada <b>'+yEnd+'</b> menunjukkan nilai buku neto bergerak dari <b>Rp '+acc(t.netOpen)+'</b> pada awal periode menjadi <b>Rp '+acc(t.netClose)+'</b> pada akhir periode.</p>';
+  if(t.grossAdd>0.5)n+='<p>Selama periode berjalan terdapat <b>penambahan</b> aset hak-guna sebesar <b>Rp '+acc(t.grossAdd)+'</b> dari '+t.addCount+' kontrak sewa baru yang dimulai dalam periode berjalan.</p>';
+  n+='<p>Beban penyusutan aset hak-guna untuk periode berjalan adalah sebesar <b>Rp '+acc(t.depExp)+'</b> dan dibebankan pada laba rugi periode berjalan.</p>';
+  if(t.grossDisp>0.5)n+='<p>Sebanyak '+t.dispCount+' kontrak sewa berakhir/diderecognisi dalam periode berjalan, dengan penghapusan biaya perolehan sebesar Rp '+acc(t.grossDisp)+' beserta akumulasi penyusutannya. Pada akhir masa sewa aset hak-guna telah tersusut penuh sehingga tidak menimbulkan dampak pada nilai buku neto.</p>';
+  else n+='<p>Tidak terdapat pengakhiran/penghentian pengakuan aset hak-guna selama periode berjalan.</p>';
+  document.getElementById('narrROU').innerHTML=n;
+}
+
+/* ===== CALK Liabilitas Sewa: mutasi + klasifikasi + analisis jatuh tempo ===== */
+function renderCALK_LL(perLease,t){
+  const yStart=longDate(pStart), yEnd=longDate(pEnd);
+
+  /* --- mutasi liabilitas sewa --- */
+  const cols=[{h:'Saldo Awal',sub:yStart},{h:'Penambahan'},{h:'Beban Bunga'},{h:'Pembayaran'},{h:'Saldo Akhir',sub:yEnd}];
+  const span=cols.length+1;
+  const tdCell=v=>'<td class="num">'+(v===null||v===''?'':signed(v))+'</td>';
+  const headRow='<tr><th>Keterangan</th>'+cols.map(c=>'<th class="num">'+c.h+(c.sub?'<br><span style="font-weight:400;color:var(--muted)">'+c.sub+'</span>':'')+'</th>').join('')+'</tr>';
+  let html='<table><thead>'+headRow+'</thead><tbody>';
+  html+='<tr class="sec"><td colspan="'+span+'">Liabilitas Sewa</td></tr>';
+  perLease.forEach(p=>{
+    html+='<tr class="item"><td>'+escapeHtml(p.lease_id)+'</td>'+[p.llOpen,p.llAdd,p.llInterest,-p.llPayment,p.llClose].map(tdCell).join('')+'</tr>';
+  });
+  html+='<tr class="sub"><td>Jumlah Liabilitas Sewa</td>'+[t.llOpen,t.llAdd,t.llInterest,-t.llPayment,t.llClose].map(tdCell).join('')+'</tr>';
+  html+='</tbody></table>';
+  document.getElementById('calkLL').innerHTML=html;
+
+  /* --- klasifikasi jangka pendek / panjang --- */
+  let hs='<table><thead><tr><th>Keterangan</th><th class="num">'+yEnd+'</th></tr></thead><tbody>';
+  hs+='<tr class="item"><td>Bagian jangka pendek (jatuh tempo &le; 1 tahun)</td><td class="num">'+acc(t.llCurrent)+'</td></tr>';
+  hs+='<tr class="item"><td>Bagian jangka panjang (jatuh tempo &gt; 1 tahun)</td><td class="num">'+acc(t.llNonCurrent)+'</td></tr>';
+  hs+='<tr class="ll"><td>Jumlah Liabilitas Sewa</td><td class="num">'+acc(t.llClose)+'</td></tr>';
+  hs+='</tbody></table>';
+  document.getElementById('calkLLSplit').innerHTML=hs;
+
+  /* --- analisis jatuh tempo (tidak terdiskonto) --- */
+  let hm='<table><thead><tr><th>Jatuh Tempo Pembayaran Sewa</th><th class="num">'+yEnd+'</th></tr></thead><tbody>';
+  hm+='<tr class="item"><td>Dalam 1 tahun</td><td class="num">'+acc(t.mat1)+'</td></tr>';
+  hm+='<tr class="item"><td>Lebih dari 1 tahun s.d. 5 tahun</td><td class="num">'+acc(t.mat15)+'</td></tr>';
+  hm+='<tr class="item"><td>Lebih dari 5 tahun</td><td class="num">'+acc(t.mat5)+'</td></tr>';
+  hm+='<tr class="sub"><td>Jumlah pembayaran sewa masa depan (tidak terdiskonto)</td><td class="num">'+acc(t.matTotal)+'</td></tr>';
+  hm+='<tr class="item"><td>Dikurangi: beban keuangan masa depan</td><td class="num">'+signed(-t.financeCharge)+'</td></tr>';
+  hm+='<tr class="ll"><td>Nilai kini liabilitas sewa</td><td class="num">'+acc(t.llClose)+'</td></tr>';
+  hm+='</tbody></table>';
+  document.getElementById('calkLLMaturity').innerHTML=hm;
+
+  /* narasi LL */
+  let n='';
+  n+='<p>Liabilitas sewa diukur pada nilai kini pembayaran sewa yang belum dibayar pada tanggal dimulainya sewa, didiskontokan menggunakan suku bunga implisit dalam sewa atau suku bunga pinjaman inkremental. Setelah pengakuan awal, liabilitas sewa diukur dengan metode <b>biaya bunga efektif</b> &mdash; bertambah karena akresi bunga dan berkurang karena pembayaran sewa.</p>';
+  n+='<p>Mutasi liabilitas sewa untuk periode yang berakhir pada <b>'+yEnd+'</b> bergerak dari <b>Rp '+acc(t.llOpen)+'</b> pada awal periode menjadi <b>Rp '+acc(t.llClose)+'</b> pada akhir periode'+(t.llAdd>0.5?', termasuk penambahan liabilitas sewa baru sebesar Rp '+acc(t.llAdd):'')+'. Beban bunga atas liabilitas sewa sebesar <b>Rp '+acc(t.llInterest)+'</b> diakui dalam laba rugi periode berjalan, sementara pembayaran sewa selama periode berjalan adalah sebesar <b>Rp '+acc(t.llPayment)+'</b>.</p>';
+  n+='<p>Pada tanggal pelaporan, liabilitas sewa terdiri atas bagian jangka pendek sebesar <b>Rp '+acc(t.llCurrent)+'</b> (jatuh tempo dalam 12 bulan) dan bagian jangka panjang sebesar <b>Rp '+acc(t.llNonCurrent)+'</b>.</p>';
+  n+='<p>Total pembayaran sewa masa depan yang belum terdiskonto adalah sebesar <b>Rp '+acc(t.matTotal)+'</b>, dengan beban keuangan masa depan (selisih terhadap nilai kini) sebesar <b>Rp '+acc(t.financeCharge)+'</b>.</p>';
+  document.getElementById('narrLL').innerHTML=n;
+}
+
+/* ===== ringkasan CALK per kontrak ===== */
+function renderRecap(perLease,t){
+  const H=['Lease ID','ROU NBV Awal','Penyusutan','ROU NBV Akhir','LL Awal','Bunga','Pembayaran','LL Akhir','Jk. Pendek','Jk. Panjang','Status'];
+  let h='<thead><tr>'+H.map((x,i)=>'<th'+(i>=1&&i<=9?' class="num"':'')+'>'+x+'</th>').join('')+'</tr></thead><tbody>';
+  perLease.forEach(p=>{
+    const pill='<span class="pill '+p.status+'">'+(p.status==='aktif'?'Aktif':p.status==='tempo'?'Selesai':'Belum Mulai')+'</span>';
+    h+='<tr>'+
+      '<td><b>'+escapeHtml(p.lease_id)+'</b></td>'+
+      '<td class="num">'+acc(p.netOpen)+'</td>'+
+      '<td class="num">'+acc(p.depExp)+'</td>'+
+      '<td class="num">'+acc(p.netClose)+'</td>'+
+      '<td class="num">'+acc(p.llOpen)+'</td>'+
+      '<td class="num">'+acc(p.llInterest)+'</td>'+
+      '<td class="num">'+acc(p.llPayment)+'</td>'+
+      '<td class="num">'+acc(p.llClose)+'</td>'+
+      '<td class="num">'+acc(p.llCurrent)+'</td>'+
+      '<td class="num">'+acc(p.llNonCurrent)+'</td>'+
+      '<td>'+pill+'</td></tr>';
+  });
+  h+='</tbody><tfoot><tr class="total">'+
+    '<td>TOTAL</td>'+
+    '<td class="num">'+acc(t.netOpen)+'</td>'+
+    '<td class="num">'+acc(t.depExp)+'</td>'+
+    '<td class="num">'+acc(t.netClose)+'</td>'+
+    '<td class="num">'+acc(t.llOpen)+'</td>'+
+    '<td class="num">'+acc(t.llInterest)+'</td>'+
+    '<td class="num">'+acc(t.llPayment)+'</td>'+
+    '<td class="num">'+acc(t.llClose)+'</td>'+
+    '<td class="num">'+acc(t.llCurrent)+'</td>'+
+    '<td class="num">'+acc(t.llNonCurrent)+'</td>'+
+    '<td></td></tr></tfoot>';
+  document.getElementById('recapTable').innerHTML=h;
+}
+
 /* ---------- export ---------- */
 function exportExcel(){
   if(!leases.length || !leases[0].rows){ toast('Hitung dulu sebelum mengunduh.'); return; }
@@ -883,6 +1167,69 @@ function exportExcel(){
   sumAoA.push(['Tarif Pajak:', taxRate]);
   const wsSummary = XLSX.utils.aoa_to_sheet(sumAoA);
   XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
+
+  /* ===== Sheet CALK ===== */
+  const perLeaseCALK = leases.map(computeLease);
+  const tC = aggregate(perLeaseCALK);
+  const yStart=longDate(pStart), yEnd=longDate(pEnd);
+  const neg=v=>v?-Math.abs(v):0;
+
+  /* CALK ROU */
+  const a=[];
+  a.push(['CATATAN ATAS LAPORAN KEUANGAN — ASET HAK-GUNA (ROU)']);
+  a.push(['Untuk periode '+yStart+' s.d. '+yEnd]);
+  a.push([]);
+  a.push(['Keterangan','Saldo Awal ('+yStart+')','Penambahan','Pengurangan','Saldo Akhir ('+yEnd+')']);
+  a.push(['Biaya Perolehan']);
+  perLeaseCALK.forEach(p=>a.push(['  '+p.lease_id,p.grossOpen,p.grossAdd,neg(p.grossDisp),p.grossClose]));
+  a.push(['Jumlah Biaya Perolehan',tC.grossOpen,tC.grossAdd,neg(tC.grossDisp),tC.grossClose]);
+  a.push([]);
+  a.push(['Akumulasi Penyusutan']);
+  perLeaseCALK.forEach(p=>a.push(['  '+p.lease_id,neg(p.accDepOpen),neg(p.depExp),p.accDepDisp,neg(p.accDepClose)]));
+  a.push(['Jumlah Akumulasi Penyusutan',neg(tC.accDepOpen),neg(tC.depExp),tC.accDepDisp,neg(tC.accDepClose)]);
+  a.push([]);
+  a.push(['Nilai Buku Neto',tC.netOpen,'','',tC.netClose]);
+  const wsA=XLSX.utils.aoa_to_sheet(a);
+  wsA['!cols']=[{wch:40},{wch:20},{wch:16},{wch:16},{wch:20}];
+  XLSX.utils.book_append_sheet(wb,wsA,'CALK ROU');
+
+  /* CALK Liabilitas Sewa */
+  const b=[];
+  b.push(['CATATAN ATAS LAPORAN KEUANGAN — LIABILITAS SEWA']);
+  b.push(['Untuk periode '+yStart+' s.d. '+yEnd]);
+  b.push([]);
+  b.push(['Mutasi Liabilitas Sewa']);
+  b.push(['Keterangan','Saldo Awal ('+yStart+')','Penambahan','Beban Bunga','Pembayaran','Saldo Akhir ('+yEnd+')']);
+  perLeaseCALK.forEach(p=>b.push(['  '+p.lease_id,p.llOpen,p.llAdd,p.llInterest,neg(p.llPayment),p.llClose]));
+  b.push(['Jumlah Liabilitas Sewa',tC.llOpen,tC.llAdd,tC.llInterest,neg(tC.llPayment),tC.llClose]);
+  b.push([]);
+  b.push(['Klasifikasi Liabilitas Sewa per '+yEnd]);
+  b.push(['Bagian jangka pendek (<= 1 tahun)',tC.llCurrent]);
+  b.push(['Bagian jangka panjang (> 1 tahun)',tC.llNonCurrent]);
+  b.push(['Jumlah Liabilitas Sewa',tC.llClose]);
+  b.push([]);
+  b.push(['Analisis Jatuh Tempo Pembayaran Sewa (tidak terdiskonto) per '+yEnd]);
+  b.push(['Dalam 1 tahun',tC.mat1]);
+  b.push(['Lebih dari 1 tahun s.d. 5 tahun',tC.mat15]);
+  b.push(['Lebih dari 5 tahun',tC.mat5]);
+  b.push(['Jumlah pembayaran sewa masa depan (tidak terdiskonto)',tC.matTotal]);
+  b.push(['Dikurangi: beban keuangan masa depan',neg(tC.financeCharge)]);
+  b.push(['Nilai kini liabilitas sewa',tC.llClose]);
+  const wsB=XLSX.utils.aoa_to_sheet(b);
+  wsB['!cols']=[{wch:48},{wch:20},{wch:16},{wch:16},{wch:16},{wch:20}];
+  XLSX.utils.book_append_sheet(wb,wsB,'CALK Liabilitas Sewa');
+
+  /* Ringkasan CALK per kontrak */
+  const cc=[];
+  cc.push(['RINGKASAN CALK PER KONTRAK SEWA — '+yStart+' s.d. '+yEnd]);
+  cc.push([]);
+  cc.push(['lease_id','rou_nbv_awal','penyusutan','rou_nbv_akhir','ll_awal','bunga','pembayaran','ll_akhir','jk_pendek','jk_panjang','status']);
+  perLeaseCALK.forEach(p=>cc.push([p.lease_id,p.netOpen,p.depExp,p.netClose,p.llOpen,p.llInterest,p.llPayment,p.llClose,p.llCurrent,p.llNonCurrent,
+    (p.status==='aktif'?'Aktif':p.status==='tempo'?'Selesai':'Belum Mulai')]));
+  cc.push(['TOTAL',tC.netOpen,tC.depExp,tC.netClose,tC.llOpen,tC.llInterest,tC.llPayment,tC.llClose,tC.llCurrent,tC.llNonCurrent,'']);
+  const wsC=XLSX.utils.aoa_to_sheet(cc);
+  wsC['!cols']=[{wch:18},{wch:16},{wch:14},{wch:16},{wch:16},{wch:14},{wch:16},{wch:16},{wch:14},{wch:14},{wch:12}];
+  XLSX.utils.book_append_sheet(wb,wsC,'Ringkasan CALK');
   
   /* Detail per lease */
   leases.forEach(l => {
@@ -913,7 +1260,7 @@ function exportExcel(){
     while(wb.SheetNames.includes(fName)){ fName = sName.substring(0,28)+'_'+c; c++; }
     XLSX.utils.book_append_sheet(wb, ws, fName);
   });
-  XLSX.writeFile(wb, 'amortisasi_lease.xlsx');
+  XLSX.writeFile(wb, 'perhitungan_lease.xlsx');
   toast('File Excel berhasil diunduh.');
 }
 
