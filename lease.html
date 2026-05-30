@@ -1,0 +1,1000 @@
+<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Kalkulator Amortisasi Lease</title><script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script><style>
+  :root{
+    --bg:#f5f5f7; --card:#ffffff; --text:#1d1d1f; --muted:#86868b;
+    --border:#d2d2d7; --accent:#0066cc; --accent-dark:#0044aa; --accent-light:#f5f5f7;
+    --success:#1d1d1f; --success-light:#e8e8ed; --danger:#ff3b30; --danger-light:#ffebee;
+    --warn:#ff9500; --warn-light:#fff5e6;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
+    background:var(--bg);color:var(--text);line-height:1.4706;
+    -webkit-font-smoothing:antialiased;
+  }
+  header{
+    background:var(--card);
+    color:var(--text);padding:48px 24px 32px;
+    border-bottom:1px solid #e8e8ed;
+  }
+  .head-inner{max-width:1120px;margin:0 auto;display:flex;align-items:center;gap:20px}
+  .logo{
+    width:48px;height:48px;border-radius:12px;flex-shrink:0;
+    background:#1d1d1f;display:flex;align-items:center;justify-content:center;
+    color:#fff;
+  }
+  .logo svg{width:24px;height:24px}
+  header h1{font-size:24px;font-weight:700;letter-spacing:-0.03em}
+  header p{font-size:14px;color:var(--muted);margin-top:4px;font-weight:400}
+  .container{max-width:1120px;margin:32px auto 60px;padding:0 24px;}
+  .card{
+    background:var(--card);border:1px solid #e8e8ed;border-radius:20px;
+    padding:32px;margin-bottom:24px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.02);
+  }
+  .card-head{display:flex;align-items:center;gap:12px;margin-bottom:24px}
+  .step-num{
+    width:24px;height:24px;border-radius:50%;background:#1d1d1f;
+    color:#fff;font-weight:600;font-size:12px;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .card-head h2{font-size:18px;font-weight:600;letter-spacing:-0.02em}
+  .card-head .sub{font-size:12px;color:var(--muted);font-weight:400;margin-left:auto;text-align:right}
+  .drop{
+    border:1px solid var(--border);border-radius:16px;padding:48px 24px;text-align:center;
+    cursor:pointer;transition:all 0.2s cubic-bezier(0.25, 1, 0.5, 1);background:#fafafa;
+  }
+  .drop:hover{border-color:var(--text);background:var(--card)}
+  .drop.drag{border-color:var(--accent);background:var(--accent-light);transform:scale(1.005)}
+  .drop svg{width:36px;height:36px;color:var(--text);margin-bottom:12px}
+  .drop .t1{font-size:15px;font-weight:600;letter-spacing:-0.01em}
+  .drop .t2{font-size:13px;color:var(--muted);margin-top:4px}
+  .or{display:flex;align-items:center;gap:16px;color:var(--muted);font-size:13px;margin:20px 0;font-weight:400}
+  .or::before,.or::after{content:"";flex:1;height:1px;background:#e8e8ed}
+  .btn-row{display:flex;gap:12px;flex-wrap:wrap}
+  button{font-family:inherit;cursor:pointer;border:none;transition:all 0.15s ease}
+  .btn{
+    padding:10px 20px;border-radius:30px;font-size:13.5px;font-weight:500;
+    display:inline-flex;align-items:center;gap:8px;letter-spacing:-0.01em;
+  }
+  .btn svg{width:16px;height:16px}
+  .btn-primary{background:#1d1d1f;color:#fff}
+  .btn-primary:hover{background:#3a3a3c}
+  .btn-primary:disabled{background:#e8e8ed;color:#a1a1a6;cursor:not-allowed}
+  .btn-accent{background:var(--accent);color:#fff}
+  .btn-accent:hover{background:var(--accent-dark)}
+  .btn-ghost{background:#e8e8ed;color:var(--text)}
+  .btn-ghost:hover{background:#d2d2d7}
+  .btn-lg{padding:14px 28px;font-size:16px;font-weight:600;width:100%;justify-content:center;border-radius:30px;margin-bottom:24px}
+  .lease-list{margin-top:20px;display:flex;flex-direction:column;gap:10px;max-height:260px;overflow-y:auto;padding-right:4px;}
+  .lease-list::-webkit-scrollbar{width:5px;}
+  .lease-list::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:10px;}
+  .lease-item{
+    display:flex;align-items:center;gap:12px;padding:14px 18px;
+    background:#f5f5f7;border:1px solid #e8e8ed;border-radius:12px;font-size:13.5px;
+  }
+  .lease-item .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0}
+  .lease-item .nm{font-weight:600;letter-spacing:-0.01em}
+  .lease-item .meta{color:var(--muted);font-size:12.5px;margin-left:auto;text-align:right}
+  .field label{display:block;font-size:14px;font-weight:600;margin-bottom:8px;letter-spacing:-0.01em}
+  input[type=date], input[type=number]{
+    font-family:inherit;font-size:14px;padding:11px 16px;border:1px solid var(--border);
+    border-radius:12px;background:var(--card);color:var(--text);width:260px;max-width:100%;
+    outline:none;-webkit-appearance:none;
+  }
+  input[type=date]:focus, input[type=number]:focus{border-color:var(--text);}
+  .field-row{display:flex;gap:24px;flex-wrap:wrap}
+  .hint{font-size:13px;color:var(--muted);margin-top:8px}
+  .banner{border-radius:14px;padding:16px;font-size:13.5px;margin-bottom:24px}
+  .banner.err{background:var(--danger-light);border:1px solid #ffccd0;color:var(--danger)}
+  .banner b{font-weight:600}
+  .banner ul{margin:8px 0 0 20px}
+  .stats{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:24px}
+  .stat{
+    background:var(--card);border:1px solid #e8e8ed;border-radius:16px;padding:20px;
+    box-shadow:0 4px 16px rgba(0,0,0,0.01);
+  }
+  .stat .lbl{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.03em;margin-bottom:8px}
+  .stat .val{font-size:19px;font-weight:700;letter-spacing:-0.03em;font-variant-numeric:tabular-nums}
+  .stat .val.sm{font-size:16px}
+  .tbl-wrap{overflow:auto;border:1px solid #e8e8ed;border-radius:14px;max-height:560px;background:var(--card)}
+  table{border-collapse:collapse;width:100%;font-size:13px}
+  thead th{
+    background:#fafafa;position:sticky;top:0;z-index:2;
+    text-align:left;padding:14px 16px;font-weight:600;color:var(--text);
+    border-bottom:1px solid #e8e8ed;white-space:nowrap;letter-spacing:-0.01em;
+  }
+  tbody td{padding:12px 16px;border-bottom:1px solid #f5f5f7;white-space:nowrap;color:#333}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:#f5f5f7}
+  .num{text-align:right;font-variant-numeric:tabular-nums}
+  .matured td{background:#fffbf2;font-weight:600}
+  .matured:hover td{background:#fff7e6}
+  .payrow td{background:#f0f7ff}
+  .payrow:hover td{background:#e3f0ff}
+  .pill{
+    display:inline-block;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:500;
+    letter-spacing:-0.01em;
+  }
+  .pill.aktif{background:#e3f2fd;color:#0d47a1}
+  .pill.tempo{background:#fff3e0;color:#e65100}
+  .pill.belum{background:#f5f5f7;color:var(--muted)}
+  select{
+    font-family:inherit;font-size:14px;padding:10px 16px;border:1px solid var(--border);
+    border-radius:12px;background:var(--card);font-weight:500;outline:none;width:100%;margin-bottom:20px;
+  }
+  select:focus{border-color:var(--text)}
+  .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 48px;background:#fafafa;padding:24px;border-radius:16px;border:1px solid #e8e8ed;margin-bottom:20px;font-size:13.5px}
+  .detail-grid .col{display:flex;flex-direction:column;gap:8px}
+  .detail-grid .row{display:flex;justify-content:space-between;border-bottom:1px dashed #e8e8ed;padding-bottom:8px}
+  .detail-grid .row:last-child{border-bottom:none;padding-bottom:0}
+  .detail-grid .lbl{color:var(--muted)}
+  .detail-grid .val{font-weight:600;color:var(--text);font-variant-numeric:tabular-nums}
+  .hidden{display:none}
+  footer{text-align:center;font-size:12.5px;color:var(--muted);padding:24px 24px 48px;line-height:1.8;font-weight:400}
+  #toast{
+    position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:rgba(29,29,31,0.96);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);color:#fff;padding:14px 24px;border-radius:30px;font-size:13.5px;
+    opacity:0;transition:all 0.3s cubic-bezier(0.25, 1, 0.5, 1);pointer-events:none;z-index:99;font-weight:500;box-shadow:0 8px 30px rgba(0,0,0,0.15);
+  }
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5); z-index: 999;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
+    backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+  }
+  .modal-overlay.show { opacity: 1; pointer-events: auto; }
+  .modal-card {
+    background: var(--card); width: 90%; max-width: 720px; max-height: 85vh;
+    border-radius: 20px; display: flex; flex-direction: column;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    transform: translateY(20px); transition: transform 0.2s ease;
+  }
+  .modal-overlay.show .modal-card { transform: translateY(0); }
+  .modal-head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 24px 32px; border-bottom: 1px solid #e8e8ed;
+  }
+  .modal-head h2 { font-size: 20px; font-weight: 600; letter-spacing: -0.02em; }
+  .modal-body {
+    padding: 32px; overflow-y: auto; font-size: 14px; color: var(--text); line-height: 1.6;
+  }
+  .modal-body h4 { font-size: 16px; margin: 24px 0 12px; }
+  .modal-body h4:first-child { margin-top: 0; }
+  .modal-body ul { margin-bottom: 16px; padding-left: 20px; }
+  .modal-body li { margin-bottom: 8px; }
+  .modal-body ul ul { margin-top: 8px; margin-bottom: 0; }
+  .modal-body blockquote {
+    background: #f5f5f7; border-left: 4px solid var(--accent);
+    padding: 12px 16px; margin: 16px 0; border-radius: 0 8px 8px 0; font-style: italic;
+  }
+  .close-btn { background: none; border: none; cursor: pointer; color: var(--muted); padding: 4px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: 0.15s;}
+  .close-btn:hover { background: #e8e8ed; color: var(--text); }
+
+  @media(max-width:1024px){
+    .stats{grid-template-columns:repeat(3,1fr)}
+  }
+  @media(max-width:720px){
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .card{padding:24px}
+    header{padding:32px 24px}
+    .detail-grid{grid-template-columns:1fr;gap:16px 0}
+  }
+</style></head><body>
+
+<header>
+  <div class="head-inner">
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 3v18h18"/><path d="M7 16l4-6 4 3 5-8"/>
+      </svg>
+    </div>
+    <div>
+      <h1>Kalkulator Amortisasi Lease</h1>
+      <p>PSAK 73 / IFRS 16 &middot; Liabilitas Sewa &amp; ROU Asset &middot; Bulk Import Excel &middot; DTA/DTL</p>
+    </div>
+    <button class="btn btn-ghost" id="openGuideBtn" style="margin-left:auto;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      Panduan
+    </button>
+  </div>
+</header>
+
+<div class="container">
+  <div id="errBanner" class="banner err hidden"></div>
+  <div class="card">
+    <div class="card-head">
+      <div class="step-num">1</div>
+      <h2>Data Kontrak Lease &amp; Pembayaran</h2>
+      <span class="sub">Sheet "lease": lease_id, nominal, upfront, payment_option, start_date, end_date, interest<br>Sheet "payment": lease_id, periode, payment</span>
+    </div>
+    <div class="drop" id="drop">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+      <div class="t1">Pilih atau jatuhkan file Excel di sini</div>
+      <div class="t2">Mendukung format bulk .xlsx / .xls banyak kontrak lease sekaligus</div>
+    </div>
+    <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none">
+    <div class="or">atau</div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" id="tplBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Unduh Template Excel
+      </button>
+      <button class="btn btn-ghost" id="sampleBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        Muat Contoh Data
+      </button>
+    </div>
+    <div class="lease-list hidden" id="leaseList"></div>
+  </div>
+  <div class="card">
+    <div class="card-head">
+      <div class="step-num">2</div>
+      <h2>Parameter Valuasi</h2>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="cutoff">Tanggal Cut-off Pelaporan</label>
+        <input type="date" id="cutoff">
+        <div class="hint">Tanggal akhir periode pelaporan untuk perhitungan status &amp; akumulasi.</div>
+      </div>
+      <div class="field">
+        <label for="taxRate">Tarif Pajak (%)</label>
+        <input type="number" id="taxRate" value="22" step="0.01" min="0" max="100">
+        <div class="hint">Digunakan untuk menghitung DTA/DTL atas koreksi fiskal.</div>
+      </div>
+    </div>
+  </div>
+  <button class="btn btn-primary btn-lg" id="calcBtn" disabled>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="10" y2="18"/><line x1="14" y1="18" x2="16" y2="18"/></svg>
+    Proses Hitung Amortisasi Lease
+  </button>
+  <div id="results" class="hidden">
+    <div class="stats" id="stats"></div>
+    <div class="card">
+      <div class="card-head">
+        <div class="step-num" style="background:#1d1d1f;color:#fff">&#10003;</div>
+        <h2>Ringkasan Eksekutif Portfolio (Summary)</h2>
+        <button class="btn btn-accent" id="dlBtn" style="margin-left:auto">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Unduh Excel
+        </button>
+      </div>
+      <div class="tbl-wrap"><table id="sumTable"></table></div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div class="step-num" style="background:#1d1d1f;color:#fff">&#10003;</div>
+         <h2>Jadwal Buku Amortisasi Detail</h2>
+      </div>
+      <select id="leaseSelect"></select>
+      <div id="schedMeta"></div>
+      <div class="tbl-wrap"><table id="schedTable"></table></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="guideModal">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h2>Panduan Lengkap Penggunaan</h2>
+      <button class="close-btn" id="closeGuideBtn">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p>Aplikasi ini menghitung jadwal amortisasi <b>Liabilitas Sewa</b> dan <b>Right-of-Use (ROU) Asset</b> sesuai PSAK 73 / IFRS 16 secara massal. Berikut panduan langkah demi langkah.</p>
+
+      <h4>1. Struktur File Excel</h4>
+      <p>File Excel harus memiliki <b>dua sheet</b>:</p>
+
+      <p style="margin-top:12px;"><b>Sheet "lease" (Master Kontrak):</b></p>
+      <ul>
+        <li><b>lease_id</b>: Kode unik kontrak lease (contoh: lease001).</li>
+        <li><b>nominal</b>: Total nilai kontrak lease (Present Value akan dihitung otomatis).</li>
+        <li><b>upfront</b>: Pembayaran di muka saat inisiasi (boleh kosong/0).</li>
+        <li><b>payment_option</b>: Skema pembayaran. Opsi: <i>custom</i> (gunakan jadwal sheet payment), <i>monthly</i>, <i>quarterly</i>, <i>annually</i>.</li>
+        <li><b>start_date</b>: Tanggal mulai kontrak (DD/MM/YYYY).</li>
+        <li><b>end_date</b>: Tanggal berakhir kontrak (DD/MM/YYYY).</li>
+        <li><b>interest</b>: Tingkat bunga implisit/incremental borrowing rate (desimal, contoh: 0.035 untuk 3.5%).</li>
+      </ul>
+
+      <p><b>Sheet "payment" (Jadwal Pembayaran):</b></p>
+      <ul>
+        <li><b>lease_id</b>: Kode kontrak yang sama dengan sheet lease.</li>
+        <li><b>periode</b>: Tanggal pembayaran (DD/MM/YYYY).</li>
+        <li><b>payment</b>: Jumlah pembayaran pada periode tersebut.</li>
+      </ul>
+
+      <blockquote><b>Tips:</b> Klik tombol "Unduh Template Excel" untuk mendapatkan format standar yang sudah siap diisi.</blockquote>
+
+      <h4>2. Output yang Dihasilkan</h4>
+      <p>Untuk setiap kontrak lease, aplikasi menghasilkan jadwal bulanan dengan kolom:</p>
+      <ul>
+        <li><b>ll_begin / ll_end</b>: Saldo Liabilitas Lease awal dan akhir bulan.</li>
+        <li><b>ll_payment</b>: Pembayaran yang mengurangi liabilitas (termasuk bunga).</li>
+        <li><b>ll_exp</b>: Beban bunga (interest expense) yang menambah liabilitas.</li>
+        <li><b>rou_begin / rou_end</b>: Saldo ROU Asset awal dan akhir bulan.</li>
+        <li><b>rou_exp</b>: Beban penyusutan ROU Asset (garis lurus).</li>
+        <li><b>exp_com</b>: Total beban komersial (ll_exp + rou_exp).</li>
+        <li><b>exp_fiscal</b>: Beban fiskal = total pembayaran lease (cash basis).</li>
+        <li><b>tax_correction</b>: Koreksi fiskal = exp_fiscal - exp_com.</li>
+        <li><b>dta / dtl</b>: Deferred Tax Asset / Liability berdasarkan tarif pajak.</li>
+      </ul>
+
+      <h4>3. Langkah Penggunaan</h4>
+      <ul>
+        <li><b>Siapkan Data Excel</b> dengan dua sheet di atas.</li>
+        <li><b>Unggah File:</b> Drag &amp; drop atau klik kotak upload.</li>
+        <li><b>Set Cut-off &amp; Tarif Pajak</b> pada Langkah 2.</li>
+        <li><b>Klik "Proses Hitung Amortisasi Lease"</b>.</li>
+        <li><b>Review Dashboard &amp; Tabel</b> dan pilih lease pada dropdown untuk melihat jadwal detail.</li>
+        <li><b>Klik "Unduh Excel"</b> untuk menyimpan kertas kerja.</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Metode PSAK 73 / IFRS 16 &middot; Liabilitas Sewa Effective Interest &middot; ROU Asset Straight-Line Depreciation.<br>
+  Aplikasi ini sepenuhnya berjalan di sisi klien (browser) &mdash; Kerahasiaan data finansial kertas kerja audit Anda terjamin aman.
+</footer>
+<div id="toast"></div>
+
+<script>
+const MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+let leases=[];
+let currentCutoff=null;
+let taxRate=0.22;
+
+/* ---------- helpers ---------- */
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(t._tm);t._tm=setTimeout(()=>t.classList.remove('show'),3200);
+}
+function endOfMonth(d){return new Date(d.getFullYear(),d.getMonth()+1,0);}
+function addMonths(d,n){return new Date(d.getFullYear(),d.getMonth()+n,d.getDate());}
+function daysBetween(a,b){return Math.round((b-a)/86400000);}
+function sameDay(a,b){return a&&b&&a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate();}
+function fmt(n,dec){
+  if(n===null||n===undefined||n==='-'||n==='')return '-';
+  return Number(n).toLocaleString('en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec});
+}
+function fmtDash(n){
+  if(n===null||n===undefined||n==='-'||n==='')return '-';
+  let v=Math.round(Number(n));
+  if(v===0)return '-';
+  if(v<0)return '('+Math.abs(v).toLocaleString('en-US')+')';
+  return v.toLocaleString('en-US');
+}
+function fmtDate(d){if(!d) return '-'; return String(d.getDate()).padStart(2,'0')+'-'+MON[d.getMonth()]+'-'+String(d.getFullYear()%100).padStart(2,'0');}
+function fmtDateFull(d){if(!d) return '-'; return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();}
+function parseDate(v){
+  if(v===null||v===undefined||v==='')return null;
+  if(v instanceof Date)return new Date(v.getFullYear(),v.getMonth(),v.getDate());
+  if(typeof v==='number'){
+    const d=new Date(Date.UTC(1899,11,30)+Math.round(v)*86400000);
+    return new Date(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate());
+  }
+  const s=String(v).trim();
+  let m=s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/);
+  if(m){
+    let dd=+m[1],mm=+m[2],yy=+m[3];
+    if(yy<100)yy+=(yy<70?2000:1900);
+    const d=new Date(yy,mm-1,dd);
+    return isNaN(d)?null:d;
+  }
+  m=s.match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})$/);
+  if(m)return new Date(+m[1],+m[2]-1,+m[3]);
+  const d=new Date(s);
+  return isNaN(d)?null:new Date(d.getFullYear(),d.getMonth(),d.getDate());
+}
+function parseNumber(v){
+  if(v===null||v===undefined||v==='')return null;
+  if(typeof v==='number')return v;
+  const s=String(v).trim().replace(/[^0-9.\-]/g,'');
+  if(s===''||s==='-'||s==='.')return null;
+  const n=parseFloat(s);
+  return isNaN(n)?null:n;
+}
+function escapeHtml(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+/* ---------- core lease calculation ---------- */
+function buildLeaseSchedule(lease){
+  // Pastikan jadwal payment diurutkan berdasarkan tanggal
+  const payments = lease.payments.slice().sort((a,b) => a.date - b.date);
+  
+  const monthlyRate = lease.interest / 12;
+  let initialLL = 0;
+  
+  // 1. Hitung Present Value (PV) per pembayaran secara individual
+  const processedPayments = payments.map(p => {
+    // t = jumlah bulan dari bulan mulai kontrak ke bulan pembayaran
+    let t = (p.date.getFullYear() - lease.startDate.getFullYear()) * 12 + (p.date.getMonth() - lease.startDate.getMonth()) + 1;
+    let pv = p.amount / Math.pow(1 + monthlyRate, t);
+    initialLL += pv;
+    return { date: p.date, amount: p.amount, t: t, pv: pv };
+  });
+  
+  // 2. Setup Nilai Awal ROU & Total Bulan Depresiasi (Straight-line)
+  const initialROU = initialLL + (lease.upfront || 0);
+  
+  // Perhitungan eksak jumlah bulan untuk depresiasi ROU sesuai target (35 bulan)
+  const totalDepMonths = (lease.endDate.getFullYear() - lease.startDate.getFullYear()) * 12 + (lease.endDate.getMonth() - lease.startDate.getMonth());
+  const monthlyDep = initialROU / totalDepMonths;
+  
+  const rows = [];
+  let ll = initialLL;
+  let rou = initialROU;
+  
+  // Mulai iterasi jadwal dari awal bulan start_date
+  let curDate = new Date(lease.startDate.getFullYear(), lease.startDate.getMonth(), 1);
+  
+  // 3. Bangun baris jadwal amortisasi bulanan
+  for (let i = 1; i <= totalDepMonths; i++) {
+    let rowDate = endOfMonth(curDate);
+    
+    let ll_begin = ll;
+    let rou_begin = rou;
+    
+    // Cari apakah ada pembayaran di akhir bulan ini
+    let p = processedPayments.find(pm => pm.date.getFullYear() === rowDate.getFullYear() && pm.date.getMonth() === rowDate.getMonth());
+    
+    let ll_payment = p ? p.amount : 0;
+    
+    // Berdasarkan output target, beban bunga (ll_exp) diakui penuh pada saat bulan pembayaran 
+    // yang nilainya adalah selisih antara Cash Payment dengan PV Inisialnya.
+    let ll_exp = p ? (p.amount - p.pv) : 0; 
+    
+    let ll_end = ll_begin + ll_exp - ll_payment;
+    
+    let rou_exp = monthlyDep;
+    let rou_end = rou_begin - rou_exp;
+    
+    // Pembulatan minor untuk menormalisasi nilai 0 di akhir periode
+    if (Math.abs(ll_end) < 0.01) ll_end = 0;
+    if (Math.abs(rou_end) < 0.01) rou_end = 0;
+    
+    let exp_com = ll_exp + rou_exp;
+    let exp_fiscal = ll_payment;
+    let tax_correction = exp_fiscal - exp_com;
+    
+    // Pemetaan DTA dan DTL disesuaikan dengan output kolom target Anda
+    let dta = rou_end * taxRate;
+    let dtl = ll_end * taxRate;
+    
+    rows.push({
+      date: new Date(rowDate),
+      ll_begin: ll_begin,
+      ll_payment: ll_payment,
+      ll_exp: ll_exp,
+      ll_end: ll_end,
+      rou_begin: rou_begin,
+      rou_exp: rou_exp,
+      rou_end: rou_end,
+      exp_com: exp_com,
+      exp_fiscal: exp_fiscal,
+      tax_correction: tax_correction,
+      dta: dta,
+      dtl: dtl,
+      isPayment: ll_payment > 0,
+      isTerminal: i === totalDepMonths
+    });
+    
+    // Update saldo untuk iterasi bulan berikutnya
+    ll = ll_end;
+    rou = rou_end;
+    
+    // Maju 1 bulan
+    curDate = addMonths(curDate, 1);
+  }
+  
+  return {
+    initialLL: initialLL,
+    initialROU: initialROU,
+    monthlyDep: monthlyDep,
+    totalDepMonths: totalDepMonths,
+    rows: rows
+  };
+}
+
+/* ---------- parsing input ---------- */
+function buildLeases(leaseRecs, payRecs){
+  const out=[], errors=[];
+  /* Group payments by lease_id */
+  const payMap = {};
+  payRecs.forEach((p,i)=>{
+    const id = String(p.lease_id||'').trim();
+    if(!id) return;
+    const dt = parseDate(p.periode);
+    const amt = parseNumber(p.payment);
+    if(!dt || amt===null) return;
+    if(!payMap[id]) payMap[id]=[];
+    payMap[id].push({date:dt, amount:amt});
+  });
+  
+  leaseRecs.forEach((r,i)=>{
+    const rowNo = r._row || (i+1);
+    const id = (r.lease_id===undefined||r.lease_id===null||String(r.lease_id).trim()==='')?null:String(r.lease_id).trim();
+    const nominal = parseNumber(r.nominal);
+    const upfront = parseNumber(r.upfront) || 0;
+    const option = String(r.payment_option||'custom').toLowerCase().trim();
+    const sd = parseDate(r.start_date);
+    const ed = parseDate(r.end_date);
+    let rate = parseNumber(r.interest);
+    if(rate!==null && rate>1) rate = rate/100;
+    
+    const isEmpty = !id && nominal===null && !sd && !ed && rate===null;
+    if(isEmpty) return;
+    
+    const e = [];
+    if(!id) e.push('lease_id kosong');
+    if(nominal===null||nominal<=0) e.push('nominal tidak valid');
+    if(!sd) e.push('start_date tidak valid');
+    if(!ed) e.push('end_date tidak valid');
+    if(rate===null||rate<0) e.push('interest tidak valid');
+    if(sd && ed && ed<=sd) e.push('end_date harus setelah start_date');
+    
+    const payments = payMap[id] || [];
+    if(option === 'custom' && payments.length === 0) e.push('jadwal payment tidak ditemukan');
+    
+    if(e.length){
+      errors.push('Baris '+rowNo+' ('+id+'): '+e.join(', '));
+      return;
+    }
+    
+    out.push({
+      lease_id: id,
+      nominal: nominal,
+      upfront: upfront,
+      payment_option: option,
+      startDate: sd,
+      endDate: ed,
+      interest: rate,
+      payments: payments
+    });
+  });
+  
+  return {leases: out, errors: errors};
+}
+
+function parseWorkbook(buf){
+  const wb = XLSX.read(buf, {type:'array', cellDates:true});
+  const norm = s => String(s===undefined?'':s).toLowerCase().replace(/[\s_]/g,'').trim();
+  
+  /* Find lease sheet */
+  let leaseSheet = null, paySheet = null;
+  for(const name of wb.SheetNames){
+    const ln = name.toLowerCase();
+    if(ln.includes('lease') && !ln.includes('pay')) leaseSheet = name;
+    else if(ln.includes('pay')) paySheet = name;
+  }
+  if(!leaseSheet) leaseSheet = wb.SheetNames[0];
+  if(!paySheet && wb.SheetNames.length > 1){
+    paySheet = wb.SheetNames.find(n => n !== leaseSheet);
+  }
+  
+  function parseSheet(sheetName, requiredCols){
+    if(!sheetName) return [];
+    const ws = wb.Sheets[sheetName];
+    const aoa = XLSX.utils.sheet_to_json(ws, {header:1, raw:true, blankrows:false});
+    if(!aoa.length) return [];
+    let hi = -1;
+    for(let i=0; i<aoa.length; i++){
+      const set = aoa[i].map(norm);
+      if(requiredCols.every(c => set.includes(c))){ hi = i; break; }
+    }
+    if(hi < 0) throw new Error('Sheet "'+sheetName+'": header tidak ditemukan. Kolom wajib: '+requiredCols.join(', '));
+    const headers = aoa[hi].map(norm);
+    const records = [];
+    for(let i=hi+1; i<aoa.length; i++){
+      const row = aoa[i];
+      if(!row || !row.length) continue;
+      const rec = {_row: i+1};
+      headers.forEach((h, idx) => { rec[h] = row[idx]; });
+      records.push(rec);
+    }
+    return records;
+  }
+  
+  const findCol = (rec, ...keys) => {
+    for(const k of keys){
+      if(rec[k] !== undefined) return rec[k];
+    }
+    return '';
+  };
+  
+  const rawLease = parseSheet(leaseSheet, ['leaseid','nominal']);
+  const rawPay = paySheet ? parseSheet(paySheet, ['leaseid','payment']) : [];
+  
+  const leaseRecs = rawLease.map(r => ({
+    _row: r._row,
+    lease_id: findCol(r, 'leaseid', 'id'),
+    nominal: findCol(r, 'nominal', 'amount'),
+    upfront: findCol(r, 'upfront', 'downpayment', 'dp'),
+    payment_option: findCol(r, 'paymentoption', 'option', 'skema'),
+    start_date: findCol(r, 'startdate', 'tglmulai', 'mulai'),
+    end_date: findCol(r, 'enddate', 'tglakhir', 'akhir'),
+    interest: findCol(r, 'interest', 'rate', 'bunga')
+  }));
+  
+  const payRecs = rawPay.map(r => ({
+    _row: r._row,
+    lease_id: findCol(r, 'leaseid', 'id'),
+    periode: findCol(r, 'periode', 'period', 'tanggal', 'date', 'paymet'),
+    payment: findCol(r, 'payment', 'amount', 'jumlah')
+  }));
+  
+  return {leaseRecs, payRecs};
+}
+
+/* ---------- UI flow ---------- */
+function showErrors(list){
+  const el = document.getElementById('errBanner');
+  if(!list || !list.length){ el.classList.add('hidden'); return; }
+  el.innerHTML = '<b>Beberapa baris dilewati karena tidak valid:</b><ul>'+
+    list.map(x => '<li>'+x+'</li>').join('')+'</ul>';
+  el.classList.remove('hidden');
+}
+
+function renderLeaseList(){
+  const el = document.getElementById('leaseList');
+  if(!leases.length){ el.classList.add('hidden'); return; }
+  el.classList.remove('hidden');
+  el.innerHTML = leases.map(l =>
+    '<div class="lease-item"><span class="dot"></span>'+
+    '<span class="nm">'+escapeHtml(l.lease_id)+'</span>'+
+    '<span class="meta">Nominal '+fmtDash(l.nominal)+' &middot; '+
+    fmtDate(l.startDate)+' &rarr; '+fmtDate(l.endDate)+
+    ' &middot; bunga '+fmt(l.interest*100,3)+'% &middot; '+l.payments.length+' pembayaran</span></div>'
+  ).join('');
+}
+
+function updateCalcBtn(){
+  document.getElementById('calcBtn').disabled = !(leases.length && document.getElementById('cutoff').value);
+}
+
+function handleData(leaseRecs, payRecs){
+  const res = buildLeases(leaseRecs, payRecs);
+  showErrors(res.errors);
+  leases = res.leases;
+  document.getElementById('results').classList.add('hidden');
+  renderLeaseList();
+  updateCalcBtn();
+  if(leases.length) toast(leases.length+' kontrak lease berhasil dimuat.');
+  else toast('Tidak ada data lease valid yang ditemukan.');
+}
+
+function calculate(){
+  const cv = document.getElementById('cutoff').value;
+  if(!leases.length){ toast('Unggah data lease terlebih dahulu.'); return; }
+  if(!cv){ toast('Isi tanggal cut-off terlebih dahulu.'); return; }
+  const cutoff = parseDate(cv);
+  currentCutoff = cutoff;
+  const trInput = parseFloat(document.getElementById('taxRate').value);
+  taxRate = (isNaN(trInput) ? 22 : trInput) / 100;
+  
+  const cutoffYear = cutoff.getFullYear();
+  
+  leases.forEach(l => {
+    const result = buildLeaseSchedule(l);
+    l.initialLL = result.initialLL;
+    l.initialROU = result.initialROU;
+    l.monthlyDep = result.monthlyDep;
+    l.totalDepMonths = result.totalDepMonths;
+    l.rows = result.rows;
+    
+    /* Filter untuk menghitung beban YTD (Year-To-Date: 1 Jan tahun bersangkutan s.d. cutoff) */
+    const inScopeYTD = l.rows.filter(r => r.date <= cutoff && r.date.getFullYear() === cutoffYear);
+    
+    /* Determine status and values at cutoff */
+    if(cutoff < l.startDate){
+      l.status = 'belum';
+      l.ll_at_cutoff = 0;
+      l.rou_at_cutoff = 0;
+      l.totalPayment = 0;
+      l.totalExpCom = 0;
+      l.totalRouExp = 0;
+      l.totalLlExp = 0;
+    } else if(cutoff >= l.endDate){
+      l.status = 'tempo';
+      const inScopeCumulative = l.rows.filter(r => r.date <= l.endDate);
+      const lastRow = inScopeCumulative[inScopeCumulative.length-1];
+      l.ll_at_cutoff = lastRow ? lastRow.ll_end : 0;
+      l.rou_at_cutoff = lastRow ? lastRow.rou_end : 0;
+      
+      const inScopeYTDTempo = inScopeYTD.filter(r => r.date <= l.endDate);
+      
+      // Payment dihitung YTD
+      l.totalPayment = inScopeYTDTempo.reduce((s,r)=>s+r.ll_payment,0);
+      
+      // Beban ROU dan LL (beserta Exp Com) dihitung YTD (1 Jan cutoff_year s.d. batas cutoff / endDate)
+      l.totalRouExp = inScopeYTDTempo.reduce((s,r)=>s+r.rou_exp,0);
+      l.totalLlExp = inScopeYTDTempo.reduce((s,r)=>s+r.ll_exp,0);
+      l.totalExpCom = inScopeYTDTempo.reduce((s,r)=>s+r.exp_com,0);
+    } else {
+      l.status = 'aktif';
+      const inScopeCumulative = l.rows.filter(r => r.date <= cutoff);
+      const lastRow = inScopeCumulative[inScopeCumulative.length-1];
+      l.ll_at_cutoff = lastRow ? lastRow.ll_end : l.initialLL;
+      l.rou_at_cutoff = lastRow ? lastRow.rou_end : l.initialROU;
+      
+      // Payment dihitung YTD
+      l.totalPayment = inScopeYTD.reduce((s,r)=>s+r.ll_payment,0);
+      
+      // Beban ROU dan LL (beserta Exp Com) dihitung YTD (1 Jan cutoff_year s.d. batas cutoff)
+      l.totalRouExp = inScopeYTD.reduce((s,r)=>s+r.rou_exp,0);
+      l.totalLlExp = inScopeYTD.reduce((s,r)=>s+r.ll_exp,0);
+      l.totalExpCom = inScopeYTD.reduce((s,r)=>s+r.exp_com,0);
+    }
+    
+    // DTA & DTL at Cutoff
+    l.dta_at_cutoff = l.rou_at_cutoff * taxRate;
+    l.dtl_at_cutoff = l.ll_at_cutoff * taxRate;
+  });
+  
+  renderResults();
+  toast('Perhitungan selesai.');
+}
+
+function renderResults(){
+  const totLL = leases.reduce((s,l)=>s+l.ll_at_cutoff, 0);
+  const totROU = leases.reduce((s,l)=>s+l.rou_at_cutoff, 0);
+  const totDTA = leases.reduce((s,l)=>s+l.dta_at_cutoff, 0);
+  const totDTL = leases.reduce((s,l)=>s+l.dtl_at_cutoff, 0);
+  const totRouExp = leases.reduce((s,l)=>s+l.totalRouExp, 0);
+  const totLlExp = leases.reduce((s,l)=>s+l.totalLlExp, 0);
+  
+  document.getElementById('stats').innerHTML =
+    statCard('LL @ Cut-off', fmtDash(totLL), true) +
+    statCard('ROU @ Cut-off', fmtDash(totROU), true) +
+    statCard('ROU Exp @ Cut-off', fmtDash(totRouExp), true) +
+    statCard('LL Exp @ Cut-off', fmtDash(totLlExp), true) +
+    statCard('DTA @ Cut-off', fmtDash(totDTA), true) +
+    statCard('DTL @ Cut-off', fmtDash(totDTL), true);
+  
+  /* summary table */
+  const sH = ['Lease ID','Nominal','Upfront','Start Date','End Date','Interest','LL @ Cutoff','ROU @ Cutoff','ROU Exp @ Cutoff','LL Exp @ Cutoff','Total Payment @ Cutoff','Total Exp Com','DTA','DTL','Status'];
+  let s = '<thead><tr>'+sH.map((h,i) => '<th'+(i>=1&&i<=13?' class="num"':'')+'>'+h+'</th>').join('')+'</tr></thead><tbody>';
+  leases.forEach(l => {
+    const pill = '<span class="pill '+l.status+'">'+
+      (l.status==='aktif'?'Aktif':l.status==='tempo'?'Selesai':'Belum Mulai')+'</span>';
+    s += '<tr>'+
+      '<td><b>'+escapeHtml(l.lease_id)+'</b></td>'+
+      '<td class="num">'+fmtDash(l.nominal)+'</td>'+
+      '<td class="num">'+fmtDash(l.upfront)+'</td>'+
+      '<td class="num">'+fmtDateFull(l.startDate)+'</td>'+
+      '<td class="num">'+fmtDateFull(l.endDate)+'</td>'+
+      '<td class="num">'+fmt(l.interest*100,3)+'%</td>'+
+      '<td class="num">'+fmtDash(l.ll_at_cutoff)+'</td>'+
+      '<td class="num">'+fmtDash(l.rou_at_cutoff)+'</td>'+
+      '<td class="num">'+fmtDash(l.totalRouExp)+'</td>'+
+      '<td class="num">'+fmtDash(l.totalLlExp)+'</td>'+
+      '<td class="num">'+fmtDash(l.totalPayment)+'</td>'+
+      '<td class="num">'+fmtDash(l.totalExpCom)+'</td>'+
+      '<td class="num">'+fmtDash(l.dta_at_cutoff)+'</td>'+
+      '<td class="num">'+fmtDash(l.dtl_at_cutoff)+'</td>'+
+      '<td>'+pill+'</td></tr>';
+  });
+  s += '</tbody>';
+  document.getElementById('sumTable').innerHTML = s;
+  
+  /* lease selector */
+  const sel = document.getElementById('leaseSelect');
+  sel.innerHTML = leases.map((l,i) => '<option value="'+i+'">'+escapeHtml(l.lease_id)+'</option>').join('');
+  sel.value = '0';
+  renderSchedule(0);
+  document.getElementById('results').classList.remove('hidden');
+  document.getElementById('results').scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function statCard(lbl, val, small){
+  return '<div class="stat"><div class="lbl">'+lbl+'</div>'+
+    '<div class="val'+(small?' sm':'')+'">'+val+'</div></div>';
+}
+
+function renderSchedule(idx){
+  const l = leases[idx];
+  const statusText = l.status==='aktif'?'Aktif':l.status==='tempo'?'Selesai':'Belum Mulai';
+  
+  let left = '<div class="col">'+
+    '<div class="row"><span class="lbl">Lease ID</span><span class="val">'+escapeHtml(l.lease_id)+'</span></div>'+
+    '<div class="row"><span class="lbl">Nominal</span><span class="val">'+fmtDash(l.nominal)+'</span></div>'+
+    '<div class="row"><span class="lbl">Upfront</span><span class="val">'+fmtDash(l.upfront)+'</span></div>'+
+    '<div class="row"><span class="lbl">Payment Option</span><span class="val">'+l.payment_option+'</span></div>'+
+    '<div class="row"><span class="lbl">Start Date</span><span class="val">'+fmtDateFull(l.startDate)+'</span></div>'+
+    '<div class="row"><span class="lbl">End Date</span><span class="val">'+fmtDateFull(l.endDate)+'</span></div>'+
+    '<div class="row"><span class="lbl">Jumlah Pembayaran</span><span class="val">'+l.payments.length+'</span></div>'+
+    '<div class="row"><span class="lbl">Total Periode (rows)</span><span class="val">'+l.rows.length+'</span></div>'+
+    '</div>';
+  
+  let right = '<div class="col">'+
+    '<div class="row"><span class="lbl">Interest Rate</span><span class="val">'+fmt(l.interest*100,3)+'%</span></div>'+
+    '<div class="row"><span class="lbl">Initial Lease Liability</span><span class="val">'+fmtDash(l.initialLL)+'</span></div>'+
+    '<div class="row"><span class="lbl">Initial ROU Asset</span><span class="val">'+fmtDash(l.initialROU)+'</span></div>'+
+    '<div class="row"><span class="lbl">Depresiasi Bulanan</span><span class="val">'+fmtDash(l.monthlyDep)+'</span></div>'+
+    '<div class="row"><span class="lbl">LL @ Cut-off</span><span class="val">'+fmtDash(l.ll_at_cutoff)+'</span></div>'+
+    '<div class="row"><span class="lbl">ROU @ Cut-off</span><span class="val">'+fmtDash(l.rou_at_cutoff)+'</span></div>'+
+    '<div class="row"><span class="lbl">DTA / DTL</span><span class="val">'+fmtDash(l.dta_at_cutoff)+' / '+fmtDash(l.dtl_at_cutoff)+'</span></div>'+
+    '<div class="row"><span class="lbl">Status</span><span class="val"><span class="pill '+l.status+'" style="margin:0;padding:2px 8px;">'+statusText+'</span></span></div>'+
+    '</div>';
+  
+  document.getElementById('schedMeta').innerHTML = '<div class="detail-grid">'+left+right+'</div>';
+  
+  let h = '<thead><tr>'+
+    '<th>Date</th>'+
+    '<th class="num">LL Begin</th>'+
+    '<th class="num">LL Payment</th>'+
+    '<th class="num">LL Exp</th>'+
+    '<th class="num">LL End</th>'+
+    '<th class="num">ROU Begin</th>'+
+    '<th class="num">ROU Exp</th>'+
+    '<th class="num">ROU End</th>'+
+    '<th class="num">Exp Com</th>'+
+    '<th class="num">Exp Fiscal</th>'+
+    '<th class="num">Tax Correction</th>'+
+    '<th class="num">DTA</th>'+
+    '<th class="num">DTL</th>'+
+    '</tr></thead><tbody>';
+  l.rows.forEach((r,i) => {
+    const cls = r.isTerminal ? 'matured' : (r.isPayment ? 'payrow' : '');
+    h += '<tr'+(cls?' class="'+cls+'"':'')+'>'+
+      '<td>'+fmtDate(r.date)+'</td>'+
+      '<td class="num">'+fmtDash(r.ll_begin)+'</td>'+
+      '<td class="num">'+fmtDash(r.ll_payment)+'</td>'+
+      '<td class="num">'+fmtDash(r.ll_exp)+'</td>'+
+      '<td class="num">'+fmtDash(r.ll_end)+'</td>'+
+      '<td class="num">'+fmtDash(r.rou_begin)+'</td>'+
+      '<td class="num">'+fmtDash(r.rou_exp)+'</td>'+
+      '<td class="num">'+fmtDash(r.rou_end)+'</td>'+
+      '<td class="num">'+fmtDash(r.exp_com)+'</td>'+
+      '<td class="num">'+fmtDash(r.exp_fiscal)+'</td>'+
+      '<td class="num">'+fmtDash(r.tax_correction)+'</td>'+
+      '<td class="num">'+fmtDash(r.dta)+'</td>'+
+      '<td class="num">'+fmtDash(r.dtl)+'</td>'+
+      '</tr>';
+  });
+  h += '</tbody>';
+  document.getElementById('schedTable').innerHTML = h;
+}
+
+/* ---------- export ---------- */
+function exportExcel(){
+  if(!leases.length || !leases[0].rows){ toast('Hitung dulu sebelum mengunduh.'); return; }
+  const wb = XLSX.utils.book_new();
+  
+  /* Summary sheet */
+  const sumAoA = [['lease_id','nominal','upfront','start_date','end_date','interest','ll_cutoff','rou_cutoff','rou_exp_cutoff','ll_exp_cutoff','total_payment_cutoff','total_exp_com','dta','dtl','status']];
+  leases.forEach(l => {
+    const statusText = l.status==='aktif'?'Aktif':l.status==='tempo'?'Selesai':'Belum Mulai';
+    sumAoA.push([
+      l.lease_id, l.nominal, l.upfront, fmtDateFull(l.startDate), fmtDateFull(l.endDate),
+      l.interest, l.ll_at_cutoff, l.rou_at_cutoff, l.totalRouExp, l.totalLlExp,
+      l.totalPayment, l.totalExpCom, l.dta_at_cutoff, l.dtl_at_cutoff, statusText
+    ]);
+  });
+  sumAoA.push([]);
+  sumAoA.push(['Tanggal Cut-off:', fmtDateFull(currentCutoff)]);
+  sumAoA.push(['Tarif Pajak:', taxRate]);
+  const wsSummary = XLSX.utils.aoa_to_sheet(sumAoA);
+  XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
+  
+  /* Detail per lease */
+  leases.forEach(l => {
+    const aoa = [];
+    aoa.push([String(l.lease_id).toUpperCase()]);
+    aoa.push([]);
+    aoa.push(['nominal', l.nominal, '', 'interest', l.interest]);
+    aoa.push(['upfront', l.upfront, '', 'jumlah periode', l.rows.length]);
+    aoa.push(['payment_option', l.payment_option, '', 'jumlah pembayaran', l.payments.length]);
+    aoa.push(['start_date', fmtDateFull(l.startDate), '', 'initial_ll', l.initialLL]);
+    aoa.push(['end_date', fmtDateFull(l.endDate), '', 'initial_rou', l.initialROU]);
+    aoa.push(['ll_cutoff', l.ll_at_cutoff, '', 'monthly_dep', l.monthlyDep]);
+    aoa.push(['rou_cutoff', l.rou_at_cutoff, '', 'dta', l.dta_at_cutoff]);
+    aoa.push(['status', l.status, '', 'dtl', l.dtl_at_cutoff]);
+    aoa.push([]);
+    aoa.push(['date','ll_begin','ll_payment','ll_exp','ll_end','rou_begin','rou_exp','rou_end','exp_com','exp_fiscal','tax_correction','dta','dtl']);
+    l.rows.forEach(r => {
+      aoa.push([
+        fmtDate(r.date), r.ll_begin, r.ll_payment, r.ll_exp, r.ll_end,
+        r.rou_begin, r.rou_exp, r.rou_end,
+        r.exp_com, r.exp_fiscal, r.tax_correction, r.dta, r.dtl
+      ]);
+    });
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    let sName = String(l.lease_id).replace(/[\\\/\?\*\[\]]/g,'').substring(0,31);
+    if(!sName) sName = 'Lease';
+    let c = 1, fName = sName;
+    while(wb.SheetNames.includes(fName)){ fName = sName.substring(0,28)+'_'+c; c++; }
+    XLSX.utils.book_append_sheet(wb, ws, fName);
+  });
+  XLSX.writeFile(wb, 'amortisasi_lease.xlsx');
+  toast('File Excel berhasil diunduh.');
+}
+
+function downloadTemplate(){
+  const wb = XLSX.utils.book_new();
+  
+  const leaseAoa = [
+    ['lease_id','nominal','upfront','payment_option','start_date','end_date','interest'],
+    ['lease001', 29000000000, 0, 'custom', '01/06/2023', '01/05/2026', 0.035]
+  ];
+  const wsLease = XLSX.utils.aoa_to_sheet(leaseAoa);
+  XLSX.utils.book_append_sheet(wb, wsLease, 'lease');
+  
+  const payAoa = [
+    ['lease_id','periode','payment'],
+    ['lease001','30/06/2023', 2416666667],
+    ['lease001','30/09/2023', 2416666667],
+    ['lease001','31/12/2023', 2416666667],
+    ['lease001','31/03/2024', 2416666667],
+    ['lease001','30/06/2024', 2416666667],
+    ['lease001','30/09/2024', 2416666667],
+    ['lease001','31/12/2024', 2416666667],
+    ['lease001','31/03/2025', 2416666667],
+    ['lease001','30/06/2025', 2416666667],
+    ['lease001','30/09/2025', 2416666667],
+    ['lease001','31/12/2025', 2416666667],
+    ['lease001','31/03/2026', 2416666667]
+  ];
+  const wsPay = XLSX.utils.aoa_to_sheet(payAoa);
+  XLSX.utils.book_append_sheet(wb, wsPay, 'payment');
+  
+  XLSX.writeFile(wb, 'template_lease.xlsx');
+  toast('Template Excel berhasil diunduh.');
+}
+
+function loadSample(){
+  const leaseRecs = [
+    {_row:2, lease_id:'lease001', nominal:29000000000, upfront:0, payment_option:'custom', start_date:'01/06/2023', end_date:'01/05/2026', interest:0.035}
+  ];
+  const payments = [
+    '30/06/2023','30/09/2023','31/12/2023','31/03/2024',
+    '30/06/2024','30/09/2024','31/12/2024','31/03/2025',
+    '30/06/2025','30/09/2025','31/12/2025','31/03/2026'
+  ];
+  const payRecs = payments.map((d,i) => ({_row:i+2, lease_id:'lease001', periode:d, payment:2416666667}));
+  
+  handleData(leaseRecs, payRecs);
+  document.getElementById('cutoff').value = '2024-12-31';
+  document.getElementById('taxRate').value = 22;
+  updateCalcBtn();
+  calculate();
+}
+
+/* ---------- events ---------- */
+const drop = document.getElementById('drop');
+const fileInput = document.getElementById('fileInput');
+drop.addEventListener('click', () => fileInput.click());
+fileInput.addEventListener('change', e => { if(e.target.files[0]) handleFile(e.target.files[0]); });
+['dragenter','dragover'].forEach(ev => drop.addEventListener(ev, e => {
+  e.preventDefault(); drop.classList.add('drag');
+}));
+['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => {
+  e.preventDefault(); drop.classList.remove('drag');
+}));
+drop.addEventListener('drop', e => {
+  if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+});
+
+document.getElementById('tplBtn').addEventListener('click', downloadTemplate);
+document.getElementById('sampleBtn').addEventListener('click', loadSample);
+document.getElementById('cutoff').addEventListener('change', updateCalcBtn);
+document.getElementById('calcBtn').addEventListener('click', calculate);
+document.getElementById('dlBtn').addEventListener('click', exportExcel);
+document.getElementById('leaseSelect').addEventListener('change', e => renderSchedule(+e.target.value));
+
+const guideModal = document.getElementById('guideModal');
+document.getElementById('openGuideBtn').addEventListener('click', () => guideModal.classList.add('show'));
+document.getElementById('closeGuideBtn').addEventListener('click', () => guideModal.classList.remove('show'));
+guideModal.addEventListener('click', e => {
+  if(e.target === guideModal) guideModal.classList.remove('show');
+});
+
+</script>
+</body></html>

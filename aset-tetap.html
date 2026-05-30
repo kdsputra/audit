@@ -1,0 +1,1429 @@
+<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Kertas Kerja Aset Tetap</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root{
+    --bg:#f5f5f7; --card:#ffffff; --text:#1d1d1f; --muted:#86868b;
+    --border:#d2d2d7; --accent:#0066cc; --accent-dark:#0044aa; --accent-light:#f5f5f7;
+    --success:#1d1d1f; --success-light:#e8e8ed; --danger:#ff3b30; --danger-light:#ffebee;
+    --warn:#ff9500; --warn-light:#fff5e6;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
+    background:var(--bg);color:var(--text);line-height:1.4706;
+    -webkit-font-smoothing:antialiased;
+  }
+  /* Header */
+  header{
+    background:var(--card);
+    color:var(--text);padding:48px 24px 32px;
+    border-bottom:1px solid #e8e8ed;
+  }
+  .head-inner{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:20px}
+  .logo{
+    width:48px;height:48px;border-radius:12px;flex-shrink:0;
+    background:#1d1d1f;display:flex;align-items:center;justify-content:center;
+    color:#fff;
+  }
+  .logo svg{width:24px;height:24px}
+  header h1{font-size:24px;font-weight:700;letter-spacing:-0.03em}
+  header p{font-size:14px;color:var(--muted);margin-top:4px;font-weight:400}
+  /* Layout */
+  .container{max-width:1180px;margin:32px auto 60px;padding:0 24px;}
+  .card{
+    background:var(--card);border:1px solid #e8e8ed;border-radius:20px;
+    padding:32px;margin-bottom:24px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.02);
+  }
+  .card-head{display:flex;align-items:center;gap:12px;margin-bottom:24px;flex-wrap:wrap}
+  .step-num{
+    width:24px;height:24px;border-radius:50%;background:#1d1d1f;
+    color:#fff;font-weight:600;font-size:12px;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .card-head h2{font-size:18px;font-weight:600;letter-spacing:-0.02em}
+  .card-head .sub{font-size:12px;color:var(--muted);font-weight:400;margin-left:auto;text-align:right}
+  /* Upload zone */
+  .drop{
+    border:1px solid var(--border);border-radius:16px;padding:48px 24px;text-align:center;
+    cursor:pointer;transition:all 0.2s cubic-bezier(0.25, 1, 0.5, 1);background:#fafafa;
+  }
+  .drop:hover{border-color:var(--text);background:var(--card)}
+  .drop.drag{border-color:var(--accent);background:var(--accent-light);transform:scale(1.005)}
+  .drop svg{width:36px;height:36px;color:var(--text);margin-bottom:12px}
+  .drop .t1{font-size:15px;font-weight:600;letter-spacing:-0.01em}
+  .drop .t2{font-size:13px;color:var(--muted);margin-top:4px}
+  .or{display:flex;align-items:center;gap:16px;color:var(--muted);font-size:13px;margin:20px 0;font-weight:400}
+  .or::before,.or::after{content:"";flex:1;height:1px;background:#e8e8ed}
+  .btn-row{display:flex;gap:12px;flex-wrap:wrap}
+  button{font-family:inherit;cursor:pointer;border:none;transition:all 0.15s ease}
+  .btn{
+    padding:10px 20px;border-radius:30px;font-size:13.5px;font-weight:500;
+    display:inline-flex;align-items:center;gap:8px;letter-spacing:-0.01em;
+  }
+  .btn svg{width:16px;height:16px}
+  .btn-primary{background:#1d1d1f;color:#fff}
+  .btn-primary:hover{background:#3a3a3c}
+  .btn-primary:disabled{background:#e8e8ed;color:#a1a1a6;cursor:not-allowed}
+  .btn-accent{background:var(--accent);color:#fff}
+  .btn-accent:hover{background:var(--accent-dark)}
+  .btn-ghost{background:#e8e8ed;color:var(--text)}
+  .btn-ghost:hover{background:#d2d2d7}
+  .btn-lg{padding:14px 28px;font-size:16px;font-weight:600;width:100%;justify-content:center;border-radius:30px;margin-bottom:24px}
+  /* asset list */
+  .bond-list{margin-top:20px;display:flex;flex-direction:column;gap:10px;max-height:280px;overflow-y:auto;padding-right:4px;}
+  .bond-list::-webkit-scrollbar{width:5px;}
+  .bond-list::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:10px;}
+  .bond-item{
+    display:flex;align-items:center;gap:12px;padding:14px 18px;
+    background:#f5f5f7;border:1px solid #e8e8ed;border-radius:12px;font-size:13.5px;
+  }
+  .bond-item .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0}
+  .bond-item .nm{font-weight:600;letter-spacing:-0.01em}
+  .bond-item .tag{font-size:11px;color:var(--muted);background:#e8e8ed;border-radius:6px;padding:2px 8px;font-weight:600}
+  .bond-item .meta{color:var(--muted);font-size:12.5px;margin-left:auto;text-align:right}
+  /* fields */
+  .field label{display:block;font-size:14px;font-weight:600;margin-bottom:8px;letter-spacing:-0.01em}
+  .field-row{display:flex;gap:24px;flex-wrap:wrap}
+  input[type=date]{
+    font-family:inherit;font-size:14px;padding:11px 16px;border:1px solid var(--border);
+    border-radius:12px;background:var(--card);color:var(--text);width:240px;max-width:100%;
+    outline:none;-webkit-appearance:none;
+  }
+  input[type=date]:focus{border-color:var(--text);}
+  .hint{font-size:13px;color:var(--muted);margin-top:8px}
+  /* banner */
+  .banner{border-radius:14px;padding:16px;font-size:13.5px;margin-bottom:24px}
+  .banner.err{background:var(--danger-light);border:1px solid #ffccd0;color:var(--danger)}
+  .banner b{font-weight:600}
+  .banner ul{margin:8px 0 0 20px}
+  /* stats */
+  .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:24px}
+  .stat{
+    background:var(--card);border:1px solid #e8e8ed;border-radius:16px;padding:20px;
+    box-shadow:0 4px 16px rgba(0,0,0,0.01);
+  }
+  .stat .lbl{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.03em;margin-bottom:8px}
+  .stat .val{font-size:19px;font-weight:700;letter-spacing:-0.03em;font-variant-numeric:tabular-nums}
+  .stat .val.sm{font-size:16px}
+  /* tables */
+  .tbl-wrap{overflow:auto;border:1px solid #e8e8ed;border-radius:14px;max-height:560px;background:var(--card)}
+  table{border-collapse:collapse;width:100%;font-size:13px}
+  thead th{
+    background:#fafafa;position:sticky;top:0;z-index:2;
+    text-align:left;padding:13px 14px;font-weight:600;color:var(--text);
+    border-bottom:1px solid #e8e8ed;white-space:nowrap;letter-spacing:-0.01em;
+  }
+  tbody td{padding:11px 14px;border-bottom:1px solid #f5f5f7;white-space:nowrap;color:#333}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:#f5f5f7}
+  .num{text-align:right;font-variant-numeric:tabular-nums}
+  tfoot td, tr.total td{background:#f5f5f7;font-weight:700;border-top:2px solid #1d1d1f;color:var(--text);position:sticky;bottom:0}
+  .pill{
+    display:inline-block;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:500;
+    letter-spacing:-0.01em;white-space:nowrap;
+  }
+  .pill.aktif{background:#e3f2fd;color:#0d47a1}
+  .pill.lunas{background:#fff3e0;color:#e65100}
+  .pill.belum{background:#f5f5f7;color:var(--muted)}
+  .pill.luar{background:#f5f5f7;color:var(--muted)}
+  .pill.dilepas{background:#e8f5e9;color:#1b5e20}
+  .pill.tanah{background:#ede7f6;color:#4527a0}
+  .pill.adp{background:#e0f2f1;color:#00695c}
+  .pill.reklas{background:#e1f5fe;color:#01579b}
+  .pill.reval{background:#f3e5f5;color:#6a1b9a}
+  .pill.impair{background:#ffebee;color:#b71c1c}
+  /* selector + detail grid */
+  select{
+    font-family:inherit;font-size:14px;padding:10px 16px;border:1px solid var(--border);
+    border-radius:12px;background:var(--card);font-weight:500;outline:none;width:100%;margin-bottom:20px;
+  }
+  select:focus{border-color:var(--text)}
+  .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 48px;background:#fafafa;padding:24px;border-radius:16px;border:1px solid #e8e8ed;margin-bottom:20px;font-size:13.5px}
+  .detail-grid .col{display:flex;flex-direction:column;gap:8px}
+  .detail-grid .row{display:flex;justify-content:space-between;border-bottom:1px dashed #e8e8ed;padding-bottom:8px;gap:16px}
+  .detail-grid .row:last-child{border-bottom:none;padding-bottom:0}
+  .detail-grid .lbl{color:var(--muted)}
+  .detail-grid .val{font-weight:600;color:var(--text);font-variant-numeric:tabular-nums;text-align:right}
+  /* CALK note */
+  .calk{background:var(--card);border:1px solid #e8e8ed;border-radius:14px;padding:8px 0;overflow:auto}
+  .calk table{font-size:13px;min-width:640px}
+  .calk thead th{background:#fff;border-bottom:1.5px solid #1d1d1f;text-transform:none;padding:10px 16px}
+  .calk .sec td{background:#fafafa;font-weight:700;letter-spacing:-0.01em;border-top:1px solid #e8e8ed;border-bottom:1px solid #e8e8ed;color:var(--text)}
+  .calk .item td:first-child{padding-left:32px;color:#333}
+  .calk .sub td{font-weight:700;border-top:1.5px solid #1d1d1f}
+  .calk .calk-sec{width:100%}
+  .calk .calk-sec+.calk-sec{margin-top:22px}
+  .calk table+table{margin-top:22px}
+  .calk .subhead td{border-bottom:1px solid #e8e8ed;padding:4px 16px}
+  .calk .nbv td{font-weight:700;background:#eef4fb;border-top:2px solid #1d1d1f;border-bottom:2px solid #1d1d1f;color:#0d2f57}
+  .calk tbody td{white-space:nowrap}
+  .narr{font-size:13.5px;line-height:1.7;color:#333;margin-top:20px;background:#fafafa;border:1px solid #e8e8ed;border-radius:14px;padding:20px 24px}
+  .narr p{margin-bottom:10px}
+  .narr p:last-child{margin-bottom:0}
+  .narr b{color:var(--text)}
+  .period-tag{font-size:12px;color:var(--muted);font-weight:500;margin-bottom:14px}
+  .hidden{display:none}
+  footer{text-align:center;font-size:12.5px;color:var(--muted);padding:24px 24px 48px;line-height:1.8;font-weight:400}
+  /* toast */
+  #toast{
+    position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:rgba(29,29,31,0.96);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);color:#fff;padding:14px 24px;border-radius:30px;font-size:13.5px;
+    opacity:0;transition:all 0.3s cubic-bezier(0.25, 1, 0.5, 1);pointer-events:none;z-index:99;font-weight:500;box-shadow:0 8px 30px rgba(0,0,0,0.15);
+  }
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  /* Modal */
+  .modal-overlay{
+    position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:999;
+    display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;
+    transition:opacity 0.2s ease;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);
+  }
+  .modal-overlay.show{opacity:1;pointer-events:auto}
+  .modal-card{
+    background:var(--card);width:90%;max-width:740px;max-height:85vh;border-radius:20px;
+    display:flex;flex-direction:column;box-shadow:0 20px 40px rgba(0,0,0,0.2);
+    transform:translateY(20px);transition:transform 0.2s ease;
+  }
+  .modal-overlay.show .modal-card{transform:translateY(0)}
+  .modal-head{display:flex;justify-content:space-between;align-items:center;padding:24px 32px;border-bottom:1px solid #e8e8ed}
+  .modal-head h2{font-size:20px;font-weight:600;letter-spacing:-0.02em}
+  .modal-body{padding:32px;overflow-y:auto;font-size:14px;color:var(--text);line-height:1.6}
+  .modal-body h4{font-size:16px;margin:24px 0 12px}
+  .modal-body h4:first-child{margin-top:0}
+  .modal-body ul{margin-bottom:16px;padding-left:20px}
+  .modal-body li{margin-bottom:8px}
+  .modal-body ul ul{margin-top:8px;margin-bottom:0}
+  .modal-body blockquote{background:#f5f5f7;border-left:4px solid var(--accent);padding:12px 16px;margin:16px 0;border-radius:0 8px 8px 0;font-style:italic}
+  .modal-body code{background:#f5f5f7;padding:2px 6px;border-radius:5px;font-size:13px}
+  .close-btn{background:none;border:none;cursor:pointer;color:var(--muted);padding:4px;border-radius:50%;display:flex;align-items:center;justify-content:center;transition:0.15s}
+  .close-btn:hover{background:#e8e8ed;color:var(--text)}
+
+  @media(max-width:1024px){.stats{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:720px){
+    .stats{grid-template-columns:repeat(2,1fr)}
+    .card{padding:24px}
+    header{padding:32px 24px}
+    .detail-grid{grid-template-columns:1fr;gap:16px 0}
+  }
+  @media print{
+    body{background:#fff}
+    header,footer,.drop,.or,.btn-row,#step1,#step2,#calcBtn,#openGuideBtn,select,.modal-overlay,.bond-list,#toast,.no-print{display:none !important}
+    .card{box-shadow:none;border:1px solid #ccc;page-break-inside:avoid}
+    .container{margin:0;max-width:100%}
+    .tbl-wrap{max-height:none;overflow:visible}
+  }
+</style></head><body>
+
+<header>
+  <div class="head-inner">
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/>
+        <path d="M8 6h.01"/><path d="M12 6h.01"/><path d="M16 6h.01"/>
+        <path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/>
+        <path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/>
+      </svg>
+    </div>
+    <div>
+      <h1>Kertas Kerja Aset Tetap</h1>
+      <p>Rollforward Saldo &middot; Beban &amp; Akumulasi Penyusutan &middot; Laba/Rugi Pelepasan &middot; Format CALK</p>
+    </div>
+    <button class="btn btn-ghost" id="openGuideBtn" style="margin-left:auto;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      Panduan
+    </button>
+  </div>
+</header>
+
+<div class="container">
+  <div id="errBanner" class="banner err hidden"></div>
+
+  <div class="card" id="step1">
+    <div class="card-head">
+      <div class="step-num">1</div>
+      <h2>Data Aset Tetap</h2>
+      <span class="sub">Kolom inti: nama, kelompok, tgl_perolehan, harga_perolehan, metode, masa_manfaat, nilai_residu &middot; Kolom lanjutan (opsional): tipe (ADP), reklas_dari, tgl_reklas, tgl_revaluasi, nilai_revaluasi, tgl_impairment, nilai_terpulihkan, tgl_pelepasan, harga_jual, biaya_pelepasan</span>
+    </div>
+    <div class="drop" id="drop">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+      <div class="t1">Pilih atau jatuhkan file Excel daftar aset tetap di sini</div>
+      <div class="t2">Mendukung impor massal .xlsx / .xls banyak aset sekaligus</div>
+    </div>
+    <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none">
+    <div class="or">atau</div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" id="tplBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Unduh Template Excel
+      </button>
+      <button class="btn btn-ghost" id="sampleBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        Muat Contoh Data
+      </button>
+    </div>
+    <div class="bond-list hidden" id="assetList"></div>
+  </div>
+
+  <div class="card" id="step2">
+    <div class="card-head">
+      <div class="step-num">2</div>
+      <h2>Periode Pelaporan &amp; Konvensi Penyusutan</h2>
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="periodStart">Awal Periode</label>
+        <input type="date" id="periodStart">
+      </div>
+      <div class="field">
+        <label for="periodEnd">Akhir Periode (Cut-off / Tanggal Neraca)</label>
+        <input type="date" id="periodEnd">
+      </div>
+      <div class="field">
+        <label for="conv">Awal Penyusutan</label>
+        <select id="conv" style="width:240px;margin-bottom:0">
+          <option value="acq">Bulan perolehan (penuh)</option>
+          <option value="next">Bulan berikutnya</option>
+        </select>
+      </div>
+    </div>
+    <div class="hint">Saldo Awal dihitung per akhir periode sebelumnya, Saldo Akhir per tanggal cut-off. Beban penyusutan = penyusutan yang terjadi di sepanjang periode (s.d. tanggal pelepasan untuk aset yang dilepas). Penyusutan dihitung bulanan penuh.</div>
+  </div>
+
+  <button class="btn btn-primary btn-lg" id="calcBtn" disabled>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="10" y2="18"/><line x1="14" y1="18" x2="16" y2="18"/></svg>
+    Proses Kertas Kerja Aset Tetap
+  </button>
+
+  <div id="results" class="hidden">
+    <div class="stats" id="stats"></div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="step-num" style="background:#1d1d1f;color:#fff">&#10003;</div>
+        <h2>Kertas Kerja Aset Tetap (Detail per Aset)</h2>
+        <div style="margin-left:auto;display:flex;gap:10px" class="no-print">
+          <button class="btn btn-ghost" id="printBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Cetak / PDF
+          </button>
+          <button class="btn btn-accent" id="dlBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Unduh Excel
+          </button>
+        </div>
+      </div>
+      <div class="period-tag" id="periodTag1"></div>
+      <div class="tbl-wrap"><table id="kkTable"></table></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="step-num" style="background:#1d1d1f;color:#fff">&#10003;</div>
+        <h2>Rekapitulasi per Kelompok Aset</h2>
+      </div>
+      <div class="tbl-wrap"><table id="recapTable"></table></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="step-num" style="background:#1d1d1f;color:#fff">&#10003;</div>
+        <h2>Catatan Atas Laporan Keuangan (CALK) &mdash; Aset Tetap</h2>
+      </div>
+      <div class="period-tag" id="periodTag2"></div>
+      <div class="calk" id="calkTable"></div>
+      <div class="narr" id="calkNarr"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="step-num" style="background:#1d1d1f;color:#fff">&#10003;</div>
+        <h2>Jadwal Penyusutan per Aset</h2>
+      </div>
+      <select id="assetSelect" class="no-print"></select>
+      <div id="schedMeta"></div>
+      <div class="tbl-wrap"><table id="schedTable"></table></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="guideModal">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h2>Panduan Lengkap Penggunaan</h2>
+      <button class="close-btn" id="closeGuideBtn">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p>Aplikasi ini menyusun kertas kerja (rollforward) aset tetap sesuai PSAK 16: pengecekan saldo awal, beban penyusutan periode berjalan, akumulasi penyusutan, nilai buku neto (NBV) akhir, laba/rugi pelepasan, beban atas disposal, sampai penyajian dalam format Catatan Atas Laporan Keuangan (CALK).</p>
+
+      <h4>1. Cara Pengisian Input Excel</h4>
+      <p>Baris pertama file Excel (baris <i>Header</i>) harus memuat nama kolom berikut. Penamaan Indonesia maupun Inggris didukung.</p>
+      <p style="margin-top:12px;"><b>Kolom Wajib:</b></p>
+      <ul>
+        <li><b>nama</b> (atau <i>name</i>): Nama/deskripsi aset, contoh <code>Gedung Kantor Pusat</code>.</li>
+        <li><b>kelompok</b> (atau <i>kategori, category</i>): Pengelompokan aset, contoh <code>Tanah</code>, <code>Bangunan</code>, <code>Kendaraan</code>, <code>Mesin</code>, <code>Peralatan Kantor</code>. Kelompok ini menjadi dasar pengelompokan pada CALK.</li>
+        <li><b>tgl_perolehan</b> (atau <i>tanggal_perolehan, acquisition_date</i>): Tanggal perolehan, format <code>DD/MM/YYYY</code>.</li>
+        <li><b>harga_perolehan</b> (atau <i>cost, nilai_perolehan</i>): Harga perolehan (angka penuh tanpa titik/koma), contoh <code>250000000</code>.</li>
+      </ul>
+      <p><b>Kolom Penyusutan:</b></p>
+      <ul>
+        <li><b>metode</b> (atau <i>method</i>): <code>GL</code> / Garis Lurus (default) atau <code>SM</code> / Saldo Menurun Ganda (double declining).</li>
+        <li><b>masa_manfaat</b> (atau <i>useful_life, umur</i>): Masa manfaat dalam <b>tahun</b>, contoh <code>8</code>. Kosongkan atau isi <code>0</code> untuk aset yang tidak disusutkan.</li>
+        <li><b>nilai_residu</b> (atau <i>residu, salvage</i>): Nilai sisa/residu pada akhir masa manfaat. Opsional, default <code>0</code>.</li>
+      </ul>
+      <blockquote><b>Tanah otomatis tidak disusutkan.</b> Aset yang kelompoknya mengandung kata "Tanah"/"Land", atau yang masa manfaatnya kosong/0, tidak akan dihitung penyusutannya (NBV = harga perolehan).</blockquote>
+      <p><b>Kolom Pelepasan (isi jika aset dijual/dilepas):</b></p>
+      <ul>
+        <li><b>tgl_pelepasan</b> (atau <i>disposal_date, tgl_jual</i>): Tanggal pelepasan/penjualan, format <code>DD/MM/YYYY</code>.</li>
+        <li><b>harga_jual</b> (atau <i>sale_price, proceeds</i>): Harga jual/hasil pelepasan aset.</li>
+        <li><b>biaya_pelepasan</b> (atau <i>disposal_cost</i>): Beban/biaya yang dikeluarkan untuk melepas aset (mis. biaya bongkar, komisi). Mengurangi hasil pelepasan dalam perhitungan laba/rugi.</li>
+      </ul>
+
+      <p><b>Kolom Aset Dalam Penyelesaian &amp; Reklasifikasi (opsional):</b></p>
+      <ul>
+        <li><b>tipe</b> (atau <i>jenis_aset, type</i>): Isi <code>ADP</code> (atau <i>CIP, dalam proses, konstruksi</i>) untuk menandai <b>Aset Dalam Penyelesaian</b>. Aset ber-tipe ADP otomatis masuk kelompok "Aset Dalam Penyelesaian", tidak disusutkan, dan kolom <i>kelompok</i> boleh dikosongkan.</li>
+        <li><b>reklas_dari</b> (atau <i>reklasifikasi_dari, reclass_from</i>): Sumber reklasifikasi aset &mdash; <code>ADP</code> (dari aset dalam penyelesaian yang telah selesai) atau <code>luar</code> (dari akun di luar aset tetap, mis. persediaan, properti investasi, uang muka).</li>
+        <li><b>tgl_reklas</b> (atau <i>tgl_reklasifikasi, reclass_date</i>): Tanggal reklasifikasi. Untuk aset yang dapat disusutkan, penyusutan dimulai sejak tanggal ini (tanggal siap digunakan). <i>Untuk reklas dari ADP, isi kolom kelompok dengan kelompok tujuan, mis. Bangunan/Mesin; harga_perolehan = akumulasi biaya saat selesai.</i></li>
+      </ul>
+
+      <p><b>Kolom Revaluasi (opsional, model revaluasi PSAK 16):</b></p>
+      <ul>
+        <li><b>tgl_revaluasi</b> (atau <i>revaluation_date, tgl_nilai_wajar</i>): Tanggal revaluasi aset.</li>
+        <li><b>nilai_revaluasi</b> (atau <i>nilai_wajar, fair_value, revalued_amount</i>): Nilai wajar baru aset pada tanggal revaluasi. Pada tanggal tersebut, akumulasi penyusutan dieliminasi dan nilai tercatat bruto disetel ke nilai ini; selisih terhadap NBV diakui sebagai <b>surplus revaluasi</b> (OCI/ekuitas). Penyusutan setelah revaluasi memakai nilai baru atas sisa masa manfaat.</li>
+      </ul>
+
+      <p><b>Kolom Penurunan Nilai / Impairment (opsional, PSAK 48):</b></p>
+      <ul>
+        <li><b>tgl_impairment</b> (atau <i>impairment_date, tgl_penurunan_nilai</i>): Tanggal pengujian/pengakuan penurunan nilai.</li>
+        <li><b>nilai_terpulihkan</b> (atau <i>recoverable_amount</i>): Jumlah terpulihkan (mana yang lebih tinggi antara nilai wajar dikurangi biaya pelepasan dan nilai pakai). Bila NBV &gt; nilai terpulihkan, selisihnya diakui sebagai <b>rugi penurunan nilai</b> di laba rugi, dan penyusutan berikutnya memakai nilai tercatat yang telah diturunkan.</li>
+      </ul>
+      <blockquote><b>Tips:</b> Klik "Unduh Template Excel" untuk memperoleh format kolom standar yang siap diisi, atau "Muat Contoh Data" untuk melihat simulasi lengkap.</blockquote>
+
+      <h4>2. Logika Perhitungan</h4>
+      <ul>
+        <li><b>Penyusutan bulanan</b> dihitung penuh per bulan. Pada konvensi "Bulan perolehan", bulan perolehan dihitung sebagai 1 bulan penuh; pada "Bulan berikutnya", penyusutan dimulai bulan setelah perolehan.</li>
+        <li><b>Garis Lurus:</b> beban/bulan = (Nilai Tercatat &minus; Nilai Residu) &divide; sisa bulan masa manfaat.</li>
+        <li><b>Saldo Menurun Ganda:</b> tarif tahunan = 2 &divide; masa manfaat, diterapkan atas nilai buku awal tiap tahun (diprorata bulanan); pada tahun terakhir sisa nilai buku di atas residu disusutkan habis.</li>
+        <li><b>Saldo Awal</b> = posisi per akhir periode sebelumnya. <b>Saldo Akhir</b> = posisi per tanggal cut-off. <b>NBV</b> = Nilai Tercatat Bruto &minus; Akumulasi Penyusutan &minus; Akumulasi Penurunan Nilai.</li>
+        <li><b>Aset Dalam Penyelesaian (ADP/CIP):</b> diakui sebesar akumulasi biaya, <b>tidak disusutkan</b>. Saat selesai, gunakan baris aset dengan <code>reklas_dari = ADP</code> dan <code>tgl_reklas</code> = tanggal siap digunakan; pada kertas kerja akan tampak sebagai Reklasifikasi Keluar dari kelompok ADP dan Reklasifikasi Masuk ke kelompok tujuan, lalu mulai disusutkan.</li>
+        <li><b>Reklasifikasi dari luar aset tetap:</b> aset dengan <code>reklas_dari = luar</code> baru tercatat sebagai aset tetap sejak <code>tgl_reklas</code> (bukan penambahan/belanja modal), dan disusutkan sejak tanggal tersebut.</li>
+        <li><b>Revaluasi:</b> pada tanggal revaluasi, akumulasi penyusutan dieliminasi, nilai tercatat bruto disetel ke nilai wajar, dan selisih terhadap NBV menjadi surplus revaluasi (OCI). Penyusutan selanjutnya atas nilai baru.</li>
+        <li><b>Penurunan nilai (impairment):</b> rugi = NBV &minus; jumlah terpulihkan (bila positif), diakui di laba rugi; penyusutan berikutnya atas nilai tercatat yang telah diturunkan.</li>
+        <li><b>Laba/(Rugi) Pelepasan</b> = Harga Jual &minus; Biaya Pelepasan &minus; NBV pada tanggal pelepasan. Nilai negatif berarti rugi (beban) atas pelepasan/penghapusan aset.</li>
+        <li>Identitas yang selalu terjaga untuk Harga Perolehan: <code>Saldo Akhir = Saldo Awal + Penambahan + Reklas Neto &plusmn; Revaluasi &minus; Pengurangan</code>; dan untuk Akumulasi: <code>Saldo Akhir = Saldo Awal + Beban Penyusutan + Penurunan Nilai &minus; Eliminasi Revaluasi &minus; Pengurangan</code>.</li>
+      </ul>
+
+      <h4>3. Output</h4>
+      <ul>
+        <li><b>Dashboard ringkas:</b> total nilai perolehan, akumulasi penyusutan, NBV akhir, beban penyusutan periode, dan laba/rugi pelepasan.</li>
+        <li><b>Kertas Kerja Detail:</b> rollforward per aset (saldo awal &rarr; mutasi &rarr; saldo akhir) lengkap dengan total.</li>
+        <li><b>Rekapitulasi per Kelompok</b> dan <b>Format CALK</b> siap salin ke laporan keuangan, beserta narasi otomatis.</li>
+        <li><b>Jadwal Penyusutan per Aset:</b> tabel penyusutan tahunan untuk tiap aset.</li>
+        <li><b>Unduh Excel</b> menghasilkan workbook berisi sheet Kertas Kerja, Rekap Kelompok, dan CALK. Tombol <b>Cetak / PDF</b> mencetak laporan secara rapi.</li>
+      </ul>
+      <p style="color:var(--muted);font-size:13px;">Seluruh perhitungan berjalan di browser Anda &mdash; data finansial tidak dikirim ke server mana pun.</p>
+    </div>
+  </div>
+</div>
+
+<footer>
+  Metode Garis Lurus &amp; Saldo Menurun Ganda &middot; Konvensi penyusutan bulanan penuh &middot; Sesuai kerangka PSAK 16 Aset Tetap.<br>
+  Aplikasi ini sepenuhnya berjalan di sisi klien (browser) &mdash; Kerahasiaan data kertas kerja audit Anda terjamin aman.
+</footer>
+<div id="toast"></div>
+
+<script>
+const MON=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+const ADP_GROUP='Aset Dalam Penyelesaian';
+const PRIORITY=['tanah','bangunan','gedung','mesin','kendaraan','peralatan','inventaris','perabot','dalampenyelesaian','dalamproses'];
+let assets=[];
+let pStart=null,pEnd=null;
+let depConv='acq';
+
+/* ---------- helpers ---------- */
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(t._tm);t._tm=setTimeout(()=>t.classList.remove('show'),3200);
+}
+function addDays(d,n){return new Date(d.getFullYear(),d.getMonth(),d.getDate()+n);}
+function fmt(n,dec){
+  if(n===null||n===undefined||n==='-'||n==='')return '-';
+  return Number(n).toLocaleString('en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec});
+}
+/* accounting format: 0 -> dash, negatif -> (xxx) */
+function acc(n){
+  if(n===null||n===undefined||n==='-'||n==='')return '-';
+  let v=Math.round(Number(n));
+  if(v===0)return '-';
+  if(v<0)return '('+Math.abs(v).toLocaleString('en-US')+')';
+  return v.toLocaleString('en-US');
+}
+/* selalu tampil dalam kurung sebagai pengurang; 0 -> dash */
+function fmtParen(n){
+  if(n===null||n===undefined||n==='-'||n==='')return '-';
+  let v=Math.round(Math.abs(Number(n)));
+  if(v===0)return '-';
+  return '('+v.toLocaleString('en-US')+')';
+}
+/* nilai bertanda: positif apa adanya, negatif dalam kurung, 0 -> dash */
+function signed(n){
+  if(n===null||n===undefined||n==='-'||n==='')return '-';
+  let v=Math.round(Number(n));
+  if(v===0)return '-';
+  if(v<0)return '('+Math.abs(v).toLocaleString('en-US')+')';
+  return v.toLocaleString('en-US');
+}
+function fmtDate(d){if(!d) return '-'; return String(d.getDate()).padStart(2,'0')+'-'+MON[d.getMonth()]+'-'+String(d.getFullYear()%100).padStart(2,'0');}
+function fmtDateFull(d){if(!d) return '-'; return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();}
+function longDate(d){if(!d)return '-';return d.getDate()+' '+['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'][d.getMonth()]+' '+d.getFullYear();}
+function escapeHtml(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function parseDate(v){
+  if(v===null||v===undefined||v==='')return null;
+  if(v instanceof Date)return new Date(v.getFullYear(),v.getMonth(),v.getDate());
+  if(typeof v==='number'){
+    const d=new Date(Date.UTC(1899,11,30)+Math.round(v)*86400000);
+    return new Date(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate());
+  }
+  const s=String(v).trim();
+  let m=s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/);
+  if(m){
+    let dd=+m[1],mm=+m[2],yy=+m[3];
+    if(yy<100)yy+=(yy<70?2000:1900);
+    const d=new Date(yy,mm-1,dd);
+    return isNaN(d)?null:d;
+  }
+  m=s.match(/^(\d{4})[\/\-.](\d{1,2})[\/\-.](\d{1,2})$/);
+  if(m)return new Date(+m[1],+m[2]-1,+m[3]);
+  const d=new Date(s);
+  return isNaN(d)?null:new Date(d.getFullYear(),d.getMonth(),d.getDate());
+}
+function parseNumber(v){
+  if(v===null||v===undefined||v==='')return null;
+  if(typeof v==='number')return v;
+  const s=String(v).trim().replace(/[^0-9.\-]/g,'');
+  if(s===''||s==='-'||s==='.')return null;
+  const n=parseFloat(s);
+  return isNaN(n)?null:n;
+}
+const norm=s=>String(s===undefined||s===null?'':s).toLowerCase().replace(/[\s_]/g,'').trim();
+function isLand(cat){const c=norm(cat);return c.includes('tanah')||c.includes('land');}
+function isADPGroup(cat){const c=norm(cat);return c.includes('dalampenyelesaian')||c.includes('dalamproses')||c.includes('asetdalampeny')||c.includes('cip')||c.includes('konstruksidalam')||c.includes('aktivadalampeny');}
+function normMethod(v){
+  const s=norm(v);
+  if(!s)return 'gl';
+  if(s.includes('saldomenurun')||s==='sm'||s.includes('declining')||s.includes('ddb')||s.includes('menurun'))return 'ddb';
+  return 'gl';
+}
+function methodLabel(m){return m==='ddb'?'Saldo Menurun Ganda':'Garis Lurus';}
+
+/* ---------- depreciation / revaluation / impairment engine ----------
+   Mesin simulasi bulanan terpadu. Mereproduksi persis hasil garis lurus &
+   saldo menurun ganda untuk aset biasa, sekaligus menangani:
+   - mulai penyusutan tertunda (reklasifikasi / aset dalam penyelesaian),
+   - revaluasi (reset nilai tercatat, eliminasi akumulasi),
+   - penurunan nilai/impairment (akumulasi rugi penurunan nilai). */
+function mIndex(d){return d.getFullYear()*12+d.getMonth();}
+function endOfPrevMonth(d){const f=new Date(d.getFullYear(),d.getMonth(),1);return addDays(f,-1);}
+function effDepStartMI(a){
+  if(a.nonDep||!a.depStartDate)return Infinity;
+  let s=mIndex(a.depStartDate);
+  if(depConv==='next')s+=1; /* mulai bulan berikutnya */
+  return s;
+}
+/* kategori aset pada suatu tanggal (untuk aset reklas dari ADP) */
+function categoryAt(a,d){
+  if(a.reklasFrom==='adp'&&a.reklasDate)return (d<a.reklasDate)?ADP_GROUP:a.kelompok;
+  return a.kelompok;
+}
+/* keadaan nilai tercatat pada suatu tanggal:
+   gross (biaya perolehan/nilai revaluasian), accumDep (akumulasi penyusutan),
+   accumImpair (akumulasi rugi penurunan nilai), nbv, depCum (kumulatif beban penyusutan) */
+function carryingState(a,asOf,ignoreDisposal){
+  const Z={inFA:false,gross:0,accumDep:0,accumImpair:0,nbv:0,depCum:0};
+  if(!asOf)return Z;
+  if(asOf<a.faStartDate)return Z;
+  if(!ignoreDisposal&&a.disposalDate&&a.disposalDate<=asOf)return Z;
+  const startMI=mIndex(a.faStartDate), endMI=mIndex(asOf), eDep=effDepStartMI(a);
+  const revalMI=a.hasReval?mIndex(a.revalDate):Infinity;
+  const impairMI=a.hasImpair?mIndex(a.impairDate):Infinity;
+  const rate=a.lifeYears>0?2/a.lifeYears:0;
+  const EPS=1e-6;
+  let gross=a.cost,accumDep=0,accumImpair=0,nbv=a.cost,depCum=0;
+  let segMonthly=0,segInit=false, ddbAnnual=0,ddbYear=null,ddbFinal=false,ddbFinalMonthly=0;
+  for(let k=startMI;k<=endMI;k++){
+    const y=Math.floor(k/12);
+    if(k===revalMI){ gross=a.revalAmount;accumDep=0;accumImpair=0;nbv=a.revalAmount;segInit=false;ddbYear=null;ddbFinal=false; }
+    if(k===impairMI){ const loss=Math.max(0,nbv-a.impairRecoverable);accumImpair+=loss;nbv-=loss;segInit=false;ddbYear=null;ddbFinal=false; }
+    if(!a.nonDep&&a.lifeMonths>0&&k>=eDep&&nbv>a.residual+EPS){
+      const elapsed=k-eDep, remaining=a.lifeMonths-elapsed;
+      if(remaining>0){
+        let dep;
+        if(a.method==='ddb'){
+          if(ddbYear!==y){ ddbYear=y; if(remaining<=12){ddbFinal=true;ddbFinalMonthly=(nbv-a.residual)/remaining;}else{ddbFinal=false;ddbAnnual=nbv*rate;} }
+          dep=ddbFinal?ddbFinalMonthly:(ddbAnnual/12);
+        } else {
+          if(!segInit){ segMonthly=(nbv-a.residual)/remaining; segInit=true; }
+          dep=segMonthly;
+        }
+        if(remaining===1)dep=nbv-a.residual; /* bulan terakhir masa manfaat: bersihkan sisa pembulatan agar NBV pas ke residu */
+        if(dep>nbv-a.residual)dep=nbv-a.residual;
+        if(dep<0)dep=0;
+        accumDep+=dep;nbv-=dep;depCum+=dep;
+        if(nbv<a.residual+EPS)nbv=a.residual; /* snap agar tidak ada residu pecahan */
+      }
+    }
+  }
+  return {inFA:true,gross:gross,accumDep:accumDep,accumImpair:accumImpair,nbv:nbv,depCum:depCum};
+}
+function costAsOf(a,d){return carryingState(a,d).gross;}
+function accumAsOf(a,d){const s=carryingState(a,d);return s.accumDep+s.accumImpair;}
+/* jadwal penyusutan tahunan untuk satu aset (memperhitungkan reval & impairment) */
+function buildYearlySchedule(a){
+  const rows=[];
+  if(a.nonDep)return rows;
+  const startY=(a.depStartDate||a.acqDate).getFullYear();
+  let prevAccum=0,prevImp=0,guard=0;
+  const revalY=a.hasReval?a.revalDate.getFullYear():-1;
+  for(let y=startY;guard<100;y++,guard++){
+    const eoy=new Date(y,11,31);
+    const s=carryingState(a,eoy,true);
+    const dep=s.depCum-prevAccum;
+    const imp=s.accumImpair-prevImp;
+    rows.push({year:y,dep:dep,impair:imp,accum:s.accumDep,nbv:s.nbv});
+    prevAccum=s.depCum;prevImp=s.accumImpair;
+    /* berhenti saat aset sudah tersusutkan penuh (NBV = residu) dan tidak ada revaluasi berikutnya yang akan menaikkan NBV */
+    if(s.nbv<=a.residual+1&&y>=revalY)break;
+  }
+  return rows;
+}
+
+/* ---------- parsing input ---------- */
+function buildAssets(records){
+  const out=[],errors=[];
+  records.forEach((r,i)=>{
+    const rowNo=r._row||(i+1);
+    const name=(r.nama===undefined||r.nama===null||String(r.nama).trim()==='')?null:String(r.nama).trim();
+    let kelompok=(r.kelompok===undefined||r.kelompok===null||String(r.kelompok).trim()==='')?'Lainnya':String(r.kelompok).trim();
+    const acq=parseDate(r.tgl_perolehan);
+    const cost=parseNumber(r.harga_perolehan);
+    const method=normMethod(r.metode);
+    let life=parseNumber(r.masa_manfaat);
+    let residual=parseNumber(r.nilai_residu);if(residual===null)residual=0;
+    const disp=parseDate(r.tgl_pelepasan);
+    const sale=parseNumber(r.harga_jual);
+    let dispCost=parseNumber(r.biaya_pelepasan);if(dispCost===null)dispCost=0;
+    /* fitur baru */
+    const tipe=norm(r.tipe);                     /* '', adp/cip, atau kosong */
+    const reklasFromRaw=norm(r.reklas_dari);     /* adp | luar | (kosong) */
+    const reklasDate=parseDate(r.tgl_reklas);
+    const revalDate=parseDate(r.tgl_revaluasi);
+    const revalAmount=parseNumber(r.nilai_revaluasi);
+    const impairDate=parseDate(r.tgl_impairment);
+    const impairRecoverable=parseNumber(r.nilai_terpulihkan);
+
+    const isEmpty=!name&&cost===null&&!acq&&(r.kelompok===undefined||String(r.kelompok).trim()==='');
+    if(isEmpty)return;
+
+    const isCip=tipe.includes('adp')||tipe.includes('cip')||tipe.includes('penyelesaian')||tipe.includes('dalamproses')||tipe.includes('konstruksi')||isADPGroup(kelompok);
+    let reklasFrom=null;
+    if(reklasFromRaw.includes('adp')||reklasFromRaw.includes('cip')||reklasFromRaw.includes('penyelesaian')||reklasFromRaw.includes('proses')||reklasFromRaw.includes('konstruksi'))reklasFrom='adp';
+    else if(reklasFromRaw.includes('luar')||reklasFromRaw.includes('persediaan')||reklasFromRaw.includes('inventory')||reklasFromRaw.includes('investasi')||reklasFromRaw.includes('properti')||reklasFromRaw.includes('eksternal'))reklasFrom='luar';
+    else if(reklasFromRaw&&reklasDate)reklasFrom='luar';
+
+    const e=[];
+    if(!name)e.push('nama kosong');
+    if(cost===null||cost<=0)e.push('harga_perolehan tidak valid');
+    if(!acq)e.push('tgl_perolehan tidak valid');
+    if(life!==null&&life<0)e.push('masa_manfaat tidak valid');
+    if(residual<0)e.push('nilai_residu tidak valid');
+    if(cost!==null&&residual>cost)e.push('nilai_residu melebihi harga_perolehan');
+    if(disp&&acq&&disp<acq)e.push('tgl_pelepasan sebelum tgl_perolehan');
+    if(sale!==null&&sale<0)e.push('harga_jual tidak valid');
+    if(dispCost<0)e.push('biaya_pelepasan tidak valid');
+    if(reklasFrom&&!reklasDate)e.push('tgl_reklas wajib diisi bila reklas_dari diisi');
+    if(reklasDate&&acq&&reklasDate<acq)e.push('tgl_reklas sebelum tgl_perolehan');
+    if(revalDate&&(revalAmount===null||revalAmount<0))e.push('nilai_revaluasi tidak valid');
+    if(revalAmount!==null&&!revalDate)e.push('tgl_revaluasi wajib diisi bila nilai_revaluasi diisi');
+    if(impairDate&&(impairRecoverable===null||impairRecoverable<0))e.push('nilai_terpulihkan tidak valid');
+    if(impairRecoverable!==null&&!impairDate)e.push('tgl_impairment wajib diisi bila nilai_terpulihkan diisi');
+    if(e.length){errors.push('Baris '+rowNo+': '+e.join(', '));return;}
+
+    if(isCip)kelompok=ADP_GROUP;
+    const land=isLand(kelompok);
+    const lifeYears=(life===null?0:life);
+    const cip=isCip;
+    const nonDep=land||cip||lifeYears<=0;
+    /* tanggal aset masuk kelompok aset tetap & tanggal mulai disusutkan */
+    const faStartDate=(reklasFrom==='luar'&&reklasDate)?reklasDate:acq;
+    const depStartDate=nonDep?null:((reklasDate&&reklasFrom)?reklasDate:acq);
+    out.push({
+      name:name,kelompok:kelompok,acqDate:acq,cost:cost,method:method,
+      lifeYears:lifeYears,lifeMonths:lifeYears*12,residual:residual,nonDep:nonDep,land:land,cip:cip,
+      disposalDate:disp,salePrice:sale,disposalCost:dispCost,
+      reklasFrom:reklasFrom,reklasDate:(reklasFrom?reklasDate:null),
+      hasReval:!!(revalDate),revalDate:revalDate,revalAmount:revalAmount,
+      hasImpair:!!(impairDate),impairDate:impairDate,impairRecoverable:impairRecoverable,
+      faStartDate:faStartDate,depStartDate:depStartDate
+    });
+  });
+  return {assets:out,errors:errors};
+}
+function parseWorkbook(buf){
+  const wb=XLSX.read(buf,{type:'array',cellDates:true});
+  const ws=wb.Sheets[wb.SheetNames[0]];
+  const aoa=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,blankrows:false});
+  if(!aoa.length)throw new Error('File Excel kosong.');
+  let hi=-1;
+  for(let i=0;i<aoa.length;i++){
+    const set=aoa[i].map(norm);
+    const hasName=set.includes('nama')||set.includes('name')||set.includes('namaaset');
+    const hasCore=set.includes('hargaperolehan')||set.includes('cost')||set.includes('kelompok')||set.includes('kategori')||set.includes('tglperolehan');
+    if(hasName&&hasCore){hi=i;break;}
+  }
+  if(hi<0)throw new Error('Header tidak ditemukan. Pastikan ada kolom wajib minimal: nama, kelompok, tgl_perolehan, harga_perolehan.');
+  const headers=aoa[hi].map(norm);
+  const find=(...keys)=>{for(const k of keys){const idx=headers.indexOf(k);if(idx>=0)return idx;}return -1;};
+  const col={
+    nama:find('nama','name','namaaset','asset','deskripsi'),
+    kelompok:find('kelompok','kategori','category','group','jenis','golongan'),
+    acq:find('tglperolehan','tanggalperolehan','acquisitiondate','tglbeli','tanggalbeli','perolehan'),
+    cost:find('hargaperolehan','cost','hargabeli','nilaiperolehan','acquisitioncost','hp','harga'),
+    metode:find('metode','method','metodepenyusutan'),
+    life:find('masamanfaat','usefullife','umur','life','masamanfaattahun','umurmanfaat','umurekonomis'),
+    residu:find('nilairesidu','residu','residual','salvage','nilaisisa'),
+    disp:find('tglpelepasan','tanggalpelepasan','disposaldate','tgljual','tanggaljual','tglpenjualan','pelepasan'),
+    sale:find('hargajual','saleprice','proceeds','jual','hasilpenjualan','nilaijual'),
+    dispcost:find('biayapelepasan','disposalcost','bebandisposal','biayadisposal','removalcost','biayapenjualan'),
+    tipe:find('tipe','tipeaset','jenisaset','type','assettype','kategoriaset'),
+    reklasdari:find('reklasdari','reklasifikasidari','reklasifikasi','reclassfrom','reklas','sumberreklas','asalreklas','reklasifikasidr'),
+    tglreklas:find('tglreklas','tanggalreklas','tglreklasifikasi','tanggalreklasifikasi','reclassdate','tglpindah'),
+    tglreval:find('tglrevaluasi','tanggalrevaluasi','revaluationdate','tglreval','tglnilaiwajar'),
+    nilaireval:find('nilairevaluasi','revaluasi','nilaiwajar','fairvalue','revaluedamount','nilairevaluasian','revaluationamount'),
+    tglimpair:find('tglimpairment','tanggalimpairment','impairmentdate','tglpenurunannilai','tanggalpenurunannilai','tglimpair'),
+    nilaipulih:find('nilaiterpulihkan','recoverableamount','jumlahterpulihkan','nilaipulih','recoverable','nilaiwajardikurangibiaya')
+  };
+  const records=[];
+  for(let i=hi+1;i<aoa.length;i++){
+    const row=aoa[i];
+    if(!row||!row.length)continue;
+    records.push({
+      _row:i+1,
+      nama:col.nama>=0?row[col.nama]:'',
+      kelompok:col.kelompok>=0?row[col.kelompok]:'',
+      tgl_perolehan:col.acq>=0?row[col.acq]:'',
+      harga_perolehan:col.cost>=0?row[col.cost]:'',
+      metode:col.metode>=0?row[col.metode]:'',
+      masa_manfaat:col.life>=0?row[col.life]:'',
+      nilai_residu:col.residu>=0?row[col.residu]:'',
+      tgl_pelepasan:col.disp>=0?row[col.disp]:'',
+      harga_jual:col.sale>=0?row[col.sale]:'',
+      biaya_pelepasan:col.dispcost>=0?row[col.dispcost]:'',
+      tipe:col.tipe>=0?row[col.tipe]:'',
+      reklas_dari:col.reklasdari>=0?row[col.reklasdari]:'',
+      tgl_reklas:col.tglreklas>=0?row[col.tglreklas]:'',
+      tgl_revaluasi:col.tglreval>=0?row[col.tglreval]:'',
+      nilai_revaluasi:col.nilaireval>=0?row[col.nilaireval]:'',
+      tgl_impairment:col.tglimpair>=0?row[col.tglimpair]:'',
+      nilai_terpulihkan:col.nilaipulih>=0?row[col.nilaipulih]:''
+    });
+  }
+  return records;
+}
+
+/* ---------- UI flow ---------- */
+function showErrors(list){
+  const el=document.getElementById('errBanner');
+  if(!list||!list.length){el.classList.add('hidden');return;}
+  el.innerHTML='<b>Beberapa baris dilewati karena tidak valid:</b><ul>'+
+    list.map(x=>'<li>'+escapeHtml(x)+'</li>').join('')+'</ul>';
+  el.classList.remove('hidden');
+}
+function renderAssetList(){
+  const el=document.getElementById('assetList');
+  if(!assets.length){el.classList.add('hidden');return;}
+  el.classList.remove('hidden');
+  el.innerHTML=assets.map(a=>
+    '<div class="bond-item"><span class="dot"></span>'+
+    '<span class="nm">'+escapeHtml(a.name)+'</span>'+
+    '<span class="tag">'+escapeHtml(a.kelompok)+'</span>'+
+    '<span class="meta">HP '+acc(a.cost)+' &middot; '+fmtDate(a.acqDate)+
+    ' &middot; '+(a.nonDep?'tidak disusutkan':methodLabel(a.method)+' '+a.lifeYears+' th')+
+    (a.disposalDate?' &middot; dilepas '+fmtDate(a.disposalDate):'')+'</span></div>'
+  ).join('');
+}
+function updateCalcBtn(){
+  const ok=assets.length&&document.getElementById('periodStart').value&&document.getElementById('periodEnd').value;
+  document.getElementById('calcBtn').disabled=!ok;
+}
+function handleRecords(records){
+  const res=buildAssets(records);
+  showErrors(res.errors);
+  assets=res.assets;
+  document.getElementById('results').classList.add('hidden');
+  renderAssetList();
+  updateCalcBtn();
+  if(assets.length)toast(assets.length+' aset berhasil dimuat.');
+  else toast('Tidak ada data aset valid yang ditemukan.');
+}
+function handleFile(file){
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{handleRecords(parseWorkbook(e.target.result));}
+    catch(err){showErrors([err.message]);toast('Gagal membaca file.');}
+  };
+  reader.onerror=()=>toast('Gagal membaca file.');
+  reader.readAsArrayBuffer(file);
+}
+
+/* ---------- main computation ---------- */
+function calculate(){
+  if(!assets.length){toast('Unggah data aset terlebih dahulu.');return;}
+  const ps=document.getElementById('periodStart').value;
+  const pe=document.getElementById('periodEnd').value;
+  if(!ps||!pe){toast('Isi awal & akhir periode terlebih dahulu.');return;}
+  pStart=parseDate(ps);pEnd=parseDate(pe);
+  if(pEnd<pStart){toast('Akhir periode harus setelah awal periode.');return;}
+  depConv=document.getElementById('conv').value;
+  const openingRef=addDays(pStart,-1); /* akhir periode sebelumnya */
+  const inP=d=>!!(d&&d>=pStart&&d<=pEnd);
+
+  assets.forEach(a=>{
+    const stOpen=carryingState(a,openingRef);
+    const stEnd=carryingState(a,pEnd);
+    const disposedInPeriod=inP(a.disposalDate);
+    const disposedPrior=!!(a.disposalDate&&a.disposalDate<pStart);
+
+    /* kategori awal & akhir (bisa berbeda jika reklas dari ADP) */
+    a.catOpen=categoryAt(a,openingRef);
+    a.catEnd=categoryAt(a,pEnd);
+
+    a.costOpen=stOpen.gross; a.accumOpen=stOpen.accumDep+stOpen.accumImpair; a.nbvOpen=stOpen.nbv;
+    a.costEnd=stEnd.gross;   a.accumEnd=stEnd.accumDep+stEnd.accumImpair;   a.nbvEnd=stEnd.nbv;
+    /* pemisahan akumulasi penyusutan vs akumulasi penurunan nilai (untuk CALK) */
+    a.accumDepOpen=stOpen.accumDep; a.accumDepEnd=stEnd.accumDep;
+    a.accumImpOpen=stOpen.accumImpair; a.accumImpEnd=stEnd.accumImpair;
+
+    /* penambahan (belanja modal): perolehan dalam periode, kecuali reklas dari luar */
+    a.addition=(a.reklasFrom!=='luar'&&inP(a.acqDate))?a.cost:0;
+    a.additionCat=a.addition?categoryAt(a,a.acqDate):null;
+
+    /* beban penyusutan periode berjalan */
+    a.depExpense=0;
+    if(!disposedPrior){
+      const depCumStart=stOpen.depCum;
+      const depCumEnd=disposedInPeriod?carryingState(a,a.disposalDate,true).depCum:stEnd.depCum;
+      a.depExpense=Math.max(0,depCumEnd-depCumStart);
+    }
+
+    /* reklasifikasi */
+    a.reklasIn=0;a.reklasInCat=null;a.reklasOut=0;a.reklasOutCat=null;a.reklasInPeriod=false;
+    if(inP(a.reklasDate)){
+      a.reklasInPeriod=true;
+      a.reklasIn=a.cost; a.reklasInCat=a.kelompok;
+      if(a.reklasFrom==='adp'){a.reklasOut=a.cost;a.reklasOutCat=ADP_GROUP;}
+    }
+
+    /* revaluasi */
+    a.costReval=0;a.accumRevalElim=0;a.accumRevalElimDep=0;a.accumRevalElimImp=0;a.revalSurplus=0;a.revalCat=null;a.revalInPeriod=false;
+    if(inP(a.revalDate)){
+      a.revalInPeriod=true;
+      const pre=carryingState(a,endOfPrevMonth(a.revalDate),true);
+      a.costReval=a.revalAmount-pre.gross;
+      a.accumRevalElimDep=pre.accumDep; a.accumRevalElimImp=pre.accumImpair;
+      a.accumRevalElim=pre.accumDep+pre.accumImpair;
+      a.revalSurplus=a.revalAmount-pre.nbv;
+      a.revalCat=categoryAt(a,a.revalDate);
+    }
+
+    /* penurunan nilai / impairment */
+    a.impairLoss=0;a.impairCat=null;a.impairInPeriod=false;
+    if(inP(a.impairDate)){
+      a.impairInPeriod=true;
+      const pre=carryingState(a,endOfPrevMonth(a.impairDate),true);
+      a.impairLoss=Math.max(0,pre.nbv-a.impairRecoverable);
+      a.impairCat=categoryAt(a,a.impairDate);
+    }
+
+    /* pelepasan */
+    a.costDisp=0;a.accumDisp=0;a.accumDispDep=0;a.accumDispImp=0;a.nbvDisp=0;a.dispCat=null;
+    a.proceeds=null;a.bebanDisp=0;a.gainLoss=null;a.disposed=false;a.dispPrior=disposedPrior;
+    if(disposedInPeriod){
+      a.disposed=true;
+      const pre=carryingState(a,a.disposalDate,true);
+      a.costDisp=pre.gross;
+      a.accumDispDep=pre.accumDep; a.accumDispImp=pre.accumImpair;
+      a.accumDisp=pre.accumDep+pre.accumImpair;
+      a.nbvDisp=pre.nbv;
+      a.dispCat=categoryAt(a,a.disposalDate);
+      a.proceeds=(a.salePrice!==null)?a.salePrice:0;
+      a.bebanDisp=a.disposalCost||0;
+      a.gainLoss=a.proceeds-a.bebanDisp-a.nbvDisp;
+    }
+
+    /* status */
+    if(a.faStartDate>pEnd)a.status='belum';
+    else if(disposedPrior)a.status='luar';
+    else if(disposedInPeriod)a.status='dilepas';
+    else if(a.cip)a.status='adp';
+    else if(a.impairInPeriod)a.status='impair';
+    else if(a.revalInPeriod)a.status='reval';
+    else if(a.reklasInPeriod)a.status='reklas';
+    else if(a.land)a.status='tanah';
+    else if(a.nonDep)a.status='tanah';
+    else if(a.nbvEnd<=a.residual+0.5)a.status='lunas';
+    else a.status='aktif';
+  });
+  renderResults();
+  toast('Kertas kerja berhasil disusun.');
+}
+
+function statusText(s){
+  return s==='aktif'?'Aktif':s==='dilepas'?'Dilepas':s==='lunas'?'Disusutkan Penuh':
+         s==='tanah'?'Tidak Disusutkan':s==='belum'?'Belum Diperoleh':
+         s==='adp'?'Dalam Penyelesaian':s==='reklas'?'Reklasifikasi':
+         s==='reval'?'Revaluasi':s==='impair'?'Penurunan Nilai':'Di Luar Periode';
+}
+
+/* ---------- aggregation by kelompok ---------- */
+function allGroups(){
+  const set=new Set();
+  assets.forEach(a=>{
+    set.add(a.catOpen||a.kelompok);
+    set.add(a.catEnd||a.kelompok);
+    if(a.additionCat)set.add(a.additionCat);
+    if(a.reklasInCat)set.add(a.reklasInCat);
+    if(a.reklasOutCat)set.add(a.reklasOutCat);
+    if(a.revalCat)set.add(a.revalCat);
+    if(a.impairCat)set.add(a.impairCat);
+    if(a.dispCat)set.add(a.dispCat);
+  });
+  return [...set];
+}
+function orderedGroups(){
+  return allGroups().sort((x,y)=>{
+    const ix=PRIORITY.findIndex(p=>norm(x).includes(p));
+    const iy=PRIORITY.findIndex(p=>norm(y).includes(p));
+    const rx=ix<0?98:ix, ry=iy<0?98:iy;
+    if(rx!==ry)return rx-ry;
+    return x.localeCompare(y);
+  });
+}
+function newGroupRec(g){return {kelompok:g,nonDep:true,allCip:true,
+  costOpen:0,addition:0,reklasIn:0,reklasOut:0,costReval:0,costDisp:0,costEnd:0,
+  accumOpen:0,depExpense:0,impairLoss:0,accumRevalElim:0,accumDisp:0,accumEnd:0,
+  accumDepOpen:0,accumDepEnd:0,accumImpOpen:0,accumImpEnd:0,
+  accumRevalElimDep:0,accumRevalElimImp:0,accumDispDep:0,accumDispImp:0,
+  nbvOpen:0,nbvEnd:0,revalSurplus:0};}
+function aggByGroup(){
+  const map={};
+  orderedGroups().forEach(g=>map[g]=newGroupRec(g));
+  assets.forEach(a=>{
+    const co=map[a.catOpen||a.kelompok], ce=map[a.catEnd||a.kelompok];
+    co.costOpen+=a.costOpen;co.accumOpen+=a.accumOpen;co.nbvOpen+=a.nbvOpen;
+    co.accumDepOpen+=a.accumDepOpen;co.accumImpOpen+=a.accumImpOpen;
+    ce.costEnd+=a.costEnd;ce.accumEnd+=a.accumEnd;ce.nbvEnd+=a.nbvEnd;
+    ce.accumDepEnd+=a.accumDepEnd;ce.accumImpEnd+=a.accumImpEnd;
+    if(a.additionCat)map[a.additionCat].addition+=a.addition;
+    if(a.reklasInCat)map[a.reklasInCat].reklasIn+=a.reklasIn;
+    if(a.reklasOutCat)map[a.reklasOutCat].reklasOut+=a.reklasOut;
+    if(a.revalCat){const m=map[a.revalCat];m.costReval+=a.costReval;m.accumRevalElim+=a.accumRevalElim;m.accumRevalElimDep+=a.accumRevalElimDep;m.accumRevalElimImp+=a.accumRevalElimImp;m.revalSurplus+=a.revalSurplus;}
+    if(a.impairCat)map[a.impairCat].impairLoss+=a.impairLoss;
+    map[a.catEnd||a.kelompok].depExpense+=a.depExpense;
+    if(a.dispCat){const m=map[a.dispCat];m.costDisp+=a.costDisp;m.accumDisp+=a.accumDisp;m.accumDispDep+=a.accumDispDep;m.accumDispImp+=a.accumDispImp;}
+    [a.catOpen,a.catEnd].forEach(c=>{const m=map[c];if(m){if(!a.nonDep)m.nonDep=false;if(!a.cip)m.allCip=false;}});
+  });
+  return orderedGroups().map(g=>map[g]);
+}
+function totals(){
+  const t={costOpen:0,addition:0,reklasIn:0,reklasOut:0,costReval:0,costDisp:0,costEnd:0,
+    accumOpen:0,depExpense:0,impairLoss:0,accumRevalElim:0,accumDisp:0,accumEnd:0,
+    accumDepOpen:0,accumDepEnd:0,accumImpOpen:0,accumImpEnd:0,
+    accumRevalElimDep:0,accumRevalElimImp:0,accumDispDep:0,accumDispImp:0,
+    nbvOpen:0,nbvEnd:0,proceeds:0,bebanDisp:0,gainLoss:0,nbvDisp:0,dispCount:0,
+    revalSurplus:0,revalCount:0,impairCount:0,reklasCount:0,reklasFromAdp:0,reklasFromLuar:0};
+  assets.forEach(a=>{
+    t.costOpen+=a.costOpen;t.addition+=a.addition;t.reklasIn+=a.reklasIn;t.reklasOut+=a.reklasOut;
+    t.costReval+=a.costReval;t.costDisp+=a.costDisp;t.costEnd+=a.costEnd;
+    t.accumOpen+=a.accumOpen;t.depExpense+=a.depExpense;t.impairLoss+=a.impairLoss;
+    t.accumRevalElim+=a.accumRevalElim;t.accumDisp+=a.accumDisp;t.accumEnd+=a.accumEnd;
+    t.accumDepOpen+=a.accumDepOpen;t.accumDepEnd+=a.accumDepEnd;t.accumImpOpen+=a.accumImpOpen;t.accumImpEnd+=a.accumImpEnd;
+    t.accumRevalElimDep+=a.accumRevalElimDep;t.accumRevalElimImp+=a.accumRevalElimImp;t.accumDispDep+=a.accumDispDep;t.accumDispImp+=a.accumDispImp;
+    t.nbvOpen+=a.nbvOpen;t.nbvEnd+=a.nbvEnd;t.revalSurplus+=a.revalSurplus;
+    if(a.disposed){t.proceeds+=a.proceeds||0;t.bebanDisp+=a.bebanDisp||0;t.gainLoss+=a.gainLoss||0;t.nbvDisp+=a.nbvDisp||0;t.dispCount++;}
+    if(a.revalInPeriod)t.revalCount++;
+    if(a.impairInPeriod)t.impairCount++;
+    if(a.reklasInPeriod){t.reklasCount++;if(a.reklasFrom==='adp')t.reklasFromAdp++;else t.reklasFromLuar++;}
+  });
+  return t;
+}
+
+/* ---------- render ---------- */
+function statCard(lbl,val,small){
+  return '<div class="stat"><div class="lbl">'+lbl+'</div>'+
+    '<div class="val'+(small?' sm':'')+'">'+val+'</div></div>';
+}
+function renderResults(){
+  const t=totals();
+  const ag=aggByGroup();
+  const periodLbl='Periode '+longDate(pStart)+' s.d. '+longDate(pEnd);
+  document.getElementById('periodTag1').textContent=periodLbl;
+  document.getElementById('periodTag2').textContent=periodLbl;
+
+  /* fitur yang aktif menentukan kolom tambahan yang ditampilkan */
+  const useReklas=(t.reklasIn>0.5||t.reklasOut>0.5);
+  const useReval=(t.revalCount>0);
+  const useImpair=(t.impairCount>0);
+
+  /* ---- stat cards (5 inti + kartu kondisional) ---- */
+  let stats=
+    statCard('Nilai Perolehan (Akhir)',acc(t.costEnd),true)+
+    statCard('Akumulasi Penyusutan (Akhir)',acc(t.accumEnd),true)+
+    statCard('Nilai Buku Neto (Akhir)',acc(t.nbvEnd),true)+
+    statCard('Beban Penyusutan Periode',acc(t.depExpense),true)+
+    statCard('Laba/(Rugi) Pelepasan',acc(t.gainLoss),true);
+  if(useReval)stats+=statCard('Surplus Revaluasi',acc(t.revalSurplus),true);
+  if(useImpair)stats+=statCard('Rugi Penurunan Nilai',acc(t.impairLoss),true);
+  const sc=document.getElementById('stats');
+  sc.innerHTML=stats;
+  sc.style.gridTemplateColumns='repeat('+(5+(useReval?1:0)+(useImpair?1:0))+',1fr)';
+
+  /* ---- detail working paper (kolom dinamis) ---- */
+  const cols=[];
+  cols.push({h:'Nama Aset',cls:'',f:a=>'<b>'+escapeHtml(a.name)+'</b>'});
+  cols.push({h:'Kelompok',cls:'',f:a=>escapeHtml(a.catEnd||a.kelompok)+(a.catOpen&&a.catOpen!==a.catEnd?'<br><span style="font-size:10.5px;color:var(--muted)">dari '+escapeHtml(a.catOpen)+'</span>':'')});
+  cols.push({h:'Tgl Perolehan',cls:'num',f:a=>fmtDateFull(a.acqDate)});
+  cols.push({h:'HP Awal',cls:'num',f:a=>acc(a.costOpen)});
+  cols.push({h:'Akum. Awal',cls:'num',f:a=>fmtParen(a.accumOpen)});
+  cols.push({h:'NBV Awal',cls:'num',f:a=>acc(a.nbvOpen)});
+  cols.push({h:'Penambahan',cls:'num',f:a=>acc(a.addition)});
+  if(useReklas){
+    cols.push({h:'Reklas Masuk',cls:'num',f:a=>acc(a.reklasIn)});
+    cols.push({h:'Reklas Keluar',cls:'num',f:a=>fmtParen(a.reklasOut)});
+  }
+  if(useReval)cols.push({h:'Revaluasi HP',cls:'num',f:a=>acc(a.costReval)});
+  cols.push({h:'Beban Peny.',cls:'num',f:a=>fmtParen(a.depExpense)});
+  if(useImpair)cols.push({h:'Penurunan Nilai',cls:'num',f:a=>fmtParen(a.impairLoss)});
+  if(useReval)cols.push({h:'Eliminasi Reval (Akum.)',cls:'num',f:a=>acc(a.accumRevalElim)});
+  cols.push({h:'Pengurangan HP',cls:'num',f:a=>fmtParen(a.costDisp)});
+  cols.push({h:'Pengurangan Akum.',cls:'num',f:a=>acc(a.accumDisp)});
+  cols.push({h:'HP Akhir',cls:'num',f:a=>acc(a.costEnd)});
+  cols.push({h:'Akum. Akhir',cls:'num',f:a=>fmtParen(a.accumEnd)});
+  cols.push({h:'NBV Akhir',cls:'num',f:a=>acc(a.nbvEnd)});
+  cols.push({h:'Harga Jual',cls:'num',f:a=>acc(a.proceeds)});
+  cols.push({h:'Biaya Pelepasan',cls:'num',f:a=>acc(a.bebanDisp)});
+  cols.push({h:'Laba/(Rugi)',cls:'num',f:a=>acc(a.gainLoss)});
+  cols.push({h:'Status',cls:'',f:a=>'<span class="pill '+a.status+'">'+statusText(a.status)+'</span>'});
+
+  let h='<thead><tr>'+cols.map(c=>'<th'+(c.cls?' class="'+c.cls+'"':'')+'>'+c.h+'</th>').join('')+'</tr></thead><tbody>';
+  assets.forEach(a=>{h+='<tr>'+cols.map(c=>'<td'+(c.cls?' class="'+c.cls+'"':'')+'>'+c.f(a)+'</td>').join('')+'</tr>';});
+  /* footer totals */
+  const tf={};
+  tf['Penambahan']=acc(t.addition);tf['Reklas Masuk']=acc(t.reklasIn);tf['Reklas Keluar']=fmtParen(t.reklasOut);
+  tf['Revaluasi HP']=acc(t.costReval);tf['Beban Peny.']=fmtParen(t.depExpense);tf['Penurunan Nilai']=fmtParen(t.impairLoss);
+  tf['Eliminasi Reval (Akum.)']=acc(t.accumRevalElim);
+  tf['HP Awal']=acc(t.costOpen);tf['Akum. Awal']=fmtParen(t.accumOpen);tf['NBV Awal']=acc(t.nbvOpen);
+  tf['Pengurangan HP']=fmtParen(t.costDisp);tf['Pengurangan Akum.']=acc(t.accumDisp);
+  tf['HP Akhir']=acc(t.costEnd);tf['Akum. Akhir']=fmtParen(t.accumEnd);tf['NBV Akhir']=acc(t.nbvEnd);
+  tf['Harga Jual']=acc(t.proceeds);tf['Biaya Pelepasan']=acc(t.bebanDisp);tf['Laba/(Rugi)']=acc(t.gainLoss);
+  h+='</tbody><tfoot><tr class="total">';
+  let merged=false;
+  cols.forEach((c,i)=>{
+    if(i===0){h+='<td colspan="3">TOTAL</td>';merged=true;return;}
+    if(i<=2)return; /* sudah ke-merge */
+    if(c.h==='Status'){h+='<td></td>';return;}
+    h+='<td class="num">'+(tf[c.h]!==undefined?tf[c.h]:'')+'</td>';
+  });
+  h+='</tr></tfoot>';
+  document.getElementById('kkTable').innerHTML=h;
+
+  /* ---- recap by group (kolom dinamis) ---- */
+  const rcols=[];
+  rcols.push({h:'Kelompok',cls:'',f:g=>'<b>'+escapeHtml(g.kelompok)+'</b>',t:'JUMLAH'});
+  rcols.push({h:'HP Awal',cls:'num',f:g=>acc(g.costOpen),t:acc(t.costOpen)});
+  rcols.push({h:'Penambahan',cls:'num',f:g=>acc(g.addition),t:acc(t.addition)});
+  if(useReklas){
+    rcols.push({h:'Reklas Masuk',cls:'num',f:g=>acc(g.reklasIn),t:acc(t.reklasIn)});
+    rcols.push({h:'Reklas Keluar',cls:'num',f:g=>fmtParen(g.reklasOut),t:fmtParen(t.reklasOut)});
+  }
+  if(useReval)rcols.push({h:'Revaluasi',cls:'num',f:g=>acc(g.costReval),t:acc(t.costReval)});
+  rcols.push({h:'Pengurangan',cls:'num',f:g=>fmtParen(g.costDisp),t:fmtParen(t.costDisp)});
+  rcols.push({h:'HP Akhir',cls:'num',f:g=>acc(g.costEnd),t:acc(t.costEnd)});
+  rcols.push({h:'Akum. Awal',cls:'num',f:g=>fmtParen(g.accumOpen),t:fmtParen(t.accumOpen)});
+  rcols.push({h:'Beban Peny.',cls:'num',f:g=>fmtParen(g.depExpense),t:fmtParen(t.depExpense)});
+  if(useImpair)rcols.push({h:'Penurunan Nilai',cls:'num',f:g=>fmtParen(g.impairLoss),t:fmtParen(t.impairLoss)});
+  rcols.push({h:'Akum. Akhir',cls:'num',f:g=>fmtParen(g.accumEnd),t:fmtParen(t.accumEnd)});
+  rcols.push({h:'NBV Akhir',cls:'num',f:g=>acc(g.nbvEnd),t:acc(t.nbvEnd)});
+  let r='<thead><tr>'+rcols.map(c=>'<th'+(c.cls?' class="'+c.cls+'"':'')+'>'+c.h+'</th>').join('')+'</tr></thead><tbody>';
+  ag.forEach(g=>{r+='<tr>'+rcols.map(c=>'<td'+(c.cls?' class="'+c.cls+'"':'')+'>'+c.f(g)+'</td>').join('')+'</tr>';});
+  r+='</tbody><tfoot><tr class="total">'+rcols.map(c=>'<td'+(c.cls?' class="'+c.cls+'"':'')+'>'+c.t+'</td>').join('')+'</tr></tfoot>';
+  document.getElementById('recapTable').innerHTML=r;
+
+  renderCALK(ag,t);
+
+  /* ---- asset selector ---- */
+  const sel=document.getElementById('assetSelect');
+  sel.innerHTML=assets.map((a,i)=>'<option value="'+i+'">'+escapeHtml(a.name)+' ('+escapeHtml(a.catEnd||a.kelompok)+')</option>').join('');
+  sel.value='0';
+  renderSchedule(0);
+
+  document.getElementById('results').classList.remove('hidden');
+  document.getElementById('results').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function renderCALK(ag,t){
+  const yStart=longDate(pStart), yEnd=longDate(pEnd);
+  const useReklas=(t.reklasIn>0.5||t.reklasOut>0.5);
+  const useReval=(t.revalCount>0);
+  const useImpair=(t.impairCount>0);
+
+  /* ---- KOLOM SERAGAM untuk SEMUA section (Saldo Awal di ujung kiri, Saldo Akhir di ujung kanan) ---- */
+  const cols=[{h:'Saldo Awal',sub:yStart},{h:'Penambahan'}];
+  if(useReklas)cols.push({h:'Reklasifikasi'});
+  if(useReval)cols.push({h:'Revaluasi'});
+  cols.push({h:'Pengurangan'});
+  cols.push({h:'Saldo Akhir',sub:yEnd});
+  const span=cols.length+1;
+  const rowVals=map=>cols.map(c=>map[c.h]===undefined?null:map[c.h]);
+  const tdCell=v=>'<td class="num">'+(v===null||v===''?'':signed(v))+'</td>';
+
+  const headRow='<tr><th>Keterangan</th>'+cols.map(c=>'<th class="num">'+c.h+(c.sub?'<br><span style="font-weight:400;color:var(--muted)">'+c.sub+'</span>':'')+'</th>').join('')+'</tr>';
+  let html='<table><thead>'+headRow+'</thead><tbody>';
+
+  /* nilai bertanda: biaya perolehan positif (pengurangan negatif); akumulasi disajikan negatif (pengurang NBV) */
+  const costV=g=>rowVals({'Saldo Awal':g.costOpen,'Penambahan':g.addition,'Reklasifikasi':g.reklasIn-g.reklasOut,'Revaluasi':g.costReval,'Pengurangan':-g.costDisp,'Saldo Akhir':g.costEnd});
+  const depV =g=>rowVals({'Saldo Awal':-g.accumDepOpen,'Penambahan':-g.depExpense,'Reklasifikasi':0,'Revaluasi':g.accumRevalElimDep,'Pengurangan':g.accumDispDep,'Saldo Akhir':-g.accumDepEnd});
+  const impV =g=>rowVals({'Saldo Awal':-g.accumImpOpen,'Penambahan':-g.impairLoss,'Reklasifikasi':0,'Revaluasi':g.accumRevalElimImp,'Pengurangan':g.accumDispImp,'Saldo Akhir':-g.accumImpEnd});
+
+  const section=(title,jml,rows,valFn,totVals)=>{
+    html+='<tr class="sec"><td colspan="'+span+'">'+title+'</td></tr>';
+    rows.forEach(g=>{html+='<tr class="item"><td>'+escapeHtml(g.kelompok)+'</td>'+valFn(g).map(tdCell).join('')+'</tr>';});
+    html+='<tr class="sub"><td>'+jml+'</td>'+totVals.map(tdCell).join('')+'</tr>';
+  };
+
+  section('Biaya Perolehan / Nilai Revaluasian','Jumlah Biaya Perolehan',ag,costV,
+    rowVals({'Saldo Awal':t.costOpen,'Penambahan':t.addition,'Reklasifikasi':t.reklasIn-t.reklasOut,'Revaluasi':t.costReval,'Pengurangan':-t.costDisp,'Saldo Akhir':t.costEnd}));
+  section('Akumulasi Penyusutan','Jumlah Akumulasi Penyusutan',
+    ag.filter(g=>!g.nonDep||g.accumDepEnd>0||g.accumDepOpen>0||g.depExpense>0),depV,
+    rowVals({'Saldo Awal':-t.accumDepOpen,'Penambahan':-t.depExpense,'Reklasifikasi':0,'Revaluasi':t.accumRevalElimDep,'Pengurangan':t.accumDispDep,'Saldo Akhir':-t.accumDepEnd}));
+  if(useImpair)section('Akumulasi Penurunan Nilai','Jumlah Akumulasi Penurunan Nilai',
+    ag.filter(g=>g.accumImpEnd>0||g.accumImpOpen>0||g.impairLoss>0),impV,
+    rowVals({'Saldo Awal':-t.accumImpOpen,'Penambahan':-t.impairLoss,'Reklasifikasi':0,'Revaluasi':t.accumRevalElimImp,'Pengurangan':t.accumDispImp,'Saldo Akhir':-t.accumImpEnd}));
+
+  /* Nilai Buku Neto: hanya Saldo Awal & Saldo Akhir (kolom tengah kosong) */
+  const nbvCells=cols.map(c=>c.h==='Saldo Awal'?'<td class="num">'+acc(t.nbvOpen)+'</td>':c.h==='Saldo Akhir'?'<td class="num">'+acc(t.nbvEnd)+'</td>':'<td class="num"></td>').join('');
+  html+='<tr class="nbv"><td>Nilai Buku Neto</td>'+nbvCells+'</tr>';
+  html+='</tbody></table>';
+  document.getElementById('calkTable').innerHTML=html;
+
+  /* ---- narrative ---- */
+  const methodsUsed=[...new Set(assets.filter(a=>!a.nonDep).map(a=>methodLabel(a.method)))];
+  const hasLand=assets.some(a=>a.land);
+  const hasCip=assets.some(a=>a.cip)||ag.some(g=>isADPGroup(g.kelompok));
+  let n='';
+  n+='<p>Mutasi aset tetap untuk periode yang berakhir pada <b>'+yEnd+'</b> disajikan pada tabel di atas, dengan nilai buku neto bergerak dari <b>Rp '+acc(t.nbvOpen)+'</b> pada awal periode menjadi <b>Rp '+acc(t.nbvEnd)+'</b> pada akhir periode.</p>';
+  if(t.addition>0.5)n+='<p>Penambahan aset tetap selama periode berjalan adalah sebesar <b>Rp '+acc(t.addition)+'</b>'+(hasCip?', termasuk pengeluaran untuk aset dalam penyelesaian yang belum disusutkan hingga aset siap digunakan':'')+'.</p>';
+  n+='<p>Beban penyusutan untuk periode berjalan adalah sebesar <b>Rp '+acc(t.depExpense)+'</b> dan dibebankan pada laba rugi periode berjalan. Penyusutan dihitung dengan metode '+(methodsUsed.length?methodsUsed.join(' dan '):'garis lurus')+' berdasarkan estimasi masa manfaat ekonomis masing-masing aset.'+(hasLand?' Tanah tidak disusutkan.':'')+'</p>';
+
+  if(t.reklasCount>0){
+    const parts=[];
+    if(t.reklasFromAdp>0)parts.push(t.reklasFromAdp+' unit dari aset dalam penyelesaian yang telah selesai dan siap digunakan');
+    if(t.reklasFromLuar>0)parts.push(t.reklasFromLuar+' unit reklasifikasi dari akun di luar aset tetap (misalnya persediaan, properti investasi, atau uang muka)');
+    n+='<p>Selama periode berjalan terdapat <b>reklasifikasi</b> sebesar <b>Rp '+acc(t.reklasIn)+'</b> ke kelompok aset tetap, yang terdiri atas '+parts.join(' serta ')+'. Aset hasil reklasifikasi mulai disusutkan sejak tanggal siap digunakan/tanggal reklasifikasi.</p>';
+  }
+  if(t.revalCount>0){
+    n+='<p>Perusahaan menerapkan <b>model revaluasi</b> atas '+t.revalCount+' unit aset tetap. Revaluasi menaikkan/menurunkan nilai tercatat neto sebesar <b>Rp '+acc(t.revalSurplus)+'</b>'+
+      ' yang diakui sebagai <b>surplus revaluasi</b> dalam penghasilan komprehensif lain (ekuitas), sepanjang tidak membalik penurunan nilai yang sebelumnya diakui dalam laba rugi. Pada tanggal revaluasi, akumulasi penyusutan sebesar Rp '+acc(t.accumRevalElim)+' dieliminasi terhadap nilai tercatat bruto aset.</p>';
+  }
+  if(t.impairCount>0){
+    n+='<p>Hasil pengujian penurunan nilai mengindikasikan bahwa nilai tercatat '+t.impairCount+' unit aset tetap melebihi jumlah terpulihkannya. Perusahaan mengakui <b>rugi penurunan nilai (impairment)</b> sebesar <b>Rp '+acc(t.impairLoss)+'</b> dalam laba rugi periode berjalan, sehingga nilai tercatat aset diturunkan menjadi sebesar jumlah terpulihkannya.</p>';
+  }
+  if(hasCip){
+    const cipEnd=ag.filter(g=>isADPGroup(g.kelompok)).reduce((s,g)=>s+g.costEnd,0);
+    n+='<p><b>Aset dalam penyelesaian</b> merupakan akumulasi biaya perolehan aset yang masih dalam tahap pembangunan/perolehan dan belum siap digunakan, dengan saldo akhir sebesar <b>Rp '+acc(cipEnd)+'</b>. Aset dalam penyelesaian tidak disusutkan dan akan direklasifikasi ke kelompok aset tetap terkait pada saat selesai dan siap digunakan.</p>';
+  }
+  if(t.dispCount>0){
+    const lr=t.gainLoss>=0?'laba':'rugi';
+    n+='<p>Selama periode berjalan, Perusahaan melepas <b>'+t.dispCount+' unit</b> aset tetap dengan biaya perolehan/nilai tercatat bruto sebesar Rp '+acc(t.costDisp)+' dan akumulasi penyusutan sebesar Rp '+acc(t.accumDisp)+' (nilai buku neto Rp '+acc(t.nbvDisp)+'). '+
+      'Hasil pelepasan sebesar Rp '+acc(t.proceeds)+(t.bebanDisp>0?' dengan biaya pelepasan (beban atas disposal) sebesar Rp '+acc(t.bebanDisp):'')+
+      ', sehingga diakui <b>'+lr+' atas pelepasan aset tetap</b> sebesar <b>Rp '+acc(Math.abs(t.gainLoss))+'</b> dalam laba rugi periode berjalan.</p>';
+  }else{
+    n+='<p>Tidak terdapat pelepasan aset tetap selama periode berjalan.</p>';
+  }
+  document.getElementById('calkNarr').innerHTML=n;
+}
+
+function renderSchedule(idx){
+  const a=assets[idx];
+  const extra=[];
+  if(a.cip)extra.push(['Jenis Aset','Aset Dalam Penyelesaian (belum disusutkan)']);
+  if(a.reklasFrom){
+    extra.push(['Reklasifikasi Dari',a.reklasFrom==='adp'?'Aset Dalam Penyelesaian':'Akun di Luar Aset Tetap']);
+    extra.push(['Tgl Reklasifikasi',fmtDateFull(a.reklasDate)]);
+  }
+  if(a.hasReval){
+    extra.push(['Tgl Revaluasi',fmtDateFull(a.revalDate)]);
+    extra.push(['Nilai Revaluasian',acc(a.revalAmount)]);
+    if(a.revalInPeriod)extra.push(['Surplus Revaluasi',acc(a.revalSurplus)]);
+  }
+  if(a.hasImpair){
+    extra.push(['Tgl Penurunan Nilai',fmtDateFull(a.impairDate)]);
+    extra.push(['Jumlah Terpulihkan',acc(a.impairRecoverable)]);
+    if(a.impairInPeriod)extra.push(['Rugi Penurunan Nilai',acc(a.impairLoss)]);
+  }
+  const extraRows=extra.map(e=>'<div class="row"><span class="lbl">'+e[0]+'</span><span class="val">'+e[1]+'</span></div>').join('');
+  const left='<div class="col">'+
+    '<div class="row"><span class="lbl">Kelompok</span><span class="val">'+escapeHtml(a.catEnd||a.kelompok)+'</span></div>'+
+    '<div class="row"><span class="lbl">Tgl Perolehan</span><span class="val">'+fmtDateFull(a.acqDate)+'</span></div>'+
+    '<div class="row"><span class="lbl">Harga Perolehan</span><span class="val">'+acc(a.cost)+'</span></div>'+
+    '<div class="row"><span class="lbl">Metode</span><span class="val">'+(a.nonDep?'Tidak Disusutkan':methodLabel(a.method))+'</span></div>'+
+    '<div class="row"><span class="lbl">Masa Manfaat</span><span class="val">'+(a.nonDep?'-':a.lifeYears+' tahun')+'</span></div>'+
+    '<div class="row"><span class="lbl">Nilai Residu</span><span class="val">'+acc(a.residual)+'</span></div>'+
+    extraRows+
+    '<div class="row"><span class="lbl">Status</span><span class="val"><span class="pill '+a.status+'" style="margin:0;">'+statusText(a.status)+'</span></span></div>'+
+    '</div>';
+  const right='<div class="col">'+
+    '<div class="row"><span class="lbl">HP / Akum. Awal</span><span class="val">'+acc(a.costOpen)+' / '+acc(a.accumOpen)+'</span></div>'+
+    '<div class="row"><span class="lbl">NBV Awal</span><span class="val">'+acc(a.nbvOpen)+'</span></div>'+
+    (a.reklasIn>0.5?'<div class="row"><span class="lbl">Reklasifikasi Masuk</span><span class="val">'+acc(a.reklasIn)+'</span></div>':'')+
+    (a.costReval!==0?'<div class="row"><span class="lbl">Revaluasi (HP)</span><span class="val">'+signed(a.costReval)+'</span></div>':'')+
+    '<div class="row"><span class="lbl">Beban Penyusutan</span><span class="val">'+acc(a.depExpense)+'</span></div>'+
+    (a.impairLoss>0.5?'<div class="row"><span class="lbl">Rugi Penurunan Nilai</span><span class="val">'+acc(a.impairLoss)+'</span></div>':'')+
+    '<div class="row"><span class="lbl">HP / Akum. Akhir</span><span class="val">'+acc(a.costEnd)+' / '+acc(a.accumEnd)+'</span></div>'+
+    '<div class="row"><span class="lbl">NBV Akhir</span><span class="val">'+acc(a.nbvEnd)+'</span></div>'+
+    '<div class="row"><span class="lbl">Tgl Pelepasan</span><span class="val">'+fmtDateFull(a.disposalDate)+'</span></div>'+
+    '<div class="row"><span class="lbl">Harga Jual / Biaya Pelepasan</span><span class="val">'+acc(a.proceeds)+' / '+acc(a.bebanDisp)+'</span></div>'+
+    '<div class="row"><span class="lbl">Laba/(Rugi) Pelepasan</span><span class="val">'+acc(a.gainLoss)+'</span></div>'+
+    '</div>';
+  document.getElementById('schedMeta').innerHTML='<div class="detail-grid">'+left+right+'</div>';
+
+  const sched=buildYearlySchedule(a);
+  if(!sched.length){
+    const why=a.cip?'Aset dalam penyelesaian belum disusutkan sampai selesai dan siap digunakan.':'Aset ini tidak disusutkan (tanah / masa manfaat tidak ditentukan).';
+    document.getElementById('schedTable').innerHTML='<thead><tr><th>Jadwal Penyusutan</th></tr></thead><tbody><tr><td>'+why+' Nilai buku tetap sebesar nilai tercatatnya.</td></tr></tbody>';
+    return;
+  }
+  const anyImp=sched.some(s=>Math.abs(s.impair)>0.5);
+  let h='<thead><tr><th>Tahun</th><th class="num">Beban Penyusutan</th>'+(anyImp?'<th class="num">Penurunan Nilai</th>':'')+'<th class="num">Akumulasi Penyusutan</th><th class="num">Nilai Buku Akhir Tahun</th></tr></thead><tbody>';
+  sched.forEach(s=>{
+    const cur=(pEnd&&s.year===pEnd.getFullYear());
+    h+='<tr'+(cur?' style="background:#eef4fb;font-weight:600"':'')+'>'+
+      '<td>'+s.year+(cur?' &middot; periode berjalan':'')+'</td>'+
+      '<td class="num">'+acc(s.dep)+'</td>'+
+      (anyImp?'<td class="num">'+fmtParen(s.impair)+'</td>':'')+
+      '<td class="num">'+acc(s.accum)+'</td>'+
+      '<td class="num">'+acc(s.nbv)+'</td></tr>';
+  });
+  h+='</tbody>';
+  document.getElementById('schedTable').innerHTML=h;
+}
+
+/* ---------- export ---------- */
+function exportExcel(){
+  if(!assets.length||pStart===null){toast('Proses kertas kerja dulu sebelum mengunduh.');return;}
+  const t=totals();const ag=aggByGroup();
+  const useReklas=(t.reklasIn>0.5||t.reklasOut>0.5);
+  const useReval=(t.revalCount>0);
+  const useImpair=(t.impairCount>0);
+  const wb=XLSX.utils.book_new();
+  const ds=fmtDateFull(pStart),de=fmtDateFull(pEnd);
+  const neg=v=>v?-v:0;
+
+  /* Sheet 1: Kertas Kerja */
+  const kk=[];
+  kk.push(['KERTAS KERJA ASET TETAP']);
+  kk.push(['Periode',ds+' s.d. '+de,'','Konvensi penyusutan',depConv==='acq'?'Bulan perolehan (penuh)':'Bulan berikutnya']);
+  kk.push([]);
+  const head=['Nama Aset','Kelompok (Akhir)','Kelompok (Awal)','Tgl Perolehan','Metode','Masa Manfaat (th)','Nilai Residu',
+    'HP Awal','Akum. Awal','NBV Awal','Penambahan'];
+  if(useReklas)head.push('Reklas Masuk','Reklas Keluar');
+  if(useReval)head.push('Revaluasi HP');
+  head.push('Beban Penyusutan');
+  if(useImpair)head.push('Penurunan Nilai');
+  if(useReval)head.push('Eliminasi Akum. (Reval)');
+  head.push('Pengurangan HP','Pengurangan Akum.','HP Akhir','Akum. Akhir','NBV Akhir','Harga Jual','Biaya Pelepasan','Laba/(Rugi) Pelepasan','Status');
+  kk.push(head);
+  assets.forEach(a=>{
+    const row=[a.name,a.catEnd||a.kelompok,a.catOpen||a.kelompok,fmtDateFull(a.acqDate),a.nonDep?'-':methodLabel(a.method),a.nonDep?'-':a.lifeYears,a.residual,
+      a.costOpen,neg(a.accumOpen),a.nbvOpen,a.addition];
+    if(useReklas)row.push(a.reklasIn,neg(a.reklasOut));
+    if(useReval)row.push(a.costReval);
+    row.push(neg(a.depExpense));
+    if(useImpair)row.push(neg(a.impairLoss));
+    if(useReval)row.push(a.accumRevalElim);
+    row.push(neg(a.costDisp),a.accumDisp,a.costEnd,neg(a.accumEnd),a.nbvEnd,a.proceeds!==null?a.proceeds:'',a.bebanDisp,a.gainLoss!==null?a.gainLoss:'',statusText(a.status));
+    kk.push(row);
+  });
+  const totalRow=['TOTAL','','','','','','',t.costOpen,neg(t.accumOpen),t.nbvOpen,t.addition];
+  if(useReklas)totalRow.push(t.reklasIn,neg(t.reklasOut));
+  if(useReval)totalRow.push(t.costReval);
+  totalRow.push(neg(t.depExpense));
+  if(useImpair)totalRow.push(neg(t.impairLoss));
+  if(useReval)totalRow.push(t.accumRevalElim);
+  totalRow.push(neg(t.costDisp),t.accumDisp,t.costEnd,neg(t.accumEnd),t.nbvEnd,t.proceeds,t.bebanDisp,t.gainLoss,'');
+  kk.push(totalRow);
+  const ws1=XLSX.utils.aoa_to_sheet(kk);
+  ws1['!cols']=[{wch:28},{wch:18},{wch:18},{wch:13},{wch:18},{wch:14},{wch:14}].concat(Array(head.length-8).fill({wch:15})).concat([{wch:16}]);
+  XLSX.utils.book_append_sheet(wb,ws1,'Kertas Kerja');
+
+  /* Sheet 2: Rekap Kelompok */
+  const rk=[];
+  rk.push(['REKAPITULASI PER KELOMPOK ASET']);
+  rk.push(['Periode',ds+' s.d. '+de]);
+  rk.push([]);
+  const rh=['Kelompok','HP Awal','Penambahan'];
+  if(useReklas)rh.push('Reklas Masuk','Reklas Keluar');
+  if(useReval)rh.push('Revaluasi');
+  rh.push('Pengurangan HP','HP Akhir','Akum. Awal','Beban Penyusutan');
+  if(useImpair)rh.push('Penurunan Nilai');
+  if(useReval)rh.push('Eliminasi (Reval)');
+  rh.push('Peng. Akum.','Akum. Akhir','NBV Awal','NBV Akhir');
+  rk.push(rh);
+  const rrow=(g)=>{const r=[g.kelompok,g.costOpen,g.addition];if(useReklas)r.push(g.reklasIn,neg(g.reklasOut));if(useReval)r.push(g.costReval);r.push(neg(g.costDisp),g.costEnd,neg(g.accumOpen),neg(g.depExpense));if(useImpair)r.push(neg(g.impairLoss));if(useReval)r.push(g.accumRevalElim);r.push(g.accumDisp,neg(g.accumEnd),g.nbvOpen,g.nbvEnd);return r;};
+  ag.forEach(g=>rk.push(rrow(g)));
+  rk.push(rrow({kelompok:'JUMLAH',costOpen:t.costOpen,addition:t.addition,reklasIn:t.reklasIn,reklasOut:t.reklasOut,costReval:t.costReval,costDisp:t.costDisp,costEnd:t.costEnd,accumOpen:t.accumOpen,depExpense:t.depExpense,impairLoss:t.impairLoss,accumRevalElim:t.accumRevalElim,accumDisp:t.accumDisp,accumEnd:t.accumEnd,nbvOpen:t.nbvOpen,nbvEnd:t.nbvEnd}));
+  const ws2=XLSX.utils.aoa_to_sheet(rk);
+  ws2['!cols']=[{wch:24}].concat(Array(rh.length-1).fill({wch:16}));
+  XLSX.utils.book_append_sheet(wb,ws2,'Rekap Kelompok');
+
+  /* Sheet 3: CALK — kolom seragam untuk semua section (Saldo Awal ... Saldo Akhir) */
+  const ck=[];
+  ck.push(['CATATAN ATAS LAPORAN KEUANGAN']);
+  ck.push(['ASET TETAP']);
+  ck.push(['Mutasi aset tetap untuk periode yang berakhir '+de]);
+  ck.push(['(Akumulasi penyusutan & penurunan nilai disajikan dalam tanda kurung sebagai pengurang nilai buku)']);
+  ck.push([]);
+  const ch=['Keterangan','Saldo Awal ('+ds+')','Penambahan'];
+  if(useReklas)ch.push('Reklasifikasi');
+  if(useReval)ch.push('Revaluasi');
+  ch.push('Pengurangan','Saldo Akhir ('+de+')');
+  const ncol=ch.length;
+  ck.push(ch);
+  /* susun nilai sesuai kolom aktif */
+  const rowC=(label,vSaldoAwal,vTambah,vReklas,vReval,vKurang,vSaldoAkhir)=>{
+    const r=[label,vSaldoAwal,vTambah];
+    if(useReklas)r.push(vReklas);
+    if(useReval)r.push(vReval);
+    r.push(vKurang,vSaldoAkhir);
+    return r;
+  };
+  ck.push(['Biaya Perolehan / Nilai Revaluasian']);
+  ag.forEach(g=>ck.push(rowC('  '+g.kelompok,g.costOpen,g.addition,g.reklasIn-g.reklasOut,g.costReval,neg(g.costDisp),g.costEnd)));
+  ck.push(rowC('Jumlah Biaya Perolehan',t.costOpen,t.addition,t.reklasIn-t.reklasOut,t.costReval,neg(t.costDisp),t.costEnd));
+  ck.push([]);
+  ck.push(['Akumulasi Penyusutan']);
+  ag.filter(g=>!g.nonDep||g.accumDepEnd>0||g.accumDepOpen>0||g.depExpense>0).forEach(g=>ck.push(rowC('  '+g.kelompok,neg(g.accumDepOpen),neg(g.depExpense),0,g.accumRevalElimDep,g.accumDispDep,neg(g.accumDepEnd))));
+  ck.push(rowC('Jumlah Akumulasi Penyusutan',neg(t.accumDepOpen),neg(t.depExpense),0,t.accumRevalElimDep,t.accumDispDep,neg(t.accumDepEnd)));
+  ck.push([]);
+  if(useImpair){
+    ck.push(['Akumulasi Penurunan Nilai']);
+    ag.filter(g=>g.accumImpEnd>0||g.accumImpOpen>0||g.impairLoss>0).forEach(g=>ck.push(rowC('  '+g.kelompok,neg(g.accumImpOpen),neg(g.impairLoss),0,g.accumRevalElimImp,g.accumDispImp,neg(g.accumImpEnd))));
+    ck.push(rowC('Jumlah Akumulasi Penurunan Nilai',neg(t.accumImpOpen),neg(t.impairLoss),0,t.accumRevalElimImp,t.accumDispImp,neg(t.accumImpEnd)));
+    ck.push([]);
+  }
+  /* Nilai Buku Neto: hanya Saldo Awal & Saldo Akhir terisi */
+  const nbvRow=['Nilai Buku Neto',t.nbvOpen];for(let i=2;i<ncol-1;i++)nbvRow.push('');nbvRow.push(t.nbvEnd);
+  ck.push(nbvRow);
+  ck.push([]);
+  ck.push(['Ikhtisar:']);
+  ck.push(['Beban penyusutan periode berjalan',t.depExpense]);
+  if(t.reklasCount>0){
+    ck.push(['Reklasifikasi masuk ke aset tetap (unit)',t.reklasCount]);
+    if(t.reklasFromAdp>0)ck.push(['  dari aset dalam penyelesaian (unit)',t.reklasFromAdp]);
+    if(t.reklasFromLuar>0)ck.push(['  dari akun di luar aset tetap (unit)',t.reklasFromLuar]);
+    ck.push(['Nilai reklasifikasi masuk',t.reklasIn]);
+  }
+  if(t.revalCount>0){
+    ck.push(['Aset direvaluasi (unit)',t.revalCount]);
+    ck.push(['Surplus/(defisit) revaluasi - OCI',t.revalSurplus]);
+    ck.push(['Akumulasi penyusutan dieliminasi',t.accumRevalElim]);
+  }
+  if(t.impairCount>0){
+    ck.push(['Aset turun nilai/impairment (unit)',t.impairCount]);
+    ck.push(['Rugi penurunan nilai - laba rugi',t.impairLoss]);
+  }
+  if(t.dispCount>0){
+    ck.push(['Pelepasan aset (unit)',t.dispCount]);
+    ck.push(['Hasil pelepasan',t.proceeds]);
+    ck.push(['Biaya pelepasan (beban atas disposal)',t.bebanDisp]);
+    ck.push(['Nilai buku aset yang dilepas',t.nbvDisp]);
+    ck.push(['Laba/(rugi) pelepasan aset tetap',t.gainLoss]);
+  }
+  const ws3=XLSX.utils.aoa_to_sheet(ck);
+  ws3['!cols']=[{wch:42},{wch:18},{wch:16},{wch:15},{wch:15},{wch:16},{wch:18}];
+  XLSX.utils.book_append_sheet(wb,ws3,'CALK');
+
+  XLSX.writeFile(wb,'kertas_kerja_aset_tetap.xlsx');
+  toast('File Excel berhasil diunduh.');
+}
+
+function downloadTemplate(){
+  const aoa=[
+    ['nama','kelompok','tipe','tgl_perolehan','harga_perolehan','metode','masa_manfaat','nilai_residu','reklas_dari','tgl_reklas','tgl_revaluasi','nilai_revaluasi','tgl_impairment','nilai_terpulihkan','tgl_pelepasan','harga_jual','biaya_pelepasan'],
+    ['Tanah Kantor Pusat','Tanah','','10/01/2018',5000000000,'',0,0,'','','','','','','','',''],
+    ['Gedung Kantor Pusat','Bangunan','','10/01/2018',3000000000,'GL',20,0,'','','','','','','','',''],
+    ['Toyota Avanza B 1234 XYZ','Kendaraan','','15/06/2021',250000000,'GL',8,25000000,'','','','','','','','',''],
+    ['Mesin Produksi A','Mesin','','01/03/2020',1200000000,'GL',10,0,'','','','','','','','',''],
+    ['Pembangunan Gudang (CIP)','','ADP','01/02/2024',600000000,'',0,0,'','','','','','','','',''],
+    ['Mesin Lini Baru (selesai dari CIP)','Mesin','','01/05/2023',2000000000,'GL',20,0,'ADP','01/04/2024','','','','','','',''],
+    ['Tanah eks Persediaan (reklas)','Tanah','','01/03/2024',400000000,'',0,0,'luar','01/03/2024','','','','','','',''],
+    ['Gedung Direvaluasi','Bangunan','','01/01/2019',1000000000,'GL',20,0,'','','01/07/2024',1500000000,'','','','',''],
+    ['Mesin Turun Nilai','Mesin','','01/01/2021',800000000,'GL',8,0,'','','','','30/06/2024',300000000,'','',''],
+    ['Mobil Box (dijual)','Kendaraan','','10/04/2019',300000000,'GL',8,0,'','','','','','','30/06/2024',180000000,2000000]
+  ];
+  const ws=XLSX.utils.aoa_to_sheet(aoa);
+  ws['!cols']=[{wch:30},{wch:14},{wch:7},{wch:13},{wch:15},{wch:8},{wch:11},{wch:12},{wch:12},{wch:12},{wch:13},{wch:15},{wch:14},{wch:15},{wch:13},{wch:14},{wch:14}];
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'input');
+  XLSX.writeFile(wb,'template_aset_tetap.xlsx');
+  toast('Template Excel berhasil diunduh.');
+}
+
+function loadSample(){
+  handleRecords([
+    {_row:2,nama:'Tanah Kantor Pusat',kelompok:'Tanah',tgl_perolehan:'10/01/2018',harga_perolehan:5000000000,metode:'',masa_manfaat:0,nilai_residu:0},
+    {_row:3,nama:'Gedung Kantor Pusat',kelompok:'Bangunan',tgl_perolehan:'10/01/2018',harga_perolehan:3000000000,metode:'GL',masa_manfaat:20,nilai_residu:0},
+    {_row:4,nama:'Toyota Avanza B 1234 XYZ',kelompok:'Kendaraan',tgl_perolehan:'15/06/2021',harga_perolehan:250000000,metode:'GL',masa_manfaat:8,nilai_residu:25000000},
+    {_row:5,nama:'Mesin Produksi A',kelompok:'Mesin',tgl_perolehan:'01/03/2020',harga_perolehan:1200000000,metode:'SM',masa_manfaat:10,nilai_residu:0},
+    {_row:6,nama:'Laptop Dell Latitude',kelompok:'Peralatan Kantor',tgl_perolehan:'20/09/2022',harga_perolehan:18000000,metode:'GL',masa_manfaat:4,nilai_residu:0},
+    {_row:7,nama:'Printer Canon (perolehan 2024)',kelompok:'Peralatan Kantor',tgl_perolehan:'12/03/2024',harga_perolehan:8000000,metode:'GL',masa_manfaat:4,nilai_residu:0},
+    {_row:8,nama:'Pembangunan Gudang (dalam proses)',tipe:'ADP',tgl_perolehan:'01/02/2024',harga_perolehan:600000000,metode:'',masa_manfaat:0,nilai_residu:0},
+    {_row:9,nama:'Mesin Lini Baru (selesai dari CIP)',kelompok:'Mesin',tgl_perolehan:'01/05/2023',harga_perolehan:2000000000,metode:'GL',masa_manfaat:20,nilai_residu:0,reklas_dari:'ADP',tgl_reklas:'01/04/2024'},
+    {_row:10,nama:'Tanah eks Persediaan (reklasifikasi)',kelompok:'Tanah',tgl_perolehan:'01/03/2024',harga_perolehan:400000000,metode:'',masa_manfaat:0,nilai_residu:0,reklas_dari:'luar',tgl_reklas:'01/03/2024'},
+    {_row:11,nama:'Gedung Direvaluasi',kelompok:'Bangunan',tgl_perolehan:'01/01/2019',harga_perolehan:1000000000,metode:'GL',masa_manfaat:20,nilai_residu:0,tgl_revaluasi:'01/07/2024',nilai_revaluasi:1500000000},
+    {_row:12,nama:'Mesin Turun Nilai (impairment)',kelompok:'Mesin',tgl_perolehan:'01/01/2021',harga_perolehan:800000000,metode:'GL',masa_manfaat:8,nilai_residu:0,tgl_impairment:'30/06/2024',nilai_terpulihkan:300000000},
+    {_row:13,nama:'Mobil Box B 9876 ZZZ (dijual)',kelompok:'Kendaraan',tgl_perolehan:'10/04/2019',harga_perolehan:300000000,metode:'GL',masa_manfaat:8,nilai_residu:0,tgl_pelepasan:'30/06/2024',harga_jual:180000000,biaya_pelepasan:2000000}
+  ]);
+  document.getElementById('periodStart').value='2024-01-01';
+  document.getElementById('periodEnd').value='2024-12-31';
+  updateCalcBtn();
+  calculate();
+}
+
+/* ---------- events ---------- */
+const drop=document.getElementById('drop');
+const fileInput=document.getElementById('fileInput');
+drop.addEventListener('click',()=>fileInput.click());
+fileInput.addEventListener('change',e=>{if(e.target.files[0])handleFile(e.target.files[0]);});
+['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('drag');}));
+['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('drag');}));
+drop.addEventListener('drop',e=>{if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0]);});
+
+document.getElementById('tplBtn').addEventListener('click',downloadTemplate);
+document.getElementById('sampleBtn').addEventListener('click',loadSample);
+document.getElementById('periodStart').addEventListener('change',updateCalcBtn);
+document.getElementById('periodEnd').addEventListener('change',updateCalcBtn);
+document.getElementById('calcBtn').addEventListener('click',calculate);
+document.getElementById('dlBtn').addEventListener('click',exportExcel);
+document.getElementById('printBtn').addEventListener('click',()=>window.print());
+document.getElementById('assetSelect').addEventListener('change',e=>renderSchedule(+e.target.value));
+
+const guideModal=document.getElementById('guideModal');
+document.getElementById('openGuideBtn').addEventListener('click',()=>guideModal.classList.add('show'));
+document.getElementById('closeGuideBtn').addEventListener('click',()=>guideModal.classList.remove('show'));
+guideModal.addEventListener('click',e=>{if(e.target===guideModal)guideModal.classList.remove('show');});
+</script>
+</body></html>

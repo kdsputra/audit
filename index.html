@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Amortisasi Pro - Financial Valuation Suite</title>
+  <style>
+    :root {
+      --bg: #f5f5f7;
+      --card: #ffffff;
+      --text: #1d1d1f;
+      --muted: #86868b;
+      --accent: #0066cc;
+      --nav-bg: rgba(255, 255, 255, 0.8);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.47059;
+      -webkit-font-smoothing: antialiased; overflow-x: hidden;
+    }
+    
+    /* Navigation */
+    nav {
+      position: fixed; top: 0; width: 100%; height: 54px; z-index: 100;
+      background: var(--nav-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(0,0,0,0.08); display: flex; align-items: center; justify-content: center;
+      transition: transform 0.3s ease;
+    }
+    nav .logo { font-size: 17px; font-weight: 600; letter-spacing: -0.02em; }
+    
+    /* Back Button (Hidden initially) */
+    #backBtn {
+      position: fixed; top: 8px; left: 24px; z-index: 101;
+      background: #1d1d1f; color: #fff; border: none; padding: 8px 16px; border-radius: 20px;
+      font-size: 13px; font-weight: 500; cursor: pointer; display: none;
+      align-items: center; gap: 6px; transition: 0.2s;
+    }
+    #backBtn:hover { background: #333; transform: scale(1.05); }
+    #backBtn svg { width: 14px; height: 14px; }
+
+    /* Hero Section */
+    .hero { text-align: center; padding: 140px 24px 60px; max-width: 800px; margin: 0 auto; }
+    .hero h1 { font-size: 56px; font-weight: 700; letter-spacing: -0.04em; margin-bottom: 16px; line-height: 1.05; }
+    .hero p { font-size: 21px; color: var(--muted); font-weight: 400; letter-spacing: -0.01em; }
+
+    /* Cards Grid - Updated for 4 items (2x2 layout) */
+    .container { max-width: 980px; margin: 0 auto; padding: 0 24px 80px; }
+    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+    
+    .card {
+      background: var(--card); border-radius: 24px; padding: 40px; cursor: pointer;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.04); transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+      display: flex; flex-direction: column; border: 1px solid transparent;
+    }
+    .card:hover { transform: translateY(-8px) scale(1.01); box-shadow: 0 20px 40px rgba(0,0,0,0.08); border-color: #e8e8ed; }
+    
+    .card-icon { 
+      width: 56px; height: 56px; border-radius: 16px; background: #1d1d1f; color: #fff;
+      display: flex; align-items: center; justify-content: center; margin-bottom: 24px;
+    }
+    .card-icon svg { width: 28px; height: 28px; }
+    .card h2 { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 12px; }
+    .card p { font-size: 15px; color: var(--muted); margin-bottom: 24px; flex-grow: 1; }
+    
+    .card-features { list-style: none; padding: 0; border-top: 1px solid #e8e8ed; padding-top: 24px; }
+    .card-features li { 
+      font-size: 13.5px; color: #1d1d1f; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-weight: 500;
+    }
+    .card-features li::before {
+      content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent);
+    }
+
+    /* App Container (Iframe) */
+    #app-container {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: var(--bg); z-index: 50; display: none; opacity: 0; transition: opacity 0.4s ease;
+      padding-top: 54px; /* Space for navbar */
+    }
+    #app-container.show { display: block; opacity: 1; }
+    iframe { width: 100%; height: 100%; border: none; background: var(--bg); }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 40px; }
+      .hero p { font-size: 18px; }
+      .grid { grid-template-columns: 1fr; }
+      .card { padding: 32px; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav id="navbar">
+    <button id="backBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Menu Utama
+    </button>
+    <div class="logo">Amortisasi Pro</div>
+  </nav>
+
+  <div id="landing">
+    <div class="hero">
+      <h1>Sistem Valuasi Finansial<br>Terintegrasi</h1>
+      <p>Aplikasi perhitungan terotomatisasi untuk mendukung penyusunan kertas kerja audit, rekonsiliasi perpajakan, dan pelaporan keuangan sesuai standar akuntansi.</p>
+    </div>
+
+    <div class="container">
+      <div class="grid">
+        
+        <div class="card" onclick="openApp('aset-tetap.html')">
+          <div class="card-icon" style="background: #5856d6;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M12 6h.01"/><path d="M16 6h.01"/><path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/></svg>
+          </div>
+          <h2>Aset Tetap</h2>
+          <p>Susun kertas kerja rollforward aset tetap sesuai PSAK 16. Lengkap dengan perhitungan penyusutan, pelepasan, dan Aset Dalam Penyelesaian.</p>
+          <ul class="card-features">
+            <li>Rollforward & Mutasi Otomatis</li>
+            <li>Revaluasi & Penurunan Nilai</li>
+            <li>Format CALK Siap Salin</li>
+          </ul>
+        </div>
+
+        <div class="card" onclick="openApp('lease.html')">
+          <div class="card-icon" style="background: #0066cc;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/></svg>
+          </div>
+          <h2>Sewa (Lease)</h2>
+          <p>Hitung liabilitas sewa dan depresiasi ROU Asset sesuai standar PSAK 73 / IFRS 16, terintegrasi dengan penyesuaian pajak.</p>
+          <ul class="card-features">
+            <li>Koreksi Fiskal & Komersial</li>
+            <li>Kalkulasi DTA & DTL</li>
+            <li>Jadwal Pembayaran Custom</li>
+          </ul>
+        </div>
+
+        <div class="card" onclick="openApp('obligasi.html')">
+          <div class="card-icon" style="background: #1d1d1f;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 16l4-6 4 3 5-8"/></svg>
+          </div>
+          <h2>Obligasi</h2>
+          <p>Hitung amortisasi portofolio obligasi secara massal dengan metode Suku Bunga Efektif. Mendukung PSAK 117 / IFRS 9.</p>
+          <ul class="card-features">
+            <li>Kalkulasi Fair Value</li>
+            <li>Unrealized / Realized G/L</li>
+            <li>Bulk Ekspor Excel</li>
+          </ul>
+        </div>
+
+        <div class="card" onclick="openApp('pinjaman.html')">
+          <div class="card-icon" style="background: #ff9500;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
+          </div>
+          <h2>Pinjaman</h2>
+          <p>Jadwal amortisasi pinjaman yang mengikutsertakan biaya provisi di muka untuk pencarian Suku Bunga Efektif (EIR) secara presisi.</p>
+          <ul class="card-features">
+            <li>Iterasi EIR Otomatis</li>
+            <li>Amortisasi Biaya Provisi</li>
+            <li>Valuasi Saldo Cut-off</li>
+          </ul>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+
+  <div id="app-container">
+    <iframe id="app-frame" title="Application Viewer"></iframe>
+  </div>
+
+  <script>
+    const landing = document.getElementById('landing');
+    const appContainer = document.getElementById('app-container');
+    const appFrame = document.getElementById('app-frame');
+    const backBtn = document.getElementById('backBtn');
+    const navbar = document.getElementById('navbar');
+
+    function openApp(appFile) {
+      // Sembunyikan Landing Page
+      landing.style.display = 'none';
+      
+      // Tampilkan App Container & Tombol Kembali
+      appContainer.classList.add('show');
+      backBtn.style.display = 'flex';
+      
+      // Ubah warna background navbar menyesuaikan aplikasi
+      navbar.style.background = '#ffffff'; 
+      navbar.style.borderBottom = '1px solid #e8e8ed';
+
+      // Load File HTML
+      appFrame.src = appFile;
+      window.scrollTo(0, 0);
+    }
+
+    backBtn.addEventListener('click', () => {
+      // Reset iframe
+      appFrame.src = '';
+      
+      // Sembunyikan App Container
+      appContainer.classList.remove('show');
+      backBtn.style.display = 'none';
+      
+      // Kembalikan Landing Page
+      landing.style.display = 'block';
+      
+      // Kembalikan style navbar
+      navbar.style.background = 'rgba(255, 255, 255, 0.8)';
+    });
+  </script>
+</body>
+</html>
