@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="id">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Amortisasi Pro - Financial Valuation Suite</title>
+  <title>Audit Tools - Financial Valuation Suite</title>
   <style>
     :root {
       --bg: #f5f5f7;
@@ -13,263 +12,103 @@
       --muted: #86868b;
       --accent: #0066cc;
     }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.47059;
-      -webkit-font-smoothing: antialiased;
-      overflow-x: hidden;
+      background: var(--bg); color: var(--text); line-height: 1.47059;
+      -webkit-font-smoothing: antialiased; overflow-x: hidden;
     }
-
+    
     /* Navigation - Meniru gaya Apple Local Nav (seperti referensi gambar) */
     nav {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 52px;
-      z-index: 100;
-      background: rgba(255, 255, 255, 0.72);
-      backdrop-filter: saturate(180%) blur(20px);
+      position: fixed; top: 0; left: 0; width: 100%; height: 52px; z-index: 100;
+      background: rgba(255, 255, 255, 0.72); 
+      backdrop-filter: saturate(180%) blur(20px); 
       -webkit-backdrop-filter: saturate(180%) blur(20px);
       border-bottom: 1px solid #d2d2d7;
     }
-
     .nav-content {
-      max-width: 980px;
-      margin: 0 auto;
-      padding: 0 24px;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      max-width: 980px; margin: 0 auto; padding: 0 24px; height: 100%;
+      display: flex; align-items: center; justify-content: space-between;
     }
-
     .nav-title {
-      font-size: 21px;
-      font-weight: 600;
-      color: var(--text);
-      letter-spacing: -0.01em;
+      font-size: 21px; font-weight: 600; color: var(--text); letter-spacing: -0.01em;
+      transition: opacity 0.2s ease;
     }
-
     .nav-menu {
-      display: flex;
-      align-items: center;
-      gap: 24px;
-      height: 100%;
+      display: flex; align-items: center; gap: 24px; height: 100%;
     }
-
     .nav-menu a {
-      font-size: 12px;
-      color: var(--text);
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      height: 100%;
-      position: relative;
-      opacity: 0.8;
-      transition: opacity 0.2s;
+      font-size: 12px; color: var(--text); text-decoration: none; 
+      display: flex; align-items: center; height: 100%; 
+      position: relative; opacity: 0.8; transition: opacity 0.2s;
       letter-spacing: -0.01em;
     }
-
-    .nav-menu a:hover {
-      opacity: 1;
-    }
-
-    .nav-menu a.active {
-      opacity: 1;
-    }
-
+    .nav-menu a:hover { opacity: 1; }
+    .nav-menu a.active { opacity: 1; }
+    
     /* Garis bawah untuk menu aktif yang sejajar dengan border bawah navbar */
     .nav-menu a.active::after {
-      content: '';
-      position: absolute;
-      bottom: -1px;
-      left: 0;
-      width: 100%;
-      height: 1px;
-      background-color: var(--text);
+      content: ''; position: absolute; bottom: -1px; left: 0; 
+      width: 100%; height: 1px; background-color: var(--text);
     }
 
     /* Hero Section */
-    .hero {
-      text-align: center;
-      padding: 140px 24px 60px;
-      max-width: 800px;
-      margin: 0 auto;
-    }
-
-    .hero h1 {
-      font-size: 56px;
-      font-weight: 700;
-      letter-spacing: -0.04em;
-      margin-bottom: 16px;
-      line-height: 1.05;
-    }
-
-    .hero p {
-      font-size: 21px;
-      color: var(--muted);
-      font-weight: 400;
-      letter-spacing: -0.01em;
-    }
+    .hero { text-align: center; padding: 140px 24px 60px; max-width: 800px; margin: 0 auto; }
+    .hero h1 { font-size: 56px; font-weight: 700; letter-spacing: -0.04em; margin-bottom: 16px; line-height: 1.05; }
+    .hero p { font-size: 21px; color: var(--muted); font-weight: 400; letter-spacing: -0.01em; }
 
     /* Cards Grid */
-    .container {
-      max-width: 980px;
-      margin: 0 auto;
-      padding: 0 24px 80px;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 24px;
-    }
-
+    .container { max-width: 980px; margin: 0 auto; padding: 0 24px 80px; }
+    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+    
     .card {
-      background: var(--card);
-      border-radius: 24px;
-      padding: 40px;
-      cursor: pointer;
-      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.04);
-      transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
-      display: flex;
-      flex-direction: column;
-      border: 1px solid transparent;
+      background: var(--card); border-radius: 24px; padding: 40px; cursor: pointer;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.04); transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+      display: flex; flex-direction: column; border: 1px solid transparent;
     }
-
-    .card:hover {
-      transform: translateY(-8px) scale(1.01);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
-      border-color: #e8e8ed;
+    .card:hover { transform: translateY(-8px) scale(1.01); box-shadow: 0 20px 40px rgba(0,0,0,0.08); border-color: #e8e8ed; }
+    
+    .card-icon { 
+      width: 56px; height: 56px; border-radius: 16px; background: #1d1d1f; color: #fff;
+      display: flex; align-items: center; justify-content: center; margin-bottom: 24px;
     }
-
-    .card-icon {
-      width: 56px;
-      height: 56px;
-      border-radius: 16px;
-      background: #1d1d1f;
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 24px;
+    .card-icon svg { width: 28px; height: 28px; }
+    .card h2 { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; margin-bottom: 12px; }
+    .card p { font-size: 15px; color: var(--muted); margin-bottom: 24px; flex-grow: 1; }
+    
+    .card-features { list-style: none; padding: 0; border-top: 1px solid #e8e8ed; padding-top: 24px; }
+    .card-features li { 
+      font-size: 13.5px; color: #1d1d1f; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; font-weight: 500;
     }
-
-    .card-icon svg {
-      width: 28px;
-      height: 28px;
-    }
-
-    .card h2 {
-      font-size: 24px;
-      font-weight: 600;
-      letter-spacing: -0.02em;
-      margin-bottom: 12px;
-    }
-
-    .card p {
-      font-size: 15px;
-      color: var(--muted);
-      margin-bottom: 24px;
-      flex-grow: 1;
-    }
-
-    .card-features {
-      list-style: none;
-      padding: 0;
-      border-top: 1px solid #e8e8ed;
-      padding-top: 24px;
-    }
-
-    .card-features li {
-      font-size: 13.5px;
-      color: #1d1d1f;
-      margin-bottom: 10px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-weight: 500;
-    }
-
     .card-features li::before {
-      content: "";
-      display: inline-block;
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: var(--accent);
+      content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent);
     }
 
     /* App Container (Iframe) */
     #app-container {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100vw;
-      height: 100vh;
-      background: var(--bg);
-      z-index: 50;
-      display: none;
-      opacity: 0;
-      transition: opacity 0.4s ease;
-      padding-top: 52px;
-      /* Memberikan ruang untuk header */
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: var(--bg); z-index: 50; display: none; opacity: 0; transition: opacity 0.4s ease;
+      padding-top: 52px; /* Memberikan ruang untuk header */
     }
-
-    #app-container.show {
-      display: block;
-      opacity: 1;
-    }
-
-    iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-      background: var(--bg);
-      display: block;
-    }
+    #app-container.show { display: block; opacity: 1; }
+    iframe { width: 100%; height: 100%; border: none; background: var(--bg); display: block; }
 
     /* Responsive */
     @media (max-width: 768px) {
-      .hero h1 {
-        font-size: 40px;
-      }
-
-      .hero p {
-        font-size: 18px;
-      }
-
-      .grid {
-        grid-template-columns: 1fr;
-      }
-
-      .card {
-        padding: 32px;
-      }
-
-      .nav-menu {
-        display: none;
-        /* Menyembunyikan menu di mobile untuk kepraktisan dasar */
-      }
+      .hero h1 { font-size: 40px; }
+      .hero p { font-size: 18px; }
+      .grid { grid-template-columns: 1fr; }
+      .card { padding: 32px; }
+      .nav-menu { display: none; /* Menyembunyikan menu di mobile untuk kepraktisan dasar */ }
     }
   </style>
 </head>
-
 <body>
 
   <nav id="navbar">
     <div class="nav-content">
-      <div class="nav-title">Amortisasi Pro</div>
+      <div class="nav-title" id="navTitle">Audit Tools</div>
       <div class="nav-menu">
         <a href="#" class="active" data-app="home">Beranda</a>
         <a href="#" data-app="aset-tetap.html">Aset Tetap</a>
@@ -283,33 +122,18 @@
   <div id="landing">
     <div class="hero">
       <h1>Sistem Valuasi Finansial<br>Terintegrasi</h1>
-      <p>Aplikasi perhitungan terotomatisasi untuk mendukung penyusunan kertas kerja audit, rekonsiliasi perpajakan, dan
-        pelaporan keuangan sesuai standar akuntansi.</p>
+      <p>Aplikasi perhitungan terotomatisasi untuk mendukung penyusunan kertas kerja audit, rekonsiliasi perpajakan, dan pelaporan keuangan sesuai standar akuntansi.</p>
     </div>
 
     <div class="container">
       <div class="grid">
-
+        
         <div class="card" onclick="openApp('aset-tetap.html')">
           <div class="card-icon" style="background: #5856d6;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-              stroke-linejoin="round">
-              <rect x="4" y="2" width="16" height="20" rx="2" />
-              <path d="M9 22v-4h6v4" />
-              <path d="M8 6h.01" />
-              <path d="M12 6h.01" />
-              <path d="M16 6h.01" />
-              <path d="M8 10h.01" />
-              <path d="M12 10h.01" />
-              <path d="M16 10h.01" />
-              <path d="M8 14h.01" />
-              <path d="M12 14h.01" />
-              <path d="M16 14h.01" />
-            </svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M12 6h.01"/><path d="M16 6h.01"/><path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/></svg>
           </div>
           <h2>Aset Tetap</h2>
-          <p>Susun kertas kerja rollforward aset tetap sesuai PSAK 16. Lengkap dengan perhitungan penyusutan, pelepasan,
-            dan Aset Dalam Penyelesaian.</p>
+          <p>Susun kertas kerja rollforward aset tetap sesuai PSAK 16. Lengkap dengan perhitungan penyusutan, pelepasan, dan Aset Dalam Penyelesaian.</p>
           <ul class="card-features">
             <li>Rollforward & Mutasi Otomatis</li>
             <li>Revaluasi & Penurunan Nilai</li>
@@ -319,14 +143,10 @@
 
         <div class="card" onclick="openApp('lease.html')">
           <div class="card-icon" style="background: #0066cc;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="4" y="4" width="16" height="16" rx="2" ry="2" />
-              <rect x="9" y="9" width="6" height="6" />
-            </svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/></svg>
           </div>
           <h2>Sewa (Lease)</h2>
-          <p>Hitung liabilitas sewa dan depresiasi ROU Asset sesuai standar PSAK 73 / IFRS 16, terintegrasi dengan
-            penyesuaian pajak.</p>
+          <p>Hitung liabilitas sewa dan depresiasi ROU Asset sesuai standar PSAK 73 / IFRS 16, terintegrasi dengan penyesuaian pajak.</p>
           <ul class="card-features">
             <li>Koreksi Fiskal & Komersial</li>
             <li>Kalkulasi DTA & DTL</li>
@@ -336,14 +156,10 @@
 
         <div class="card" onclick="openApp('obligasi.html')">
           <div class="card-icon" style="background: #1d1d1f;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M3 3v18h18" />
-              <path d="M7 16l4-6 4 3 5-8" />
-            </svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 16l4-6 4 3 5-8"/></svg>
           </div>
           <h2>Obligasi</h2>
-          <p>Hitung amortisasi portofolio obligasi secara massal dengan metode Suku Bunga Efektif. Mendukung PSAK 117 /
-            IFRS 9.</p>
+          <p>Hitung amortisasi portofolio obligasi secara massal dengan metode Suku Bunga Efektif. Mendukung PSAK 117 / IFRS 9.</p>
           <ul class="card-features">
             <li>Kalkulasi Fair Value</li>
             <li>Unrealized / Realized G/L</li>
@@ -353,22 +169,17 @@
 
         <div class="card" onclick="openApp('pinjaman.html')">
           <div class="card-icon" style="background: #ff9500;">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <rect x="2" y="6" width="20" height="12" rx="2" />
-              <circle cx="12" cy="12" r="2" />
-              <path d="M6 12h.01M18 12h.01" />
-            </svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
           </div>
           <h2>Pinjaman</h2>
-          <p>Jadwal amortisasi pinjaman yang mengikutsertakan biaya provisi di muka untuk pencarian Suku Bunga Efektif
-            (EIR) secara presisi.</p>
+          <p>Jadwal amortisasi pinjaman yang mengikutsertakan biaya provisi di muka untuk pencarian Suku Bunga Efektif (EIR) secara presisi.</p>
           <ul class="card-features">
             <li>Iterasi EIR Otomatis</li>
             <li>Amortisasi Biaya Provisi</li>
             <li>Valuasi Saldo Cut-off</li>
           </ul>
         </div>
-
+        
       </div>
     </div>
   </div>
@@ -382,15 +193,26 @@
     const appContainer = document.getElementById('app-container');
     const appFrame = document.getElementById('app-frame');
     const navLinks = document.querySelectorAll('.nav-menu a');
+    const navTitle = document.getElementById('navTitle');
 
     // Fungsi utama untuk navigasi & membuka iframe
     function openApp(appFile) {
       // 1. Perbarui state visual pada menu
       navLinks.forEach(link => link.classList.remove('active'));
       const activeLink = document.querySelector(`.nav-menu a[data-app="${appFile}"]`);
-      if (activeLink) activeLink.classList.add('active');
+      
+      if (activeLink) {
+        activeLink.classList.add('active');
+        
+        // 2. Ubah Teks Judul sesuai Aplikasi
+        if (appFile === 'home') {
+          navTitle.textContent = 'Audit Tools';
+        } else {
+          navTitle.textContent = activeLink.textContent; // Mengambil teks dari menu
+        }
+      }
 
-      // 2. Eksekusi perpindahan view
+      // 3. Eksekusi perpindahan view
       if (appFile === 'home') {
         appFrame.src = '';
         appContainer.classList.remove('show');
@@ -413,5 +235,4 @@
     });
   </script>
 </body>
-
 </html>
