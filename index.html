@@ -19,7 +19,7 @@
       -webkit-font-smoothing: antialiased; overflow-x: hidden;
     }
     
-    /* Navigation - Meniru gaya Apple Local Nav (seperti referensi gambar) */
+    /* Navigation - Meniru gaya Apple Local Nav */
     nav {
       position: fixed; top: 0; left: 0; width: 100%; height: 52px; z-index: 100;
       background: rgba(255, 255, 255, 0.72); 
@@ -28,7 +28,8 @@
       border-bottom: 1px solid #d2d2d7;
     }
     .nav-content {
-      max-width: 980px; margin: 0 auto; padding: 0 24px; height: 100%;
+      max-width: 1200px; /* Disesuaikan dengan container baru */
+      margin: 0 auto; padding: 0 24px; height: 100%;
       display: flex; align-items: center; justify-content: space-between;
     }
     .nav-title {
@@ -58,9 +59,9 @@
     .hero h1 { font-size: 56px; font-weight: 700; letter-spacing: -0.04em; margin-bottom: 16px; line-height: 1.05; }
     .hero p { font-size: 21px; color: var(--muted); font-weight: 400; letter-spacing: -0.01em; }
 
-    /* Cards Grid */
-    .container { max-width: 980px; margin: 0 auto; padding: 0 24px 80px; }
-    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 24px; }
+    /* Cards Grid - Updated to 3 Columns */
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px 80px; }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
     
     .card {
       background: var(--card); border-radius: 24px; padding: 40px; cursor: pointer;
@@ -95,12 +96,15 @@
     iframe { width: 100%; height: 100%; border: none; background: var(--bg); display: block; }
 
     /* Responsive */
+    @media (max-width: 1024px) {
+      .grid { grid-template-columns: repeat(2, 1fr); }
+    }
     @media (max-width: 768px) {
       .hero h1 { font-size: 40px; }
       .hero p { font-size: 18px; }
       .grid { grid-template-columns: 1fr; }
       .card { padding: 32px; }
-      .nav-menu { display: none; /* Menyembunyikan menu di mobile untuk kepraktisan dasar */ }
+      .nav-menu { display: none; }
     }
   </style>
 </head>
@@ -111,6 +115,7 @@
       <div class="nav-title" id="navTitle">Audit Tools</div>
       <div class="nav-menu">
         <a href="#" class="active" data-app="home">Beranda</a>
+        <a href="#" data-app="leadsheet.html">Leadsheet</a>
         <a href="#" data-app="aset-tetap.html">Aset Tetap</a>
         <a href="#" data-app="lease.html">Sewa (Lease)</a>
         <a href="#" data-app="obligasi.html">Obligasi</a>
@@ -128,6 +133,21 @@
     <div class="container">
       <div class="grid">
         
+        <div class="card" onclick="openApp('leadsheet.html')">
+          <div class="card-icon" style="background: #34c759;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 17V9"/><path d="M13 17V5"/><path d="M17 17v-3"/><rect x="3" y="3" width="18" height="18" rx="2"/>
+            </svg>
+          </div>
+          <h2>Leadsheet Audit</h2>
+          <p>Hasilkan Lead Schedule otomatis dari General Ledger. Terintegrasi dengan koreksi audit (AJE/CLA), analisis variance, dan eksport Excel berformat.</p>
+          <ul class="card-features">
+            <li>Otomasi Alur GL ke Audited</li>
+            <li>Preliminary Analytical Review</li>
+            <li>Kertas Kerja Excel 3 Sheet</li>
+          </ul>
+        </div>
+
         <div class="card" onclick="openApp('aset-tetap.html')">
           <div class="card-icon" style="background: #5856d6;">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M12 6h.01"/><path d="M16 6h.01"/><path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/></svg>
@@ -197,22 +217,19 @@
 
     // Fungsi utama untuk navigasi & membuka iframe
     function openApp(appFile) {
-      // 1. Perbarui state visual pada menu
       navLinks.forEach(link => link.classList.remove('active'));
       const activeLink = document.querySelector(`.nav-menu a[data-app="${appFile}"]`);
       
       if (activeLink) {
         activeLink.classList.add('active');
         
-        // 2. Ubah Teks Judul sesuai Aplikasi
         if (appFile === 'home') {
           navTitle.textContent = 'Audit Tools';
         } else {
-          navTitle.textContent = activeLink.textContent; // Mengambil teks dari menu
+          navTitle.textContent = activeLink.textContent;
         }
       }
 
-      // 3. Eksekusi perpindahan view
       if (appFile === 'home') {
         appFrame.src = '';
         appContainer.classList.remove('show');
