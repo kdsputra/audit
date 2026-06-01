@@ -172,16 +172,17 @@
       <h2>Informasi Kertas Kerja &amp; Parameter</h2>
     </div>
     <div class="grid2">
+      <div class="field" style="grid-column:1/-1">
+        <label>Pilih Lead (indx / FSL Line) &mdash; satu WP per indx</label>
+        <select id="pLeadSelect"><option value="">— muat data dulu —</option></select>
+        <div class="hint" id="pLeadInfo" style="margin-top:8px">Kode WP, Nama WP, Nama Pos Total, dan Kode ORB Total diambil otomatis dari data terpilih (indx &rarr; CODE WP, FSL_name &rarr; WP NAME &amp; Nama Pos, orb &rarr; ORB Total).</div>
+      </div>
       <div class="field"><label>Nama Klien</label><input id="pClient" placeholder="PT Contoh Sejahtera"></div>
       <div class="field"><label>Tanggal Neraca / Cut-off</label><input type="date" id="pYearEnd"></div>
-      <div class="field"><label>Kode WP (CODE WP)</label><input id="pWpCode" placeholder="A10"></div>
-      <div class="field"><label>Nama WP (WP NAME)</label><input id="pWpName" placeholder="Aset Tetap"></div>
       <div class="field"><label>Prepared By</label><input id="pPrep" placeholder="USER1"></div>
       <div class="field"><label>Reviewed By</label><input id="pRev" placeholder="USER2"></div>
       <div class="field"><label>Date Prepared</label><input type="date" id="pDatePrep"></div>
       <div class="field"><label>Date Reviewed</label><input type="date" id="pDateRev"></div>
-      <div class="field"><label>Nama Pos Leadsheet (untuk baris Total)</label><input id="pLeadName" placeholder="Fixed Asset"></div>
-      <div class="field"><label>Kode ORB Total</label><input id="pOrb" placeholder="5100"></div>
       <div class="field"><label>Ambang Variance Material (%)</label><input type="number" id="pPct" value="5" min="0" step="0.5"></div>
       <div class="field"><label>Ambang Variance Material (nominal, 0 = nonaktif)</label><input type="number" id="pAmt" value="0" min="0" step="1000"></div>
     </div>
@@ -242,8 +243,9 @@
       <ul>
         <li><b>coa</b> &mdash; kode akun rinci, mis. <code>1.07.01.01.001.001</code>.</li>
         <li><b>coa_csl</b> &mdash; kode akun konsolidasi/summary, mis. <code>1110100000</code>.</li>
-        <li><b>indx</b> &mdash; indeks kertas kerja, mis. <code>A10</code>. Baris dengan indx sama dijumlahkan menjadi satu baris <b>Total</b>.</li>
-        <li><b>orb</b> &mdash; kode ORB (opsional, untuk baris total). Bisa juga diisi lewat parameter Langkah&nbsp;2.</li>
+        <li><b>indx</b> &mdash; indeks kertas kerja / kode FSL line, mis. <code>A10</code>. Dipakai sebagai <b>Kode WP (CODE WP)</b>. Tiap nilai indx yang berbeda menjadi <b>satu WP/leadsheet</b> tersendiri; baris dengan indx sama dijumlahkan menjadi satu baris <b>Total</b>.</li>
+        <li><b>orb</b> &mdash; kode ORB. Dipakai sebagai <b>Kode ORB Total</b> pada baris Total.</li>
+        <li><b>fsl_name</b> &mdash; nama FSL line. Dipakai sebagai <b>Nama WP (WP NAME)</b> sekaligus <b>Nama Pos</b> pada baris Total.</li>
         <li><b>desc</b> (atau <i>nama, keterangan, description</i>) &mdash; uraian akun.</li>
         <li><b>reff</b> &mdash; referensi kertas kerja pendukung (opsional).</li>
         <li><b>unaudited</b> (atau <i>gl, saldo_gl</i>) &mdash; saldo per buku/GL (belum diaudit), tahun berjalan.</li>
@@ -255,8 +257,8 @@
       <h4>2. Langkah</h4>
       <ul>
         <li>Unggah Excel, atau klik <b>Unduh Template Excel</b> / <b>Muat Contoh Data</b>.</li>
-        <li>Isi informasi kertas kerja pada Langkah&nbsp;2 (klien, kode WP, prepared/reviewed by, tanggal, ambang materialitas).</li>
-        <li>Klik <b>Proses Leadsheet</b> untuk melihat tabel, lalu <b>Unduh Excel</b> untuk file berformat (kotak header, anotasi GL/PY, total, analytical review).</li>
+        <li>Pada Langkah&nbsp;2, <b>pilih Lead (indx / FSL line)</b> yang ingin dibuat &mdash; Kode WP, Nama WP, Nama Pos Total, dan Kode ORB Total terisi otomatis dari data. Lengkapi juga klien, tanggal, prepared/reviewed by, dan ambang materialitas.</li>
+        <li>Klik <b>Proses Leadsheet</b> lalu <b>Unduh Excel</b>. Untuk lead lain, ganti pilihan indx dan ulangi.</li>
       </ul>
       <h4>3. Catatan</h4>
       <p>Variance ditampilkan sebagai nilai mutlak dengan tanda panah (&#9650; naik / &#9660; turun) dan ditandai <span style="color:var(--danger);font-weight:700">merah</span> bila melampaui ambang materialitas. <i>Preliminary analytical review</i> dihasilkan otomatis namun dapat disunting bebas dan akan ikut tercetak di Excel maupun PDF.</p>
@@ -315,6 +317,7 @@ const COLMAP=[
   ['aje',['aje','ajp','auditadjustment','koreksiaudit','penyesuaianaudit','adjaudit']],
   ['py',['py','prioryear','tahunlalu','auditedpy','saldopy','pyaudited','priorbalance','ly']],
   ['nature',['nature','natureofaccount','noa','sifatakun','keteranganakun','uraianakun','natureaccount']],
+  ['fsl',['fslname','fsl','fslline','fsllinename','namafsl','namapos','posname','namaleadsheet','leadname','namaposleadsheet']],
 ];
 function mapHeaders(headerRow){
   const map={};
@@ -345,7 +348,7 @@ function handleFile(file){
           indx:String(g('indx')||'').trim(), orb:String(g('orb')||'').trim(),
           desc:String(g('desc')||'').trim(), reff:String(g('reff')||'').trim(),
           unaudited:toNum(g('unaudited')), cla:toNum(g('cla')), aje:toNum(g('aje')), py:toNum(g('py')),
-          nature:String(g('nature')||'').trim()
+          nature:String(g('nature')||'').trim(), fsl:String(g('fsl')||'').trim()
         };
         if(!rec.desc&&!rec.coa&&!rec.unaudited&&!rec.py)continue;
         out.push(rec);
@@ -360,8 +363,39 @@ function handleFile(file){
 function handleRecords(recs){
   rows=recs;
   renderAssetList();
-  if(!$('pWpCode').value){const ix=rows.find(r=>r.indx);if(ix)$('pWpCode').value=ix.indx;}
+  populateLeadSelect();
   updateCalcBtn();
+}
+/* kelompokkan baris per indx (= kode WP / FSL line). FSL_name & orb diambil dari grup. */
+function leadGroups(){
+  const map=new Map();
+  rows.forEach(r=>{
+    const k=(r.indx||'').trim();
+    if(!map.has(k))map.set(k,{indx:k,fsl:'',orb:'',count:0});
+    const g=map.get(k); g.count++;
+    if(!g.fsl&&r.fsl)g.fsl=r.fsl;
+    if(!g.orb&&r.orb)g.orb=r.orb;
+  });
+  return [...map.values()];
+}
+function groupOf(indx){
+  const g=leadGroups().find(x=>x.indx===indx);
+  return g||{indx:indx,fsl:'',orb:'',count:0};
+}
+function populateLeadSelect(){
+  const sel=$('pLeadSelect'); if(!sel)return;
+  const groups=leadGroups();
+  if(!groups.length){sel.innerHTML='<option value="">— muat data dulu —</option>';updateLeadInfo();return;}
+  sel.innerHTML=groups.map(g=>`<option value="${esc(g.indx)}">${esc(g.indx||'(tanpa indx)')}${g.fsl?' — '+esc(g.fsl):''} (${g.count} akun)</option>`).join('');
+  updateLeadInfo();
+}
+function updateLeadInfo(){
+  const info=$('pLeadInfo'); if(!info)return;
+  const sel=$('pLeadSelect'); const ix=sel?sel.value:'';
+  if(!rows.length){info.innerHTML='Kode WP, Nama WP, Nama Pos Total, dan Kode ORB Total diambil otomatis dari data (indx &rarr; CODE WP, FSL_name &rarr; WP NAME &amp; Nama Pos, orb &rarr; ORB Total).';return;}
+  const g=groupOf(ix);
+  const nm=g.fsl||'(FSL_name kosong)';
+  info.innerHTML=`Akan dibuat untuk lead ini &rarr; <b>CODE WP:</b> ${esc(g.indx||'(kosong)')} &middot; <b>WP NAME / Nama Pos:</b> ${esc(nm)} &middot; <b>ORB Total:</b> ${esc(g.orb||'-')} &middot; ${g.count} akun.`;
 }
 function renderAssetList(){
   const el=$('assetList');
@@ -379,14 +413,11 @@ function getParams(){
     client:$('pClient').value.trim()||'NAMA KLIEN',
     yearEnd:ye, cy:yearOf(ye), py:yearOf(ye)-1,
     titleLong:ye?('Audit of financial statements for the year ended '+dateLong(ye)):'Audit of financial statements',
-    wpCode:$('pWpCode').value.trim()||'CODE WP',
-    wpName:$('pWpName').value.trim()||'WP NAME',
     prep:$('pPrep').value.trim()||'USER1',
     rev:$('pRev').value.trim()||'USER2',
     datePrep:isoToDMY($('pDatePrep').value)||'DATE PREPARE',
     dateRev:isoToDMY($('pDateRev').value)||'DATE REVIEW',
-    leadName:$('pLeadName').value.trim()||'Fixed Asset',
-    orb:$('pOrb').value.trim(),
+    selIndx:($('pLeadSelect')?$('pLeadSelect').value:'')||'',
     pct:(parseFloat($('pPct').value)||0)/100,
     amt:parseFloat($('pAmt').value)||0
   };
@@ -406,13 +437,23 @@ function isMaterial(p,variance,varPct){
 }
 function build(){
   const p=getParams();
-  const data=rows.map(computeRow);
+  // satu WP = satu indx (FSL line). Bila ada lebih dari satu indx, pakai yang dipilih.
+  const groups=leadGroups();
+  let sel=p.selIndx;
+  if(!groups.some(g=>g.indx===sel))sel=(groups[0]||{indx:''}).indx;
+  const grp=rows.filter(r=>(r.indx||'').trim()===sel);
+  const used=grp.length?grp:rows;                 // fallback: semua baris bila grup kosong
+  // nilai diambil dari data input:
+  const fslName=(used.find(r=>r.fsl)||{}).fsl||'';
+  p.wpCode  = sel || 'CODE WP';                    // indx -> CODE WP
+  p.wpName  = fslName || sel || 'WP NAME';         // FSL_name -> WP NAME
+  p.leadName= fslName || sel || 'Fixed Asset';     // FSL_name -> Nama Pos (baris Total)
+  const orbTotal=(used.find(r=>r.orb)||{}).orb||'';// orb -> ORB Total
+  const indxTotal=sel||((used.find(r=>r.indx)||{}).indx)||p.wpCode;
+  const data=used.map(computeRow);
   const T={unaudited:0,cla:0,afterCla:0,aje:0,audited:0,py:0,variance:0};
   data.forEach(d=>{T.unaudited+=d.unaudited;T.cla+=d.cla;T.afterCla+=d.afterCla;T.aje+=d.aje;T.audited+=d.audited;T.py+=d.py;T.variance+=d.variance;});
   T.varPct=T.py!==0?T.variance/T.py:(T.audited!==0?(T.variance>0?1:-1):0);
-  // orb & indx untuk baris total
-  const indxTotal=(rows.find(r=>r.indx)||{}).indx||p.wpCode;
-  const orbTotal=p.orb||(rows.map(r=>r.orb).find(Boolean))||'';
   model={p,data,T,indxTotal,orbTotal};
   return model;
 }
@@ -527,6 +568,12 @@ async function exportExcel(){
   const fmtVar='[$-421]#,##0" \u25B2";[$-421]#,##0" \u25BC";"-"';
   const fmtPctX='[$-421]0.0%" \u25B2";[$-421]0.0%" \u25BC";"-"';
 
+  // posisi kotak WP di sheet Leadsheet (jadi acuan/master untuk mirror PREPARED/REVIEWED/DATE)
+  const LEAD_C0=8;
+  const colL=n=>{let s='';while(n>0){const m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=(n-m-1)/26;}return s;};
+  const M_PREP =`Leadsheet!${colL(LEAD_C0+1)}2`, M_REV =`Leadsheet!${colL(LEAD_C0+3)}2`;
+  const M_DPREP=`Leadsheet!${colL(LEAD_C0+1)}3`, M_DREV=`Leadsheet!${colL(LEAD_C0+3)}3`;
+
   // header bersama: info klien (kiri) + kotak WP (kanan, mulai kolom c0)
   function header(ws,code,name,subtitle,c0,setW){
     ws.getCell('A1').value=p.client; ws.getCell('A1').font={bold:true,size:14};
@@ -541,22 +588,46 @@ async function exportExcel(){
     ws.getRow(1).height=22;
     const lab=(rr,cci,t)=>{const x=cc(rr,cci);x.value=t;x.font={bold:true,size:9};x.alignment={horizontal:'left',vertical:'middle'};x.border=wpb;x.fill={type:'pattern',pattern:'solid',fgColor:{argb:HF}};};
     const val=(rr,cci,t)=>{const x=cc(rr,cci);x.value=t;x.font={size:9};x.alignment={horizontal:'left',vertical:'middle'};x.border=wpb;};
-    lab(2,c0,'PREPARED BY'); val(2,c0+1,p.prep); lab(2,c0+2,'REVIEWED BY'); val(2,c0+3,p.rev);
-    lab(3,c0,'DATE'); val(3,c0+1,p.datePrep); lab(3,c0+2,'DATE'); val(3,c0+3,p.dateRev);
+    // PREPARED BY / REVIEWED BY / DATE: master ada di sheet "Leadsheet" (kotak di kolom LEAD_C0),
+    // sheet lain mengacu (mirror) ke sel master lewat rumus, sehingga selalu sinkron satu sama lain.
+    const isMaster = ws.name==='Leadsheet';
+    const mir=(ref,fb)=> isMaster ? fb : {formula:ref, result:fb};
+    lab(2,c0,'PREPARED BY'); val(2,c0+1, mir(M_PREP, p.prep));
+    lab(2,c0+2,'REVIEWED BY'); val(2,c0+3, mir(M_REV, p.rev));
+    lab(3,c0,'DATE'); val(3,c0+1, mir(M_DPREP, p.datePrep));
+    lab(3,c0+2,'DATE'); val(3,c0+3, mir(M_DREV, p.dateRev));
   }
   const pageLand={orientation:'landscape',fitToPage:true,fitToWidth:1,fitToHeight:0,margins:{left:.3,right:.3,top:.4,bottom:.4,header:.2,footer:.2}};
 
   /* ---------- SHEET 1: Content (index, tickmark, assertion) ---------- */
   function buildContent(){
     const ws=wb.addWorksheet('Content',{views:[{showGridLines:false}],pageSetup:pageLand});
-    ws.getColumn(1).width=8; ws.getColumn(2).width=22; ws.getColumn(3).width=40; ws.getColumn(4).width=2;
-    header(ws,'D1','Content','Contents - Table of Content',5,true);
+    ws.getColumn(1).width=5; ws.getColumn(2).width=20; ws.getColumn(3).width=38;
+    header(ws,'D1','Content','Contents - Table of Content',4,true);
     set(ws,'A5','Table of Contents',{bold:true,size:10});
     const hr=6;
     ['No','Contents','Ref'].forEach((t,i)=>{const c=ws.getCell(hr,i+1);c.value=t;c.font={bold:true,size:FS};c.alignment={horizontal:'center',vertical:'middle'};c.fill={type:'pattern',pattern:'solid',fgColor:{argb:HF}};c.border=allThin;});
+    // Peta kode indeks -> nama sheet Excel yang benar-benar dibuat.
+    // Untuk baris ini, kolom Ref mengikuti nama sheet aslinya & jadi hyperlink ke sheet tsb.
+    const sheetMap={'Contents':'Content','LEAD':'Leadsheet','AJE':'Adjusment Journal Entries','NOA':'Nature of Account'};
     const toc=[['1','Contents','Contents'],['2','LEAD','Leadsheets'],['3','AJE','Adjusment Journal Entry'],['4','NOA','Nature of Account'],['5','ARP','Analytical Review Procedure'],['6','GL','General Ledger'],['7','RF','Reporting Format'],['','',''],['','','']];
     let r=hr+1;
-    toc.forEach(row=>{row.forEach((v,i)=>{const c=ws.getCell(r,i+1);c.value=v;c.font={size:FS};c.border=allThin;c.alignment={horizontal:i===0?'center':'left',vertical:'middle'};});ws.getRow(r).height=16;r++;});
+    toc.forEach(row=>{
+      const sheetName=sheetMap[row[1]]; // nama sheet asli (jika sheet-nya memang ada)
+      row.forEach((v,i)=>{
+        const c=ws.getCell(r,i+1);
+        c.border=allThin;
+        c.alignment={horizontal:i===0?'center':'left',vertical:'middle'};
+        if(i===2&&sheetName){ // kolom Ref ikut nama sheet + hyperlink internal
+          c.value={text:sheetName,hyperlink:`#'${sheetName}'!A1`};
+          c.font={size:FS,color:{argb:'FF0066CC'},underline:true};
+        }else{
+          c.value=v;
+          c.font={size:FS};
+        }
+      });
+      ws.getRow(r).height=16;r++;
+    });
     r+=2;
     set(ws,'A'+r,'Notes (explanation of tickmark)',{bold:true,size:10}); r++;
     const ticks=[['^','Footing / crossfooting verified'],['p','Vouched to Custudy Report'],['im','Immaterial passed'],['GL','Agreed with general ledger'],['PY','Agreed with previous year audited balance'],['CB','Confirmed Balance - Agree with Confirmation Balance'],['NR','Confirmation Not Received'],['RD','Reply Difference - Not Agree with Confirmation Balance'],['VO','Vouch to supporting document']];
@@ -571,7 +642,7 @@ async function exportExcel(){
   function buildLeadsheet(){
     const ws=wb.addWorksheet('Leadsheet',{views:[{showGridLines:false}],pageSetup:pageLand});
     [20,13,7,7,32,9,20,20,20,20,20,20,20,20].forEach((w,i)=>ws.getColumn(i+1).width=w);
-    header(ws,p.wpCode,p.wpName,'Leadsheets',11,false);
+    header(ws,p.wpCode,p.wpName,'Leadsheets',LEAD_C0,false);  // kotak WP di kolom H..K
     set(ws,'A6','Leadsheet',{bold:true,size:10});
     set(ws,'G6','|--------- GL ---------|',{size:9,color:{argb:RED}},{horizontal:'center'});
     set(ws,'L6','|--------- PY ---------|',{size:9,color:{argb:RED}},{horizontal:'center'});
@@ -585,9 +656,9 @@ async function exportExcel(){
       const mat=isMaterial(p,d.variance,d.varPct);
       // After CLA, Audited, Variance, % Var = rumus; Unaudited/CLA/AJE/PY = input
       const vals=[d.coa,d.coa_csl,d.indx,d.orb,d.desc,d.reff,
-        d.unaudited, d.cla,
+        d.unaudited, {formula:sumifAJE(r,'CLA'),result:d.cla},
         {formula:`G${r}+H${r}`,result:d.afterCla},
-        d.aje,
+        {formula:sumifAJE(r,'AJE'),result:d.aje},
         {formula:`I${r}+J${r}`,result:d.audited},
         d.py,
         {formula:`K${r}-L${r}`,result:d.variance},
@@ -620,12 +691,15 @@ async function exportExcel(){
   /* ---------- SHEET 3: Nature of Account ---------- */
   function buildNature(){
     const ws=wb.addWorksheet('Nature of Account',{views:[{showGridLines:false}],pageSetup:pageLand});
-    [20,13,7,7,32,70].forEach((w,i)=>ws.getColumn(i+1).width=w);
-    ws.getColumn(7).width=2;                 // gap tipis sebelum kotak WP
-    header(ws,p.wpCode,p.wpName,'Nature of Account',8,true);  // kotak WP dekat tabel (kolom H..K)
+    // COA(A) COA CSL(B) INDX(C) ORB(D) DESC(E) | Nature of Account = merge F:I per baris
+    [18,13,7,7,30,18,18,18,18].forEach((w,i)=>ws.getColumn(i+1).width=w);
+    header(ws,p.wpCode,p.wpName,'Nature of Account',6,false);  // kotak WP di kolom F..I (di atas kolom Nature)
     set(ws,'A6','Nature of Account',{bold:true,size:10});
     const hr=7;
-    ['COA','COA CSL','INDX','ORB','DESC','Nature of Account'].forEach((t,i)=>{const c=ws.getCell(hr,i+1);c.value=t;c.font={bold:true,size:FS};c.alignment={horizontal:'center',vertical:'middle',wrapText:true};c.fill={type:'pattern',pattern:'solid',fgColor:{argb:HF}};c.border=allThin;});
+    ['COA','COA CSL','INDX','ORB','DESC'].forEach((t,i)=>{const c=ws.getCell(hr,i+1);c.value=t;c.font={bold:true,size:FS};c.alignment={horizontal:'center',vertical:'middle',wrapText:true};c.fill={type:'pattern',pattern:'solid',fgColor:{argb:HF}};c.border=allThin;});
+    // header "Nature of Account" lebar = merge F:I
+    const nh=ws.getCell(hr,6);nh.value='Nature of Account';nh.font={bold:true,size:FS};nh.alignment={horizontal:'center',vertical:'middle',wrapText:true};nh.fill={type:'pattern',pattern:'solid',fgColor:{argb:HF}};nh.border=allThin;
+    ws.mergeCells(hr,6,hr,9); for(let cc=6;cc<=9;cc++)ws.getCell(hr,cc).border=allThin;
     ws.getRow(hr).height=24;
     let r=hr+1;
     data.forEach(d=>{
@@ -634,12 +708,80 @@ async function exportExcel(){
       const vals=[m('A',d.coa),m('B',d.coa_csl),m('C',d.indx),m('D',d.orb),m('E',d.desc),natureOf(d)];
       vals.forEach((v,i)=>{const c=ws.getCell(r,i+1);c.value=v;c.border=allThin;c.font={size:FS};
         c.alignment={horizontal:(i<=3)?'center':'left',vertical:(i===5?'top':'middle'),wrapText:(i>=4)};});
+      // kolom Nature lebar = merge F:I per baris
+      ws.mergeCells(r,6,r,9); for(let cc=7;cc<=9;cc++)ws.getCell(r,cc).border=allThin;
       r++;
     });
     ws.views=[{state:'frozen',ySplit:hr,showGridLines:false}];
   }
 
-  buildContent(); buildLeadsheet(); buildNature();
+  /* ---------- SHEET: Adjusment Journal Entries ---------- */
+  function buildAJE(){
+    const ws=wb.addWorksheet('Adjusment Journal Entries',{views:[{showGridLines:false}],pageSetup:pageLand});
+    // No(A) Type(B) COA(C) Account Decription(D) Reff(E) Amount(F) | Description=merge G:J | Impact to: K..N
+    [5,9,18,28,8,14, 17,17,17,17, 18,18,18,18].forEach((w,i)=>ws.getColumn(i+1).width=w);
+    header(ws,'AJE','Adjusment Journal Entries','Adjusment Journal Entry',7,false); // kotak WP di kolom G..J (di atas Description)
+    set(ws,'A6','Adjusment Journal Entry',{bold:true,size:10});
+
+    const hr=7, sub=8;                       // dua baris header: grup + sub
+    const fillHF={type:'pattern',pattern:'solid',fgColor:{argb:HF}};
+    // kolom tunggal A-F (merge vertikal hr..sub)
+    ['No','Type','COA','Account Decription','Reff','Amount'].forEach((t,i)=>{
+      const c=ws.getCell(hr,i+1);c.value=t;c.font={bold:true,size:FS};
+      c.alignment={horizontal:'center',vertical:'middle',wrapText:true};c.fill=fillHF;c.border=allThin;
+      ws.mergeCells(hr,i+1,sub,i+1); ws.getCell(sub,i+1).border=allThin;
+    });
+    // Description lebar = merge G7:J8
+    const dh=ws.getCell(hr,7);dh.value='Description';dh.font={bold:true,size:FS};dh.alignment={horizontal:'center',vertical:'middle',wrapText:true};dh.fill=fillHF;dh.border=allThin;
+    ws.mergeCells(hr,7,sub,10); for(let R=hr;R<=sub;R++)for(let cc=7;cc<=10;cc++)ws.getCell(R,cc).border=allThin;
+    // grup "Impact to:" (K:N) + sub-kolomnya
+    const imp=ws.getCell(hr,11);imp.value='Impact to:';imp.font={bold:true,size:FS};
+    imp.alignment={horizontal:'center',vertical:'middle'};imp.fill=fillHF;imp.border=allThin;
+    ws.mergeCells(hr,11,hr,14);
+    for(let cc=11;cc<=14;cc++)ws.getCell(hr,cc).border=allThin;
+    ['Assets','Liability','Equity','Loss(Profit)'].forEach((t,i)=>{
+      const c=ws.getCell(sub,11+i);c.value=t;c.font={bold:true,size:FS};
+      c.alignment={horizontal:'center',vertical:'middle',wrapText:true};c.fill=fillHF;c.border=allThin;
+    });
+    ws.getRow(hr).height=16; ws.getRow(sub).height=24;
+
+    // baris jurnal memakai data terpusat (ajeLines) — sekaligus jadi sumber SUMIFS di sheet Leadsheet
+    const lines=ajeLines;
+    const totalRows=ajeRowCount;                 // sisakan ruang kosong seperti template
+    let r=ajeFirst;                              // baris data pertama (= sub+1)
+    for(let k=0;k<totalRows;k++){
+      const L=lines[k]||{};
+      const amt=(L.amount==null||L.amount==='')?'':L.amount;
+      const setC=(col,v,align,nf)=>{const c=ws.getCell(r,col);c.value=v;c.border=allThin;c.font={size:FS};c.alignment=align;if(nf)c.numFmt=nf;};
+      const Cc={horizontal:'center',vertical:'middle'}, Lc={horizontal:'left',vertical:'middle',wrapText:true}, Rc={horizontal:'right',vertical:'middle'};
+      setC(1,L.no??'',Cc); setC(2,L.type??'',Cc); setC(3,L.coa??'',Cc);
+      setC(4,L.desc??'',Lc); setC(5,L.reff??'',Cc); setC(6,amt,Rc,fmtN);
+      setC(7,L.description??'',Lc);                 // Description (merge G:J)
+      ws.mergeCells(r,7,r,10); for(let cc=8;cc<=10;cc++)ws.getCell(r,cc).border=allThin;
+      [11,12,13,14].forEach(cc=>setC(cc,'',Rc,fmtN)); // Impact to: Assets/Liability/Equity/Loss(Profit)
+      ws.getRow(r).height=16; r++;
+    }
+    ws.views=[{state:'frozen',ySplit:sub,showGridLines:false}];
+  }
+
+  // ===== data baris sheet AJE dipusatkan di sini =====
+  // dipakai buildAJE (isi tabel) sekaligus jadi sumber rumus SUMIFS di sheet Leadsheet.
+  const AJE_SHEET='Adjusment Journal Entries';
+  const ajeLines=[]; { let n=0;
+    data.forEach(d=>{
+      if(Math.abs(d.cla)>=0.5)ajeLines.push({no:++n,type:'CLA',coa:d.coa,desc:d.desc,reff:d.reff,amount:d.cla});
+      if(Math.abs(d.aje)>=0.5)ajeLines.push({no:++n,type:'AJE',coa:d.coa,desc:d.desc,reff:d.reff,amount:d.aje});
+    });
+    if(!ajeLines.length){ajeLines.push({no:1,type:'CLA'});ajeLines.push({});ajeLines.push({type:'AJE'});}
+  }
+  const ajeFirst=9;                                   // baris data pertama sheet AJE (sub-header di baris 8)
+  const ajeRowCount=Math.max(ajeLines.length,15);
+  const ajeLast=ajeFirst+ajeRowCount-1;
+  // SUMIFS: jumlahkan kolom Amount (F) sheet AJE bila COA (C) cocok dan Type (B) = CLA/AJE
+  const ajeRng=col=>`'${AJE_SHEET}'!$${col}$${ajeFirst}:$${col}$${ajeLast}`;
+  const sumifAJE=(row,typ)=>`SUMIFS(${ajeRng('F')},${ajeRng('C')},$A${row},${ajeRng('B')},"${typ}")`;
+
+  buildContent(); buildLeadsheet(); buildAJE(); buildNature();
 
   const buf=await wb.xlsx.writeBuffer();
   const fname='KertasKerja_'+(p.wpCode||'WP').replace(/[^\w-]/g,'')+'_'+p.cy+'.xlsx';
@@ -689,28 +831,40 @@ function saveBlob(blob,name){
 /* ===================== template & sample ===================== */
 function downloadTemplate(){
   const aoa=[
-    ['coa','coa_csl','indx','orb','desc','reff','unaudited','cla','aje','py'],
-    ['1.07.01.01.001.001','1110100000','A10','','Tanah Gedung Kantor','',100,0,0,200],
-    ['1.07.01.01.002.001','1110100000','A10','','Tanah Rumah Dinas','',100,0,0,200],
-    ['1.07.01.02.001.001','1110100000','A10','','Bangunan Gedung Kantor','',100,0,0,200],
-    ['1.07.01.04.001.001','1110100000','A10','','Kendaraan Roda 2','',100,0,0,200],
-    ['1.07.01.05.001.001','1110100000','A10','','Peralatan Komputer','',100,0,0,200]
+    ['coa','coa_csl','indx','orb','fsl_name','desc','reff','unaudited','cla','aje','py'],
+    ['1.07.01.01.001.001','1110100000','A10','5100','Tanah dan Bangunan','Tanah Gedung Kantor','',100,0,0,200],
+    ['1.07.01.02.001.001','1110100000','A10','5100','Tanah dan Bangunan','Bangunan Gedung Kantor','',100,0,0,200],
+    ['1.07.01.04.001.001','1110100000','A20','5200','Kendaraan dan Peralatan','Kendaraan Roda 2','',100,0,0,200],
+    ['1.07.01.05.001.001','1110100000','A20','5200','Kendaraan dan Peralatan','Peralatan Komputer','',100,0,0,200]
   ];
   const ws=XLSX.utils.aoa_to_sheet(aoa);
-  ws['!cols']=[{wch:20},{wch:13},{wch:7},{wch:7},{wch:30},{wch:9},{wch:13},{wch:11},{wch:11},{wch:13}];
+  ws['!cols']=[{wch:20},{wch:13},{wch:7},{wch:7},{wch:24},{wch:30},{wch:9},{wch:13},{wch:11},{wch:11},{wch:13}];
   const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'input');
   XLSX.writeFile(wb,'template_leadsheet.xlsx');
   toast('Template Excel berhasil diunduh.');
 }
 function loadSample(){
-  const names=['Tanah Gedung Kantor','Tanah Rumah Dinas','Bangunan Gedung Kantor','Bangunan Rumah Dinas','Renovasi Gedung Kantor','Renovasi Rumah Dinas','Kendaraan Roda 2','Kendaraan Roda 4','Peralatan Komputer','Peralatan Kantor Non Komputer','Peralatan Rumah Dinas','Perabot Kantor','Perabot Rumah Dinas'];
-  const coas=['1.07.01.01.001.001','1.07.01.01.002.001','1.07.01.02.001.001','1.07.01.02.002.001','1.07.01.03.001.001','1.07.01.03.002.001','1.07.01.04.001.001','1.07.01.04.002.001','1.07.01.05.001.001','1.07.01.06.001.001','1.07.01.06.002.001','1.07.01.07.001.001','1.07.01.07.002.001'];
-  handleRecords(names.map((n,i)=>({coa:coas[i],coa_csl:'1110100000',indx:'A10',orb:'',desc:n,reff:'',unaudited:100,cla:0,aje:0,py:200})));
+  const recs=[
+    // indx A10 — Tanah dan Bangunan (ORB 5100)
+    ['1.07.01.01.001.001','A10','Tanah dan Bangunan','5100','Tanah Gedung Kantor'],
+    ['1.07.01.01.002.001','A10','Tanah dan Bangunan','5100','Tanah Rumah Dinas'],
+    ['1.07.01.02.001.001','A10','Tanah dan Bangunan','5100','Bangunan Gedung Kantor'],
+    ['1.07.01.02.002.001','A10','Tanah dan Bangunan','5100','Bangunan Rumah Dinas'],
+    ['1.07.01.03.001.001','A10','Tanah dan Bangunan','5100','Renovasi Gedung Kantor'],
+    ['1.07.01.03.002.001','A10','Tanah dan Bangunan','5100','Renovasi Rumah Dinas'],
+    // indx A20 — Kendaraan dan Peralatan (ORB 5200)
+    ['1.07.01.04.001.001','A20','Kendaraan dan Peralatan','5200','Kendaraan Roda 2'],
+    ['1.07.01.04.002.001','A20','Kendaraan dan Peralatan','5200','Kendaraan Roda 4'],
+    ['1.07.01.05.001.001','A20','Kendaraan dan Peralatan','5200','Peralatan Komputer'],
+    ['1.07.01.06.001.001','A20','Kendaraan dan Peralatan','5200','Peralatan Kantor Non Komputer'],
+    ['1.07.01.06.002.001','A20','Kendaraan dan Peralatan','5200','Peralatan Rumah Dinas'],
+    ['1.07.01.07.001.001','A20','Kendaraan dan Peralatan','5200','Perabot Kantor'],
+    ['1.07.01.07.002.001','A20','Kendaraan dan Peralatan','5200','Perabot Rumah Dinas']
+  ];
+  handleRecords(recs.map(r=>({coa:r[0],coa_csl:'1110100000',indx:r[1],fsl:r[2],orb:r[3],desc:r[4],reff:'',unaudited:100,cla:0,aje:0,py:200,nature:''})));
   $('pClient').value='NAMA KLIEN';
   $('pYearEnd').value='2025-12-31';
-  $('pWpCode').value='A10'; $('pWpName').value='Aset Tetap';
   $('pPrep').value='USER1'; $('pRev').value='USER2';
-  $('pLeadName').value='Fixed Asset'; $('pOrb').value='5100';
   $('pPct').value='5';
   updateCalcBtn(); calculate();
 }
@@ -725,6 +879,10 @@ drop.addEventListener('drop',e=>{if(e.dataTransfer.files[0])handleFile(e.dataTra
 $('tplBtn').addEventListener('click',downloadTemplate);
 $('sampleBtn').addEventListener('click',loadSample);
 $('calcBtn').addEventListener('click',calculate);
+$('pLeadSelect').addEventListener('change',()=>{
+  updateLeadInfo();
+  if(!$('results').classList.contains('hidden'))calculate(); // jika hasil sudah tampil, langsung perbarui ke lead terpilih
+});
 $('dlBtn').addEventListener('click',exportExcel);
 $('printBtn').addEventListener('click',()=>window.print());
 const gm=$('guideModal');
