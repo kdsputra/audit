@@ -117,6 +117,9 @@
   tbody td{padding:11px 14px;border-bottom:1px solid #f5f5f7;white-space:nowrap;color:#333}
   tbody tr:last-child td{border-bottom:none}
   tbody tr:hover{background:#f5f5f7}
+  /* ruang tepi kiri/kanan agar teks tidak menempel ke pinggir tabel */
+  thead th:first-child,tbody td:first-child,tfoot td:first-child{padding-left:20px}
+  thead th:last-child,tbody td:last-child,tfoot td:last-child{padding-right:20px}
   .num{text-align:right;font-variant-numeric:tabular-nums}
   tfoot td, tr.total td{background:#f5f5f7;font-weight:700;border-top:2px solid #1d1d1f;color:var(--text);position:sticky;bottom:0}
   .pill{
@@ -128,6 +131,7 @@
   .pill.belum{background:#f5f5f7;color:var(--muted)}
   .pill.luar{background:#f5f5f7;color:var(--muted)}
   .pill.dilepas{background:#e8f5e9;color:#1b5e20}
+  .pill.reklasout{background:#efebe9;color:#5d4037}
   .pill.tanah{background:#ede7f6;color:#4527a0}
   .pill.adp{background:#e0f2f1;color:#00695c}
   .pill.reklas{background:#e1f5fe;color:#01579b}
@@ -145,24 +149,45 @@
   .detail-grid .row:last-child{border-bottom:none;padding-bottom:0}
   .detail-grid .lbl{color:var(--muted)}
   .detail-grid .val{font-weight:600;color:var(--text);font-variant-numeric:tabular-nums;text-align:right}
-  /* CALK note */
-  .calk{background:var(--card);border:1px solid #e8e8ed;border-radius:14px;padding:8px 0;overflow:auto}
+  /* CALK note — diseragamkan agar tampil sama dengan tabel standar (.tbl-wrap) */
+  .calk{background:var(--card);border:1px solid #e8e8ed;border-radius:14px;overflow:auto}
   .calk table{font-size:13px;min-width:640px}
-  .calk thead th{background:#fff;border-bottom:1.5px solid #1d1d1f;text-transform:none;padding:10px 16px}
+  .calk thead th{background:#fafafa;border-bottom:1px solid #e8e8ed;text-transform:none;padding:13px 14px;position:sticky;top:0;z-index:2}
+  .calk tbody td{padding:11px 14px;border-bottom:1px solid #f5f5f7;white-space:nowrap;color:#333}
+  .calk tbody tr:last-child td{border-bottom:none}
+  /* ruang tepi kiri/kanan untuk tabel CALK */
+  .calk thead th:first-child,.calk tbody td:first-child{padding-left:20px}
+  .calk thead th:last-child,.calk tbody td:last-child{padding-right:20px}
   .calk .sec td{background:#fafafa;font-weight:700;letter-spacing:-0.01em;border-top:1px solid #e8e8ed;border-bottom:1px solid #e8e8ed;color:var(--text)}
-  .calk .item td:first-child{padding-left:32px;color:#333}
-  .calk .sub td{font-weight:700;border-top:1.5px solid #1d1d1f}
+  .calk .item td:first-child{padding-left:36px;color:#333}
+  .calk .sub td{font-weight:700;border-top:2px solid #1d1d1f;background:#f5f5f7}
   .calk .calk-sec{width:100%}
   .calk .calk-sec+.calk-sec{margin-top:22px}
   .calk table+table{margin-top:22px}
   .calk .subhead td{border-bottom:1px solid #e8e8ed;padding:4px 16px}
   .calk .nbv td{font-weight:700;background:#eef4fb;border-top:2px solid #1d1d1f;border-bottom:2px solid #1d1d1f;color:#0d2f57}
-  .calk tbody td{white-space:nowrap}
   .narr{font-size:13.5px;line-height:1.7;color:#333;margin-top:20px;background:#fafafa;border:1px solid #e8e8ed;border-radius:14px;padding:20px 24px}
   .narr p{margin-bottom:10px}
   .narr p:last-child{margin-bottom:0}
   .narr b{color:var(--text)}
   .period-tag{font-size:12px;color:var(--muted);font-weight:500;margin-bottom:14px}
+  .sec-sub{font-size:15px;font-weight:600;letter-spacing:-0.01em;margin:4px 0 14px;color:var(--text)}
+  /* blok sub-section di dalam satu kartu (mis. CALK Pelepasan/Impairment) agar jarak antar blok seragam */
+  .calk-block{margin-top:28px}
+  .calk-block:first-child{margin-top:0}
+  .calk-block .sec-sub{margin:0 0 12px}
+  .calk-block .narr{margin-top:0}
+  .note-intro{font-size:13.5px;line-height:1.7;color:#333;margin-bottom:4px}
+  .rate-badge{display:inline-block;font-size:11px;font-weight:600;color:var(--accent);background:var(--accent-light);border:1px solid #d6e6f7;border-radius:20px;padding:3px 12px;margin-left:8px;vertical-align:middle}
+  .fis-note{font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5}
+  .pill.dtl{background:#fff3e0;color:#e65100}
+  .pill.dta{background:#e3f2fd;color:#0d47a1}
+  .pill.k1{background:#e8f5e9;color:#1b5e20}
+  .pill.k2{background:#e1f5fe;color:#01579b}
+  .pill.k3{background:#fff3e0;color:#e65100}
+  .pill.k4{background:#f3e5f5;color:#6a1b9a}
+  .pill.kb{background:#ede7f6;color:#4527a0}
+  .pill.kn{background:#f5f5f7;color:var(--muted)}
   .print-doc-title{display:none;font-size:11pt;font-weight:700;letter-spacing:-0.01em;margin-bottom:2mm;color:#000}
   .hidden{display:none}
   footer{text-align:center;font-size:12.5px;color:var(--muted);padding:24px 24px 48px;line-height:1.8;font-weight:400}
@@ -233,6 +258,11 @@
     .card-head h2{font-size:14pt;letter-spacing:-0.01em}
     .period-tag{font-size:10pt;color:#000;margin-bottom:8px;page-break-after:avoid;break-after:avoid}
     .print-doc-title{display:block !important}
+    .print-subhead{display:block !important;font-size:11pt;font-weight:700;letter-spacing:-0.01em;margin:6mm 0 2mm;color:#000;page-break-after:avoid;break-after:avoid}
+    .sec-sub{font-size:11pt;font-weight:700;color:#000;margin:5mm 0 2mm;page-break-after:avoid;break-after:avoid}
+    .calk-block{margin-top:5mm}
+    .calk-block:first-child{margin-top:0}
+    .calk-block .sec-sub{margin:0 0 2mm}
 
     /* TABEL: layout fixed + lebar 100% → mengisi lebar halaman landscape, teks membungkus,
        tidak pernah terpotong di kanan; header diulang tiap halaman. */
@@ -255,7 +285,7 @@
     #kkTable thead th{font-size:7.5pt !important}
     #recapTable thead th{font-size:8pt !important}
     tfoot td,tr.total td{background:#eee !important;border-top:1.5px solid #000 !important}
-    .calk thead th{background:#fff !important;border-bottom:1.5px solid #000 !important}
+    .calk thead th{background:#eee !important;border-bottom:1px solid #999 !important}
     .calk .sec td{background:#f0f0f0 !important;font-weight:700}
     .calk .nbv td{background:#eef4fb !important;border-top:1.5px solid #000 !important;border-bottom:1.5px solid #000 !important}
     .calk .item td:first-child{padding-left:10px !important}
@@ -280,7 +310,7 @@
     </div>
     <div>
       <h1>Kertas Kerja Aset Tetap</h1>
-      <p>Rollforward Saldo &middot; Beban &amp; Akumulasi Penyusutan &middot; Laba/Rugi Pelepasan &middot; Format CALK</p>
+      <p>Rollforward &middot; Penyusutan Komersial &amp; Fiskal &middot; Koreksi Fiskal &middot; Pajak Tangguhan (DTA/DTL) &middot; CALK</p>
     </div>
     <button class="btn btn-ghost" id="openGuideBtn" style="margin-left:auto;">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
@@ -296,7 +326,7 @@
     <div class="card-head">
       <div class="step-num">1</div>
       <h2>Data Aset Tetap</h2>
-      <span class="sub">Kolom inti: nama, kelompok, tgl_perolehan, harga_perolehan, metode, masa_manfaat, nilai_residu &middot; Kolom lanjutan (opsional): tipe (ADP), reklas_dari, tgl_reklas, tgl_revaluasi, nilai_revaluasi, tgl_impairment, nilai_terpulihkan, tgl_pelepasan, harga_jual, biaya_pelepasan</span>
+      <span class="sub">Kolom inti: nama, kelompok, tgl_perolehan, harga_perolehan, metode, masa_manfaat, nilai_residu &middot; Kolom fiskal (opsional): kelompok_fiskal (1/2/3/4/Bangunan Permanen/Bangunan Tidak Permanen), metode_fiskal (GL/SM) &middot; Kolom lanjutan (opsional): tipe (ADP), reklas_dari, tgl_reklas, tgl_reklas_keluar, reklas_ke, tgl_revaluasi, nilai_revaluasi, tgl_impairment, nilai_terpulihkan, tgl_pelepasan, harga_jual, biaya_pelepasan, penggantian_asuransi</span>
     </div>
     <div class="drop" id="drop">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -335,14 +365,18 @@
         <input type="date" id="periodEnd">
       </div>
       <div class="field">
-        <label for="conv">Awal Penyusutan</label>
+        <label for="conv">Awal Penyusutan (Komersial)</label>
         <select id="conv" style="width:240px;margin-bottom:0">
           <option value="acq">Bulan perolehan (penuh)</option>
           <option value="next">Bulan berikutnya</option>
         </select>
       </div>
+      <div class="field">
+        <label for="taxRate">Tarif PPh Badan (%)</label>
+        <input type="number" id="taxRate" value="22" min="0" max="100" step="0.5" style="font-family:inherit;font-size:14px;padding:11px 16px;border:1px solid var(--border);border-radius:12px;background:var(--card);color:var(--text);width:160px;max-width:100%;outline:none;">
+      </div>
     </div>
-    <div class="hint">Saldo Awal dihitung per akhir periode sebelumnya, Saldo Akhir per tanggal cut-off. Beban penyusutan = penyusutan yang terjadi di sepanjang periode (s.d. tanggal pelepasan untuk aset yang dilepas). Penyusutan dihitung bulanan penuh.</div>
+    <div class="hint">Saldo Awal dihitung per akhir periode sebelumnya, Saldo Akhir per tanggal cut-off. Beban penyusutan = penyusutan yang terjadi di sepanjang periode (s.d. tanggal pelepasan untuk aset yang dilepas). Penyusutan dihitung bulanan penuh. <b>Penyusutan fiskal</b> mengikuti PMK 72/2023 (dimulai pada bulan pengeluaran, tanpa nilai residu). <b>Tarif PPh badan</b> dipakai menghitung pajak tangguhan (DTA/DTL) &mdash; default 22% sesuai UU HPP.</div>
   </div>
 
   <button class="btn btn-primary btn-lg" id="calcBtn" disabled>
@@ -386,6 +420,36 @@
     </div>
 
     <div class="card">
+      <div class="print-doc-title">Kertas Kerja Penyusutan Fiskal &amp; Koreksi Fiskal Aset Tetap</div>
+      <div class="card-head">
+        <div class="step-num" style="background:#1d1d1f;color:#fff">&#10003;</div>
+        <h2>Penyusutan Fiskal &amp; Koreksi Fiskal Aset Tetap</h2>
+        <span class="sub">PMK 72 Tahun 2023</span>
+      </div>
+      <div class="period-tag" id="periodTagFis"></div>
+      <div class="tbl-wrap"><table id="fiscalTable"></table></div>
+      <div style="margin-top:20px"></div>
+      <div class="print-subhead" style="display:none">Rekonsiliasi Fiskal atas Aset Tetap</div>
+      <div class="calk" id="reconTable"></div>
+      <div class="narr" id="fiscalNarr"></div>
+    </div>
+
+    <div class="card">
+      <div class="print-doc-title">Kertas Kerja Pajak Tangguhan (DTA/DTL) atas Aset Tetap</div>
+      <div class="card-head">
+        <div class="step-num" style="background:#1d1d1f;color:#fff">&#10003;</div>
+        <h2>Pajak Tangguhan (Aset/Liabilitas) atas Aset Tetap</h2>
+        <span class="sub">PSAK 46 &middot; Metode Liabilitas Neraca</span>
+      </div>
+      <div class="period-tag" id="periodTagDt"></div>
+      <div class="tbl-wrap"><table id="dtTable"></table></div>
+      <div style="margin-top:20px"></div>
+      <div class="print-subhead" style="display:none">Mutasi &amp; Beban/(Manfaat) Pajak Tangguhan</div>
+      <div class="calk" id="dtMutTable"></div>
+      <div class="narr" id="dtNarr"></div>
+    </div>
+
+    <div class="card">
       <div class="print-doc-title">Catatan Atas Laporan Keuangan (CALK) &mdash; Aset Tetap</div>
       <div class="card-head">
         <div class="step-num" style="background:#1d1d1f;color:#fff">&#10003;</div>
@@ -397,15 +461,27 @@
     </div>
 
     <div class="card">
-      <div class="print-doc-title">Jadwal Penyusutan Aset Tetap</div>
+      <div class="print-doc-title">CALK &mdash; Pelepasan, Penjualan, Penurunan Nilai &amp; Reklasifikasi Keluar Aset Tetap</div>
       <div class="card-head">
         <div class="step-num" style="background:#1d1d1f;color:#fff">&#10003;</div>
-        <h2>Jadwal Penyusutan per Aset</h2>
+        <h2>CALK &mdash; Pelepasan, Penjualan, Penurunan Nilai &amp; Reklasifikasi Keluar Aset Tetap</h2>
+      </div>
+      <div class="period-tag" id="periodTagDisp"></div>
+      <div id="dispNote"></div>
+    </div>
+
+    <div class="card">
+      <div class="print-doc-title">Jadwal Penyusutan Aset Tetap (Komersial &amp; Fiskal)</div>
+      <div class="card-head">
+        <div class="step-num" style="background:#1d1d1f;color:#fff">&#10003;</div>
+        <h2>Jadwal Penyusutan per Aset (Komersial &amp; Fiskal)</h2>
+        <span class="sub">PSAK 16 &middot; PMK 72 Tahun 2023</span>
       </div>
       <select id="assetSelect" class="no-print"></select>
       <div class="period-tag" id="schedTag"></div>
       <div id="schedMeta"></div>
       <div class="tbl-wrap"><table id="schedTable"></table></div>
+      <div id="schedNote"></div>
     </div>
   </div>
 </div>
@@ -449,6 +525,8 @@
         <li><b>tipe</b> (atau <i>jenis_aset, type</i>): Isi <code>ADP</code> (atau <i>CIP, dalam proses, konstruksi</i>) untuk menandai <b>Aset Dalam Penyelesaian</b>. Aset ber-tipe ADP otomatis masuk kelompok "Aset Dalam Penyelesaian", tidak disusutkan, dan kolom <i>kelompok</i> boleh dikosongkan.</li>
         <li><b>reklas_dari</b> (atau <i>reklasifikasi_dari, reclass_from</i>): Sumber reklasifikasi aset &mdash; <code>ADP</code> (dari aset dalam penyelesaian yang telah selesai) atau <code>luar</code> (dari akun di luar aset tetap, mis. persediaan, properti investasi, uang muka).</li>
         <li><b>tgl_reklas</b> (atau <i>tgl_reklasifikasi, reclass_date</i>): Tanggal reklasifikasi. Untuk aset yang dapat disusutkan, penyusutan dimulai sejak tanggal ini (tanggal siap digunakan). <i>Untuk reklas dari ADP, isi kolom kelompok dengan kelompok tujuan, mis. Bangunan/Mesin; harga_perolehan = akumulasi biaya saat selesai.</i></li>
+        <li><b>tgl_reklas_keluar</b> (atau <i>tgl_reklasifikasi_keluar, reclass_out_date, tgl_keluar</i>): Tanggal aset <b>direklasifikasi keluar</b> dari pos aset tetap (mis. dipindahkan ke properti investasi, persediaan, atau aset dimiliki untuk dijual; atau pembatalan aset dalam penyelesaian). Pada tanggal ini penyusutan dihentikan dan nilai tercatat aset dikeluarkan dari aset tetap. <b>Ini bukan pelepasan</b> &mdash; tidak menimbulkan laba/(rugi); jangan isi bersamaan dengan kolom pelepasan.</li>
+        <li><b>reklas_ke</b> (atau <i>reklas_keluar_ke, tujuan_reklas, reclass_to</i>): Pos tujuan reklasifikasi keluar, mis. <code>Properti Investasi</code>, <code>Persediaan</code>, atau <code>Aset Dimiliki untuk Dijual</code>. Hanya keterangan; default <code>Luar Aset Tetap</code> bila dikosongkan.</li>
       </ul>
 
       <p><b>Kolom Revaluasi (opsional, model revaluasi PSAK 16):</b></p>
@@ -462,7 +540,22 @@
         <li><b>tgl_impairment</b> (atau <i>impairment_date, tgl_penurunan_nilai</i>): Tanggal pengujian/pengakuan penurunan nilai.</li>
         <li><b>nilai_terpulihkan</b> (atau <i>recoverable_amount</i>): Jumlah terpulihkan (mana yang lebih tinggi antara nilai wajar dikurangi biaya pelepasan dan nilai pakai). Bila NBV &gt; nilai terpulihkan, selisihnya diakui sebagai <b>rugi penurunan nilai</b> di laba rugi, dan penyusutan berikutnya memakai nilai tercatat yang telah diturunkan.</li>
       </ul>
-      <blockquote><b>Tips:</b> Klik "Unduh Template Excel" untuk memperoleh format kolom standar yang siap diisi, atau "Muat Contoh Data" untuk melihat simulasi lengkap.</blockquote>
+
+      <p><b>Kolom Fiskal (opsional &mdash; untuk koreksi fiskal &amp; pajak tangguhan, PMK 72/2023):</b></p>
+      <ul>
+        <li><b>kelompok_fiskal</b> (atau <i>fiscal_group, kelompok_pajak</i>): Kelompok penyusutan fiskal &mdash; isi <code>1</code>, <code>2</code>, <code>3</code>, atau <code>4</code> untuk harta bukan bangunan (masa manfaat 4 / 8 / 16 / 20 tahun), atau <code>Bangunan Permanen</code> (20 th) / <code>Bangunan Tidak Permanen</code> (10 th). Untuk tanah/aset dalam penyelesaian isi <code>Tanah</code> atau biarkan tidak disusutkan. <b>Jika dikosongkan</b>, kelompok ditebak otomatis dari nama kelompok komersial (heuristik Lampiran PMK 72/2023); jenis harta yang tidak dikenal memakai <b>Kelompok 3</b> sesuai Pasal 4 ayat (1).</li>
+        <li><b>metode_fiskal</b> (atau <i>fiscal_method</i>): <code>GL</code> (Garis Lurus) atau <code>SM</code> (Saldo Menurun). Bila kosong, mengikuti metode komersial. <b>Bangunan</b> selalu garis lurus (Pasal 6).</li>
+      </ul>
+      <blockquote>Penyusutan fiskal selalu memakai <b>harga perolehan historis</b> (revaluasi komersial diabaikan), <b>tanpa nilai residu</b>, dan dimulai pada <b>bulan pengeluaran</b> (Pasal 5). Rugi penurunan nilai (impairment) tidak diakui secara fiskal. Perbedaan komersial vs fiskal inilah yang menghasilkan koreksi fiskal dan pajak tangguhan.</blockquote>
+
+      <p><b>Kolom Penggantian Asuransi (opsional, Pasal 8 PMK 72/2023):</b></p>
+      <ul>
+        <li><b>penggantian_asuransi</b> (atau <i>insurance, klaim_asuransi</i>): Nilai penggantian/klaim asuransi yang diterima atas aset yang dilepas/ditarik (mis. karena kebakaran/kecelakaan). Ditambahkan ke hasil pelepasan dalam perhitungan laba/(rugi) pelepasan dan dirinci pada CALK Pelepasan.</li>
+      </ul>
+
+      <p><b>Parameter Periode &amp; Pajak:</b> pada Langkah 2 isi <b>Awal Penyusutan</b> (konvensi komersial) dan <b>Tarif PPh Badan</b> (default 22% sesuai UU HPP) yang dipakai menghitung pajak tangguhan.</p>
+
+      <blockquote><b>Tips:</b> Klik "Unduh Template Excel" untuk memperoleh format kolom standar (termasuk kolom fiskal) yang siap diisi, atau "Muat Contoh Data" untuk melihat simulasi lengkap.</blockquote>
 
       <h4>2. Logika Perhitungan</h4>
       <ul>
@@ -472,19 +565,26 @@
         <li><b>Saldo Awal</b> = posisi per akhir periode sebelumnya. <b>Saldo Akhir</b> = posisi per tanggal cut-off. <b>NBV</b> = Nilai Tercatat Bruto &minus; Akumulasi Penyusutan &minus; Akumulasi Penurunan Nilai.</li>
         <li><b>Aset Dalam Penyelesaian (ADP/CIP):</b> diakui sebesar akumulasi biaya, <b>tidak disusutkan</b>. Saat selesai, gunakan baris aset dengan <code>reklas_dari = ADP</code> dan <code>tgl_reklas</code> = tanggal siap digunakan; pada kertas kerja akan tampak sebagai Reklasifikasi Keluar dari kelompok ADP dan Reklasifikasi Masuk ke kelompok tujuan, lalu mulai disusutkan.</li>
         <li><b>Reklasifikasi dari luar aset tetap:</b> aset dengan <code>reklas_dari = luar</code> baru tercatat sebagai aset tetap sejak <code>tgl_reklas</code> (bukan penambahan/belanja modal), dan disusutkan sejak tanggal tersebut.</li>
+        <li><b>Reklasifikasi keluar dari aset tetap:</b> aset dengan <code>tgl_reklas_keluar</code> dipindahkan keluar dari pos aset tetap pada nilai tercatatnya (tampil sebagai Reklas Keluar pada kolom Reklasifikasi di kertas kerja dan CALK). Penyusutan dihentikan pada tanggal tersebut, tidak diakui laba/(rugi), dan perbedaan temporer beserta pajak tangguhannya direklasifikasi mengikuti aset ke pos barunya (tidak masuk koreksi PKP maupun beban/manfaat pajak tangguhan laba rugi).</li>
         <li><b>Revaluasi:</b> pada tanggal revaluasi, akumulasi penyusutan dieliminasi, nilai tercatat bruto disetel ke nilai wajar, dan selisih terhadap NBV menjadi surplus revaluasi (OCI). Penyusutan selanjutnya atas nilai baru.</li>
         <li><b>Penurunan nilai (impairment):</b> rugi = NBV &minus; jumlah terpulihkan (bila positif), diakui di laba rugi; penyusutan berikutnya atas nilai tercatat yang telah diturunkan.</li>
-        <li><b>Laba/(Rugi) Pelepasan</b> = Harga Jual &minus; Biaya Pelepasan &minus; NBV pada tanggal pelepasan. Nilai negatif berarti rugi (beban) atas pelepasan/penghapusan aset.</li>
+        <li><b>Laba/(Rugi) Pelepasan</b> = Harga Jual + Penggantian Asuransi &minus; Biaya Pelepasan &minus; NBV pada tanggal pelepasan. Nilai negatif berarti rugi (beban) atas pelepasan/penghapusan aset.</li>
+        <li><b>Penyusutan fiskal (PMK 72/2023):</b> dihitung paralel atas harga perolehan historis, tanpa residu, memakai masa manfaat kelompok fiskal dan metode GL/SM (bangunan hanya GL), dimulai bulan pengeluaran. Impairment &amp; revaluasi komersial diabaikan secara fiskal.</li>
+        <li><b>Koreksi fiskal (temporer) atas aset tetap</b> = (Beban penyusutan komersial &minus; fiskal) + Rugi penurunan nilai + (NBV komersial &minus; NSB fiskal saat pelepasan). Positif menambah Penghasilan Kena Pajak, negatif menguranginya.</li>
+        <li><b>Pajak tangguhan (PSAK 46, metode liabilitas neraca):</b> Perbedaan Temporer = Nilai Tercatat komersial &minus; Dasar Pajak (NSB fiskal). Bila &gt; 0 menimbulkan <b>Liabilitas Pajak Tangguhan (DTL)</b>; bila &lt; 0 menimbulkan <b>Aset Pajak Tangguhan (DTA)</b>. Saldo = Perbedaan Temporer &times; tarif. Beban/(Manfaat) pajak tangguhan ke laba rugi = perubahan saldo dikurangi bagian yang dibebankan ke OCI; pajak tangguhan atas <b>surplus revaluasi</b> dibebankan ke penghasilan komprehensif lain. Berlaku identitas: &minus;(koreksi fiskal temporer) &times; tarif = beban/(manfaat) pajak tangguhan laba rugi.</li>
         <li>Identitas yang selalu terjaga untuk Harga Perolehan: <code>Saldo Akhir = Saldo Awal + Penambahan + Reklas Neto &plusmn; Revaluasi &minus; Pengurangan</code>; dan untuk Akumulasi: <code>Saldo Akhir = Saldo Awal + Beban Penyusutan + Penurunan Nilai &minus; Eliminasi Revaluasi &minus; Pengurangan</code>.</li>
       </ul>
 
       <h4>3. Output</h4>
       <ul>
-        <li><b>Dashboard ringkas:</b> total nilai perolehan, akumulasi penyusutan, NBV akhir, beban penyusutan periode, dan laba/rugi pelepasan.</li>
+        <li><b>Dashboard ringkas:</b> total nilai perolehan, akumulasi penyusutan, NBV akhir, beban penyusutan komersial &amp; fiskal, koreksi fiskal neto, aset/liabilitas pajak tangguhan, dan laba/rugi pelepasan.</li>
         <li><b>Kertas Kerja Detail:</b> rollforward per aset (saldo awal &rarr; mutasi &rarr; saldo akhir) lengkap dengan total.</li>
         <li><b>Rekapitulasi per Kelompok</b> dan <b>Format CALK</b> siap salin ke laporan keuangan, beserta narasi otomatis.</li>
-        <li><b>Jadwal Penyusutan per Aset:</b> tabel penyusutan tahunan untuk tiap aset.</li>
-        <li><b>Unduh Excel</b> menghasilkan workbook berisi sheet Kertas Kerja, Rekap Kelompok, dan CALK. Tombol <b>Cetak / PDF</b> mencetak laporan secara rapi.</li>
+        <li><b>Penyusutan Fiskal &amp; Koreksi Fiskal (PMK 72/2023):</b> penyusutan fiskal per aset, perbandingan komersial vs fiskal, dan rekonsiliasi fiskal (koreksi positif/negatif) atas aset tetap.</li>
+        <li><b>Pajak Tangguhan (DTA/DTL, PSAK 46):</b> perbedaan temporer per kelompok, saldo aset/liabilitas pajak tangguhan, serta mutasi beban/(manfaat) pajak tangguhan ke laba rugi dan OCI.</li>
+        <li><b>CALK Pelepasan, Penjualan, Penurunan Nilai &amp; Reklasifikasi Keluar:</b> rincian pelepasan/penjualan (komersial &amp; fiskal), rincian rugi penurunan nilai, dan rincian reklasifikasi keluar dari aset tetap, beserta narasi sesuai PSAK 16, PSAK 48, dan Pasal 8 PMK 72/2023.</li>
+        <li><b>Jadwal Penyusutan per Aset:</b> tabel penyusutan tahunan untuk tiap aset, menyajikan penyusutan <b>komersial</b> dan <b>fiskal</b> berdampingan dalam satu tabel.</li>
+        <li><b>Unduh Excel</b> menghasilkan workbook berisi sheet Kertas Kerja, Rekap Kelompok, CALK, Penyusutan Fiskal, Pajak Tangguhan, dan CALK Pelepasan. Tombol <b>Cetak / PDF</b> mencetak seluruh laporan secara rapi.</li>
       </ul>
       <p style="color:var(--muted);font-size:13px;">Seluruh perhitungan berjalan di browser Anda &mdash; data finansial tidak dikirim ke server mana pun.</p>
     </div>
@@ -492,7 +592,7 @@
 </div>
 
 <footer>
-  Metode Garis Lurus &amp; Saldo Menurun Ganda &middot; Konvensi penyusutan bulanan penuh &middot; Sesuai kerangka PSAK 16 Aset Tetap.<br>
+  PSAK 16 Aset Tetap &middot; PSAK 48 Penurunan Nilai &middot; PSAK 46 Pajak Penghasilan (Pajak Tangguhan) &middot; PMK 72 Tahun 2023 Penyusutan Fiskal.<br>
   Aplikasi ini sepenuhnya berjalan di sisi klien (browser) &mdash; Kerahasiaan data kertas kerja audit Anda terjamin aman.
 </footer>
 <div id="toast"></div>
@@ -504,6 +604,7 @@ const PRIORITY=['tanah','bangunan','gedung','mesin','kendaraan','peralatan','inv
 let assets=[];
 let pStart=null,pEnd=null;
 let depConv='acq';
+let taxRate=0.22;
 
 /* ---------- helpers ---------- */
 function toast(msg){
@@ -582,6 +683,57 @@ function normMethod(v){
 }
 function methodLabel(m){return m==='ddb'?'Saldo Menurun Ganda':'Garis Lurus';}
 
+/* ---------- pemetaan kelompok fiskal (PMK 72/2023) ----------
+   Kode: '1'|'2'|'3'|'4' (bukan bangunan), 'BP' (bangunan permanen),
+   'BTP' (bangunan tidak permanen), 'NONE' (tanah/ADP, tidak disusutkan). */
+const FISCAL_LIFE={'1':4,'2':8,'3':16,'4':20,'BP':20,'BTP':10,'NONE':0};
+function fiscalLifeFromCode(c){return FISCAL_LIFE[c]||0;}
+function isBuildingFiscal(c){return c==='BP'||c==='BTP';}
+function fiscalGroupLabel(c){
+  switch(c){
+    case '1':return 'Kelompok 1 (4 th)';
+    case '2':return 'Kelompok 2 (8 th)';
+    case '3':return 'Kelompok 3 (16 th)';
+    case '4':return 'Kelompok 4 (20 th)';
+    case 'BP':return 'Bangunan Permanen (20 th)';
+    case 'BTP':return 'Bangunan Tidak Permanen (10 th)';
+    default:return 'Tidak Disusutkan';
+  }
+}
+function fiscalGroupPill(c){
+  return c==='1'?'k1':c==='2'?'k2':c==='3'?'k3':c==='4'?'k4':(c==='BP'||c==='BTP')?'kb':'kn';
+}
+/* parse kode kelompok fiskal dari isian pengguna */
+function parseFiscalGroupCode(raw){
+  const s=norm(raw);
+  if(!s)return null;
+  if(s.includes('tidakpermanen')||s==='btp'||s.includes('bangunantidakpermanen'))return 'BTP';
+  if(s.includes('permanen')||s==='bp'||s.includes('bangunanpermanen'))return 'BP';
+  if(s.includes('tanah')||s==='none'||s==='-'||s.includes('tidakdisusut'))return 'NONE';
+  if(s==='1'||s==='i'||s==='k1'||s.includes('kelompok1')||s==='grup1'||s==='group1')return '1';
+  if(s==='2'||s==='ii'||s==='k2'||s.includes('kelompok2')||s==='grup2'||s==='group2')return '2';
+  if(s==='3'||s==='iii'||s==='k3'||s.includes('kelompok3')||s==='grup3'||s==='group3')return '3';
+  if(s==='4'||s==='iv'||s==='k4'||s.includes('kelompok4')||s==='grup4'||s==='group4')return '4';
+  return null;
+}
+/* tebakan kelompok fiskal dari nama kelompok komersial (Lampiran & Pasal 4(1) PMK 72/2023) */
+function heuristicFiscalGroupCode(kelompok){
+  const c=norm(kelompok);
+  if(c.includes('tanah')||c.includes('land'))return 'NONE';
+  if(c.includes('bangunan')||c.includes('gedung')||c.includes('building')||c.includes('ruko')||c.includes('gudang'))return 'BP';
+  if(c.includes('sepedamotor')||c.includes('motorbike')||c==='motor')return '1';
+  if(c.includes('kendaraan')||c.includes('mobil')||c.includes('vehicle')||c.includes('truk')||c.includes('truck')||c.includes('bus')||c.includes('angkutan'))return '2';
+  if(c.includes('peralatankantor')||c.includes('officeequipment')||c.includes('inventaris')||c.includes('perabot')||c.includes('furniture')||c.includes('mebel')||c.includes('komputer')||c.includes('laptop')||c.includes('printer')||c.includes('elektronik')||c.includes('office'))return '1';
+  if(c.includes('mesin')||c.includes('machine')||c.includes('equipment')||c.includes('alatberat')||c.includes('heavyequip'))return '3';
+  return '3'; /* Pasal 4 ayat (1): jenis harta yang tidak tercantum dalam Lampiran menggunakan kelompok 3 */
+}
+function normFiscalMethod(v){
+  const s=norm(v);
+  if(s.includes('saldomenurun')||s==='sm'||s.includes('declining')||s.includes('ddb')||s.includes('menurun'))return 'ddb';
+  if(s.includes('garislurus')||s==='gl'||s.includes('straight'))return 'gl';
+  return null;
+}
+
 /* ---------- depreciation / revaluation / impairment engine ----------
    Mesin simulasi bulanan terpadu. Mereproduksi persis hasil garis lurus &
    saldo menurun ganda untuk aset biasa, sekaligus menangani:
@@ -609,6 +761,7 @@ function carryingState(a,asOf,ignoreDisposal){
   if(!asOf)return Z;
   if(asOf<a.faStartDate)return Z;
   if(!ignoreDisposal&&a.disposalDate&&a.disposalDate<=asOf)return Z;
+  if(!ignoreDisposal&&a.reklasOutDate&&a.reklasOutDate<=asOf)return Z;
   const startMI=mIndex(a.faStartDate), endMI=mIndex(asOf), eDep=effDepStartMI(a);
   const revalMI=a.hasReval?mIndex(a.revalDate):Infinity;
   const impairMI=a.hasImpair?mIndex(a.impairDate):Infinity;
@@ -643,6 +796,67 @@ function carryingState(a,asOf,ignoreDisposal){
 }
 function costAsOf(a,d){return carryingState(a,d).gross;}
 function accumAsOf(a,d){const s=carryingState(a,d);return s.accumDep+s.accumImpair;}
+
+/* ---------- mesin penyusutan FISKAL (PMK 72/2023) ----------
+   Berbeda dari komersial:
+   - dasar penyusutan = harga perolehan historis (revaluasi komersial diabaikan untuk fiskal),
+   - tidak ada nilai residu (disusutkan sampai nol; saldo menurun -> sisa nilai buku
+     disusutkan sekaligus pada akhir masa manfaat, Pasal 2 ayat (2)),
+   - masa manfaat dari kelompok fiskal (4/8/16/20 th; bangunan 20/10 th),
+   - penurunan nilai (impairment) komersial diabaikan (tidak diakui fiskal),
+   - penyusutan dimulai pada bulan pengeluaran (Pasal 5) -> konvensi 'bulan perolehan'. */
+function fiscalState(a,asOf,ignoreDisposal){
+  const Z={gross:0,accumDep:0,nbv:0,depCum:0};
+  if(!asOf)return Z;
+  if(asOf<a.faStartDate)return Z;
+  if(!ignoreDisposal&&a.disposalDate&&a.disposalDate<=asOf)return Z;
+  if(!ignoreDisposal&&a.reklasOutDate&&a.reklasOutDate<=asOf)return Z;
+  const startMI=mIndex(a.faStartDate), endMI=mIndex(asOf);
+  const eDep=a.fiscalNonDep?Infinity:mIndex(a.fiscalDepStartDate); /* bulan pengeluaran, penuh */
+  const lifeM=a.fiscalLifeMonths;
+  const rate=a.fiscalLifeYears>0?2/a.fiscalLifeYears:0;
+  const EPS=1e-6;
+  let gross=a.cost,accumDep=0,nbv=a.cost,depCum=0;
+  let segMonthly=0,segInit=false, ddbAnnual=0,ddbYear=null,ddbFinal=false,ddbFinalMonthly=0;
+  for(let k=startMI;k<=endMI;k++){
+    const y=Math.floor(k/12);
+    if(!a.fiscalNonDep&&lifeM>0&&k>=eDep&&nbv>EPS){
+      const elapsed=k-eDep, remaining=lifeM-elapsed;
+      if(remaining>0){
+        let dep;
+        if(a.fiscalMethod==='ddb'){
+          if(ddbYear!==y){ ddbYear=y; if(remaining<=12){ddbFinal=true;ddbFinalMonthly=nbv/remaining;}else{ddbFinal=false;ddbAnnual=nbv*rate;} }
+          dep=ddbFinal?ddbFinalMonthly:(ddbAnnual/12);
+        } else {
+          if(!segInit){ segMonthly=nbv/remaining; segInit=true; }
+          dep=segMonthly;
+        }
+        if(remaining===1)dep=nbv;
+        if(dep>nbv)dep=nbv;
+        if(dep<0)dep=0;
+        accumDep+=dep;nbv-=dep;depCum+=dep;
+        if(nbv<EPS)nbv=0;
+      }
+    }
+  }
+  return {gross:gross,accumDep:accumDep,nbv:nbv,depCum:depCum};
+}
+/* jadwal penyusutan fiskal tahunan untuk satu aset */
+function buildFiscalSchedule(a){
+  const rows=[];
+  if(a.fiscalNonDep)return rows;
+  const startY=(a.fiscalDepStartDate||a.acqDate).getFullYear();
+  let prevAccum=0,guard=0;
+  for(let y=startY;guard<100;y++,guard++){
+    const eoy=new Date(y,11,31);
+    const s=fiscalState(a,eoy,true);
+    const dep=s.depCum-prevAccum;
+    rows.push({year:y,dep:dep,accum:s.accumDep,nbv:s.nbv});
+    prevAccum=s.depCum;
+    if(s.nbv<=1)break;
+  }
+  return rows;
+}
 /* jadwal penyusutan tahunan untuk satu aset (memperhitungkan reval & impairment) */
 function buildYearlySchedule(a){
   const rows=[];
@@ -682,10 +896,15 @@ function buildAssets(records){
     const tipe=norm(r.tipe);                     /* '', adp/cip, atau kosong */
     const reklasFromRaw=norm(r.reklas_dari);     /* adp | luar | (kosong) */
     const reklasDate=parseDate(r.tgl_reklas);
+    const reklasOutDate=parseDate(r.tgl_reklas_keluar);   /* reklasifikasi KELUAR dari aset tetap */
+    const reklasOutTo=(r.reklas_ke===undefined||r.reklas_ke===null||String(r.reklas_ke).trim()==='')?null:String(r.reklas_ke).trim();
     const revalDate=parseDate(r.tgl_revaluasi);
     const revalAmount=parseNumber(r.nilai_revaluasi);
     const impairDate=parseDate(r.tgl_impairment);
     const impairRecoverable=parseNumber(r.nilai_terpulihkan);
+    let insurance=parseNumber(r.penggantian_asuransi);if(insurance===null)insurance=0;
+    const fiscalGroupRaw=r.kelompok_fiskal;
+    const fiscalMethodRaw=r.metode_fiskal;
 
     const isEmpty=!name&&cost===null&&!acq&&(r.kelompok===undefined||String(r.kelompok).trim()==='');
     if(isEmpty)return;
@@ -708,10 +927,14 @@ function buildAssets(records){
     if(dispCost<0)e.push('biaya_pelepasan tidak valid');
     if(reklasFrom&&!reklasDate)e.push('tgl_reklas wajib diisi bila reklas_dari diisi');
     if(reklasDate&&acq&&reklasDate<acq)e.push('tgl_reklas sebelum tgl_perolehan');
+    if(reklasOutDate&&acq&&reklasOutDate<acq)e.push('tgl_reklas_keluar sebelum tgl_perolehan');
+    if(reklasOutDate&&disp)e.push('aset tidak dapat dilepas sekaligus direklasifikasi keluar (isi salah satu)');
+    if(reklasOutDate&&reklasDate&&reklasOutDate<reklasDate)e.push('tgl_reklas_keluar sebelum tgl_reklas (masuk)');
     if(revalDate&&(revalAmount===null||revalAmount<0))e.push('nilai_revaluasi tidak valid');
     if(revalAmount!==null&&!revalDate)e.push('tgl_revaluasi wajib diisi bila nilai_revaluasi diisi');
     if(impairDate&&(impairRecoverable===null||impairRecoverable<0))e.push('nilai_terpulihkan tidak valid');
     if(impairRecoverable!==null&&!impairDate)e.push('tgl_impairment wajib diisi bila nilai_terpulihkan diisi');
+    if(insurance<0)e.push('penggantian_asuransi tidak valid');
     if(e.length){errors.push('Baris '+rowNo+': '+e.join(', '));return;}
 
     if(isCip)kelompok=ADP_GROUP;
@@ -722,14 +945,39 @@ function buildAssets(records){
     /* tanggal aset masuk kelompok aset tetap & tanggal mulai disusutkan */
     const faStartDate=(reklasFrom==='luar'&&reklasDate)?reklasDate:acq;
     const depStartDate=nonDep?null:((reklasDate&&reklasFrom)?reklasDate:acq);
+
+    /* ---- penentuan kelompok & metode FISKAL (PMK 72/2023) ---- */
+    let fiscalCode, fiscalSource;
+    const explicitCode=parseFiscalGroupCode(fiscalGroupRaw);
+    if(land||cip){
+      fiscalCode='NONE'; fiscalSource='nature';
+    } else if(explicitCode){
+      fiscalCode=explicitCode; fiscalSource='input';
+    } else if(lifeYears<=0){
+      /* komersial tidak disusutkan & tanpa kelompok fiskal eksplisit -> ikut tidak disusutkan */
+      fiscalCode='NONE'; fiscalSource='auto';
+    } else {
+      fiscalCode=heuristicFiscalGroupCode(kelompok); fiscalSource='auto';
+    }
+    const fiscalNonDep=(fiscalCode==='NONE');
+    let fiscalMethod=normFiscalMethod(fiscalMethodRaw);
+    if(!fiscalMethod)fiscalMethod=method; /* default mengikuti metode komersial */
+    if(isBuildingFiscal(fiscalCode))fiscalMethod='gl'; /* bangunan hanya garis lurus (Pasal 6) */
+    const fiscalLifeYears=fiscalLifeFromCode(fiscalCode);
+    const fiscalDepStartDate=fiscalNonDep?null:((reklasDate&&reklasFrom)?reklasDate:acq);
+
     out.push({
       name:name,kelompok:kelompok,acqDate:acq,cost:cost,method:method,
       lifeYears:lifeYears,lifeMonths:lifeYears*12,residual:residual,nonDep:nonDep,land:land,cip:cip,
-      disposalDate:disp,salePrice:sale,disposalCost:dispCost,
+      disposalDate:disp,salePrice:sale,disposalCost:dispCost,insurance:insurance,
       reklasFrom:reklasFrom,reklasDate:(reklasFrom?reklasDate:null),
+      reklasOutDate:reklasOutDate||null,reklasOutTo:reklasOutTo||null,hasReklasOut:!!reklasOutDate,
       hasReval:!!(revalDate),revalDate:revalDate,revalAmount:revalAmount,
       hasImpair:!!(impairDate),impairDate:impairDate,impairRecoverable:impairRecoverable,
-      faStartDate:faStartDate,depStartDate:depStartDate
+      faStartDate:faStartDate,depStartDate:depStartDate,
+      fiscalCode:fiscalCode,fiscalSource:fiscalSource,fiscalNonDep:fiscalNonDep,
+      fiscalMethod:fiscalMethod,fiscalLifeYears:fiscalLifeYears,fiscalLifeMonths:fiscalLifeYears*12,
+      fiscalDepStartDate:fiscalDepStartDate
     });
   });
   return {assets:out,errors:errors};
@@ -763,10 +1011,15 @@ function parseWorkbook(buf){
     tipe:find('tipe','tipeaset','jenisaset','type','assettype','kategoriaset'),
     reklasdari:find('reklasdari','reklasifikasidari','reklasifikasi','reclassfrom','reklas','sumberreklas','asalreklas','reklasifikasidr'),
     tglreklas:find('tglreklas','tanggalreklas','tglreklasifikasi','tanggalreklasifikasi','reclassdate','tglpindah'),
+    tglreklaskeluar:find('tglreklaskeluar','tanggalreklaskeluar','tglreklasifikasikeluar','reclassoutdate','tglkeluar','tglreklasout','tanggalreklasifikasikeluar'),
+    reklaske:find('reklaske','reklaskeluarke','tujuanreklas','reklastujuan','reclassto','reclassto','tujuan','reklaskeluartujuan','direklaske'),
     tglreval:find('tglrevaluasi','tanggalrevaluasi','revaluationdate','tglreval','tglnilaiwajar'),
     nilaireval:find('nilairevaluasi','revaluasi','nilaiwajar','fairvalue','revaluedamount','nilairevaluasian','revaluationamount'),
     tglimpair:find('tglimpairment','tanggalimpairment','impairmentdate','tglpenurunannilai','tanggalpenurunannilai','tglimpair'),
-    nilaipulih:find('nilaiterpulihkan','recoverableamount','jumlahterpulihkan','nilaipulih','recoverable','nilaiwajardikurangibiaya')
+    nilaipulih:find('nilaiterpulihkan','recoverableamount','jumlahterpulihkan','nilaipulih','recoverable','nilaiwajardikurangibiaya'),
+    kelompokfiskal:find('kelompokfiskal','kelompokpajak','kelompokpenyusutanfiskal','fiscalgroup','taxgroup','golonganfiskal','grupfiskal'),
+    metodefiskal:find('metodefiskal','metodepenyusutanfiskal','fiscalmethod','taxmethod','metodepajak'),
+    asuransi:find('penggantianasuransi','penggantianasuransi','insurance','insuranceproceeds','klaimasuransi','nilaiasuransi','gantirugi')
   };
   const records=[];
   for(let i=hi+1;i<aoa.length;i++){
@@ -787,10 +1040,15 @@ function parseWorkbook(buf){
       tipe:col.tipe>=0?row[col.tipe]:'',
       reklas_dari:col.reklasdari>=0?row[col.reklasdari]:'',
       tgl_reklas:col.tglreklas>=0?row[col.tglreklas]:'',
+      tgl_reklas_keluar:col.tglreklaskeluar>=0?row[col.tglreklaskeluar]:'',
+      reklas_ke:col.reklaske>=0?row[col.reklaske]:'',
       tgl_revaluasi:col.tglreval>=0?row[col.tglreval]:'',
       nilai_revaluasi:col.nilaireval>=0?row[col.nilaireval]:'',
       tgl_impairment:col.tglimpair>=0?row[col.tglimpair]:'',
-      nilai_terpulihkan:col.nilaipulih>=0?row[col.nilaipulih]:''
+      nilai_terpulihkan:col.nilaipulih>=0?row[col.nilaipulih]:'',
+      kelompok_fiskal:col.kelompokfiskal>=0?row[col.kelompokfiskal]:'',
+      metode_fiskal:col.metodefiskal>=0?row[col.metodefiskal]:'',
+      penggantian_asuransi:col.asuransi>=0?row[col.asuransi]:''
     });
   }
   return records;
@@ -814,7 +1072,8 @@ function renderAssetList(){
     '<span class="tag">'+escapeHtml(a.kelompok)+'</span>'+
     '<span class="meta">HP '+acc(a.cost)+' &middot; '+fmtDate(a.acqDate)+
     ' &middot; '+(a.nonDep?'tidak disusutkan':methodLabel(a.method)+' '+a.lifeYears+' th')+
-    (a.disposalDate?' &middot; dilepas '+fmtDate(a.disposalDate):'')+'</span></div>'
+    (a.disposalDate?' &middot; dilepas '+fmtDate(a.disposalDate):'')+
+    (a.reklasOutDate?' &middot; reklas keluar '+fmtDate(a.reklasOutDate):'')+'</span></div>'
   ).join('');
 }
 function updateCalcBtn(){
@@ -850,6 +1109,10 @@ function calculate(){
   pStart=parseDate(ps);pEnd=parseDate(pe);
   if(pEnd<pStart){toast('Akhir periode harus setelah awal periode.');return;}
   depConv=document.getElementById('conv').value;
+  const trEl=document.getElementById('taxRate');
+  let tr=parseFloat(trEl&&trEl.value);
+  if(isNaN(tr)||tr<0)tr=22;
+  taxRate=tr/100;
   const openingRef=addDays(pStart,-1); /* akhir periode sebelumnya */
   const inP=d=>!!(d&&d>=pStart&&d<=pEnd);
 
@@ -858,6 +1121,12 @@ function calculate(){
     const stEnd=carryingState(a,pEnd);
     const disposedInPeriod=inP(a.disposalDate);
     const disposedPrior=!!(a.disposalDate&&a.disposalDate<pStart);
+    const reklasOutInPeriod=inP(a.reklasOutDate);
+    const reklasOutPrior=!!(a.reklasOutDate&&a.reklasOutDate<pStart);
+    /* "keluar" = aset meninggalkan aset tetap, baik karena pelepasan maupun reklasifikasi keluar */
+    const exitPrior=disposedPrior||reklasOutPrior;
+    const exitInPeriod=disposedInPeriod||reklasOutInPeriod;
+    const exitDate=a.disposalDate||a.reklasOutDate;
 
     /* kategori awal & akhir (bisa berbeda jika reklas dari ADP) */
     a.catOpen=categoryAt(a,openingRef);
@@ -873,20 +1142,39 @@ function calculate(){
     a.addition=(a.reklasFrom!=='luar'&&inP(a.acqDate))?a.cost:0;
     a.additionCat=a.addition?categoryAt(a,a.acqDate):null;
 
-    /* beban penyusutan periode berjalan */
+    /* beban penyusutan periode berjalan (s.d. tanggal aset keluar dari aset tetap) */
     a.depExpense=0;
-    if(!disposedPrior){
+    if(!exitPrior){
       const depCumStart=stOpen.depCum;
-      const depCumEnd=disposedInPeriod?carryingState(a,a.disposalDate,true).depCum:stEnd.depCum;
+      const depCumEnd=exitInPeriod?carryingState(a,exitDate,true).depCum:stEnd.depCum;
       a.depExpense=Math.max(0,depCumEnd-depCumStart);
     }
 
-    /* reklasifikasi */
+    /* reklasifikasi (internal: dari ADP / dari luar masuk ke aset tetap) */
     a.reklasIn=0;a.reklasInCat=null;a.reklasOut=0;a.reklasOutCat=null;a.reklasInPeriod=false;
     if(inP(a.reklasDate)){
       a.reklasInPeriod=true;
       a.reklasIn=a.cost; a.reklasInCat=a.kelompok;
       if(a.reklasFrom==='adp'){a.reklasOut=a.cost;a.reklasOutCat=ADP_GROUP;}
+    }
+
+    /* ---- REKLASIFIKASI KELUAR dari aset tetap / aset tetap dalam penyelesaian ----
+       Aset dipindahkan keluar dari pos aset tetap (mis. ke Properti Investasi, Persediaan,
+       Aset Dimiliki untuk Dijual, atau pembatalan aset dalam penyelesaian) pada nilai
+       tercatatnya. Bukan pelepasan: tidak menimbulkan laba/(rugi) pelepasan; penyusutan
+       dihentikan pada tanggal reklasifikasi keluar. */
+    a.reklasOutX=0;a.reklasOutXDep=0;a.reklasOutXImp=0;a.reklasOutXNbv=0;
+    a.reklasOutXCat=null;a.reklasOutXTo=null;a.reklasOutInPeriod=false;a.fNbvReklasOut=0;
+    if(reklasOutInPeriod){
+      a.reklasOutInPeriod=true;
+      const pre=carryingState(a,a.reklasOutDate,true);
+      a.reklasOutX=pre.gross;
+      a.reklasOutXDep=pre.accumDep;
+      a.reklasOutXImp=pre.accumImpair;
+      a.reklasOutXNbv=pre.nbv;
+      a.reklasOutXCat=categoryAt(a,a.reklasOutDate);
+      a.reklasOutXTo=a.reklasOutTo||'Luar Aset Tetap';
+      a.fNbvReklasOut=fiscalState(a,a.reklasOutDate,true).nbv;
     }
 
     /* revaluasi */
@@ -913,6 +1201,7 @@ function calculate(){
     /* pelepasan */
     a.costDisp=0;a.accumDisp=0;a.accumDispDep=0;a.accumDispImp=0;a.nbvDisp=0;a.dispCat=null;
     a.proceeds=null;a.bebanDisp=0;a.gainLoss=null;a.disposed=false;a.dispPrior=disposedPrior;
+    a.insuranceProceeds=0;
     if(disposedInPeriod){
       a.disposed=true;
       const pre=carryingState(a,a.disposalDate,true);
@@ -922,14 +1211,53 @@ function calculate(){
       a.nbvDisp=pre.nbv;
       a.dispCat=categoryAt(a,a.disposalDate);
       a.proceeds=(a.salePrice!==null)?a.salePrice:0;
+      a.insuranceProceeds=a.insurance||0;
       a.bebanDisp=a.disposalCost||0;
-      a.gainLoss=a.proceeds-a.bebanDisp-a.nbvDisp;
+      a.gainLoss=a.proceeds+a.insuranceProceeds-a.bebanDisp-a.nbvDisp;
     }
+
+    /* ---- PENYUSUTAN FISKAL & PERBEDAAN TEMPORER (PMK 72/2023 & PSAK 46) ---- */
+    const fOpen=fiscalState(a,openingRef);
+    const fEnd=fiscalState(a,pEnd);
+    a.fCostBase=a.cost;                 /* dasar fiskal = harga perolehan historis */
+    a.fNbvOpen=fOpen.nbv; a.fAccumOpen=fOpen.accumDep;
+    a.fNbvEnd=fEnd.nbv;   a.fAccumEnd=fEnd.accumDep;
+    /* beban penyusutan fiskal periode berjalan */
+    a.fDepExpense=0;
+    if(!exitPrior){
+      const f0=fOpen.depCum;
+      const f1=exitInPeriod?fiscalState(a,exitDate,true).depCum:fEnd.depCum;
+      a.fDepExpense=Math.max(0,f1-f0);
+    }
+    /* pelepasan fiskal */
+    a.fNbvDisp=0; a.fGainLoss=null;
+    if(disposedInPeriod){
+      const fpre=fiscalState(a,a.disposalDate,true);
+      a.fNbvDisp=fpre.nbv;
+      a.fGainLoss=a.proceeds+a.insuranceProceeds-a.bebanDisp-a.fNbvDisp;
+    }
+    /* perbedaan temporer (nilai tercatat komersial - dasar pajak fiskal) */
+    a.tdOpen=a.nbvOpen-a.fNbvOpen;
+    a.tdEnd =a.nbvEnd -a.fNbvEnd;
+    /* pajak tangguhan: bertanda +(DTL) bila NBV>dasar pajak, -(DTA) bila NBV<dasar pajak */
+    a.dtOpen=a.tdOpen*taxRate;
+    a.dtEnd =a.tdEnd *taxRate;
+    /* koreksi fiskal (rekonsiliasi laba rugi; positif = menambah PKP) */
+    a.korPenyusutan = a.depExpense - a.fDepExpense;          /* selisih beban penyusutan */
+    a.korImpair     = a.impairLoss;                           /* rugi penurunan nilai non-deductible */
+    a.korDisposal   = disposedInPeriod ? (a.nbvDisp - a.fNbvDisp) : 0; /* pembalikan beda saat pelepasan */
+    a.korTemp       = a.korPenyusutan + a.korImpair + a.korDisposal;
+    /* reklasifikasi keluar memindahkan sisa perbedaan temporer ke pos lain (mis. properti investasi)
+       — bukan koreksi PKP; pajak tangguhannya direklasifikasi keluar dari aset tetap (bukan beban/manfaat L/R) */
+    a.dtReklasOut = reklasOutInPeriod ? -(a.reklasOutXNbv - a.fNbvReklasOut)*taxRate : 0;
+    /* pajak tangguhan ke OCI atas surplus revaluasi */
+    a.dtOCI = a.revalSurplus*taxRate;
 
     /* status */
     if(a.faStartDate>pEnd)a.status='belum';
-    else if(disposedPrior)a.status='luar';
+    else if(disposedPrior||reklasOutPrior)a.status='luar';
     else if(disposedInPeriod)a.status='dilepas';
+    else if(reklasOutInPeriod)a.status='reklasout';
     else if(a.cip)a.status='adp';
     else if(a.impairInPeriod)a.status='impair';
     else if(a.revalInPeriod)a.status='reval';
@@ -947,6 +1275,7 @@ function statusText(s){
   return s==='aktif'?'Aktif':s==='dilepas'?'Dilepas':s==='lunas'?'Disusutkan Penuh':
          s==='tanah'?'Tidak Disusutkan':s==='belum'?'Belum Diperoleh':
          s==='adp'?'Dalam Penyelesaian':s==='reklas'?'Reklasifikasi':
+         s==='reklasout'?'Reklas Keluar':
          s==='reval'?'Revaluasi':s==='impair'?'Penurunan Nilai':'Di Luar Periode';
 }
 
@@ -959,6 +1288,7 @@ function allGroups(){
     if(a.additionCat)set.add(a.additionCat);
     if(a.reklasInCat)set.add(a.reklasInCat);
     if(a.reklasOutCat)set.add(a.reklasOutCat);
+    if(a.reklasOutXCat)set.add(a.reklasOutXCat);
     if(a.revalCat)set.add(a.revalCat);
     if(a.impairCat)set.add(a.impairCat);
     if(a.dispCat)set.add(a.dispCat);
@@ -975,11 +1305,14 @@ function orderedGroups(){
   });
 }
 function newGroupRec(g){return {kelompok:g,nonDep:true,allCip:true,
-  costOpen:0,addition:0,reklasIn:0,reklasOut:0,costReval:0,costDisp:0,costEnd:0,
+  costOpen:0,addition:0,reklasIn:0,reklasOut:0,reklasOutX:0,costReval:0,costDisp:0,costEnd:0,
+  reklasOutXDep:0,reklasOutXImp:0,reklasOutXNbv:0,
   accumOpen:0,depExpense:0,impairLoss:0,accumRevalElim:0,accumDisp:0,accumEnd:0,
   accumDepOpen:0,accumDepEnd:0,accumImpOpen:0,accumImpEnd:0,
   accumRevalElimDep:0,accumRevalElimImp:0,accumDispDep:0,accumDispImp:0,
-  nbvOpen:0,nbvEnd:0,revalSurplus:0};}
+  nbvOpen:0,nbvEnd:0,revalSurplus:0,
+  fNbvOpen:0,fNbvEnd:0,fAccumOpen:0,fAccumEnd:0,fDepExpense:0,fNbvDisp:0,fGainLoss:0,fCostBase:0,
+  tdOpen:0,tdEnd:0,dtOpen:0,dtEnd:0,korPenyusutan:0,korImpair:0,korDisposal:0,dtOCI:0};}
 function aggByGroup(){
   const map={};
   orderedGroups().forEach(g=>map[g]=newGroupRec(g));
@@ -989,37 +1322,52 @@ function aggByGroup(){
     co.accumDepOpen+=a.accumDepOpen;co.accumImpOpen+=a.accumImpOpen;
     ce.costEnd+=a.costEnd;ce.accumEnd+=a.accumEnd;ce.nbvEnd+=a.nbvEnd;
     ce.accumDepEnd+=a.accumDepEnd;ce.accumImpEnd+=a.accumImpEnd;
+    /* fiskal & pajak tangguhan */
+    co.fNbvOpen+=a.fNbvOpen;co.fAccumOpen+=a.fAccumOpen;co.tdOpen+=a.tdOpen;co.dtOpen+=a.dtOpen;
+    ce.fNbvEnd+=a.fNbvEnd;ce.fAccumEnd+=a.fAccumEnd;ce.tdEnd+=a.tdEnd;ce.dtEnd+=a.dtEnd;
+    ce.fDepExpense+=a.fDepExpense;ce.korPenyusutan+=a.korPenyusutan;ce.korImpair+=a.korImpair;
+    ce.dtOCI+=a.dtOCI;ce.fCostBase+=a.fCostBase;
     if(a.additionCat)map[a.additionCat].addition+=a.addition;
     if(a.reklasInCat)map[a.reklasInCat].reklasIn+=a.reklasIn;
     if(a.reklasOutCat)map[a.reklasOutCat].reklasOut+=a.reklasOut;
+    if(a.reklasOutXCat){const m=map[a.reklasOutXCat];if(m){m.reklasOutX+=a.reklasOutX;m.reklasOutXDep+=a.reklasOutXDep;m.reklasOutXImp+=a.reklasOutXImp;m.reklasOutXNbv+=a.reklasOutXNbv;}}
     if(a.revalCat){const m=map[a.revalCat];m.costReval+=a.costReval;m.accumRevalElim+=a.accumRevalElim;m.accumRevalElimDep+=a.accumRevalElimDep;m.accumRevalElimImp+=a.accumRevalElimImp;m.revalSurplus+=a.revalSurplus;}
     if(a.impairCat)map[a.impairCat].impairLoss+=a.impairLoss;
     map[a.catEnd||a.kelompok].depExpense+=a.depExpense;
-    if(a.dispCat){const m=map[a.dispCat];m.costDisp+=a.costDisp;m.accumDisp+=a.accumDisp;m.accumDispDep+=a.accumDispDep;m.accumDispImp+=a.accumDispImp;}
+    if(a.dispCat){const m=map[a.dispCat];m.costDisp+=a.costDisp;m.accumDisp+=a.accumDisp;m.accumDispDep+=a.accumDispDep;m.accumDispImp+=a.accumDispImp;m.korDisposal+=a.korDisposal;m.fNbvDisp+=a.fNbvDisp;m.fGainLoss+=(a.fGainLoss||0);}
     [a.catOpen,a.catEnd].forEach(c=>{const m=map[c];if(m){if(!a.nonDep)m.nonDep=false;if(!a.cip)m.allCip=false;}});
   });
   return orderedGroups().map(g=>map[g]);
 }
 function totals(){
-  const t={costOpen:0,addition:0,reklasIn:0,reklasOut:0,costReval:0,costDisp:0,costEnd:0,
+  const t={costOpen:0,addition:0,reklasIn:0,reklasOut:0,reklasOutX:0,costReval:0,costDisp:0,costEnd:0,
+    reklasOutXDep:0,reklasOutXImp:0,reklasOutXNbv:0,reklasOutCount:0,dtReklasOut:0,
     accumOpen:0,depExpense:0,impairLoss:0,accumRevalElim:0,accumDisp:0,accumEnd:0,
     accumDepOpen:0,accumDepEnd:0,accumImpOpen:0,accumImpEnd:0,
     accumRevalElimDep:0,accumRevalElimImp:0,accumDispDep:0,accumDispImp:0,
     nbvOpen:0,nbvEnd:0,proceeds:0,bebanDisp:0,gainLoss:0,nbvDisp:0,dispCount:0,
-    revalSurplus:0,revalCount:0,impairCount:0,reklasCount:0,reklasFromAdp:0,reklasFromLuar:0};
+    revalSurplus:0,revalCount:0,impairCount:0,reklasCount:0,reklasFromAdp:0,reklasFromLuar:0,
+    fNbvOpen:0,fNbvEnd:0,fAccumOpen:0,fAccumEnd:0,fDepExpense:0,fNbvDisp:0,fGainLoss:0,insurance:0,
+    tdOpen:0,tdEnd:0,dtOpen:0,dtEnd:0,korPenyusutan:0,korImpair:0,korDisposal:0,dtOCI:0};
   assets.forEach(a=>{
     t.costOpen+=a.costOpen;t.addition+=a.addition;t.reklasIn+=a.reklasIn;t.reklasOut+=a.reklasOut;
+    t.reklasOutX+=a.reklasOutX;t.reklasOutXDep+=a.reklasOutXDep;t.reklasOutXImp+=a.reklasOutXImp;t.reklasOutXNbv+=a.reklasOutXNbv;
+    if(a.reklasOutInPeriod){t.reklasOutCount++;t.dtReklasOut+=(a.dtReklasOut||0);}
     t.costReval+=a.costReval;t.costDisp+=a.costDisp;t.costEnd+=a.costEnd;
     t.accumOpen+=a.accumOpen;t.depExpense+=a.depExpense;t.impairLoss+=a.impairLoss;
     t.accumRevalElim+=a.accumRevalElim;t.accumDisp+=a.accumDisp;t.accumEnd+=a.accumEnd;
     t.accumDepOpen+=a.accumDepOpen;t.accumDepEnd+=a.accumDepEnd;t.accumImpOpen+=a.accumImpOpen;t.accumImpEnd+=a.accumImpEnd;
     t.accumRevalElimDep+=a.accumRevalElimDep;t.accumRevalElimImp+=a.accumRevalElimImp;t.accumDispDep+=a.accumDispDep;t.accumDispImp+=a.accumDispImp;
     t.nbvOpen+=a.nbvOpen;t.nbvEnd+=a.nbvEnd;t.revalSurplus+=a.revalSurplus;
-    if(a.disposed){t.proceeds+=a.proceeds||0;t.bebanDisp+=a.bebanDisp||0;t.gainLoss+=a.gainLoss||0;t.nbvDisp+=a.nbvDisp||0;t.dispCount++;}
+    t.fNbvOpen+=a.fNbvOpen;t.fNbvEnd+=a.fNbvEnd;t.fAccumOpen+=a.fAccumOpen;t.fAccumEnd+=a.fAccumEnd;
+    t.fDepExpense+=a.fDepExpense;t.tdOpen+=a.tdOpen;t.tdEnd+=a.tdEnd;t.dtOpen+=a.dtOpen;t.dtEnd+=a.dtEnd;
+    t.korPenyusutan+=a.korPenyusutan;t.korImpair+=a.korImpair;t.korDisposal+=a.korDisposal;t.dtOCI+=a.dtOCI;
+    if(a.disposed){t.proceeds+=a.proceeds||0;t.bebanDisp+=a.bebanDisp||0;t.gainLoss+=a.gainLoss||0;t.nbvDisp+=a.nbvDisp||0;t.dispCount++;t.fNbvDisp+=a.fNbvDisp||0;t.fGainLoss+=a.fGainLoss||0;t.insurance+=a.insuranceProceeds||0;}
     if(a.revalInPeriod)t.revalCount++;
     if(a.impairInPeriod)t.impairCount++;
     if(a.reklasInPeriod){t.reklasCount++;if(a.reklasFrom==='adp')t.reklasFromAdp++;else t.reklasFromLuar++;}
   });
+  t.korTemp=t.korPenyusutan+t.korImpair+t.korDisposal;
   return t;
 }
 
@@ -1035,21 +1383,29 @@ function renderResults(){
   document.getElementById('periodTag1').textContent=periodLbl;
   document.getElementById('periodTag2').textContent=periodLbl;
   const pt3=document.getElementById('periodTag3');if(pt3)pt3.textContent=periodLbl;
+  ['periodTagFis','periodTagDt','periodTagDisp'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent=periodLbl;});
 
   /* fitur yang aktif menentukan kolom tambahan yang ditampilkan */
-  const useReklas=(t.reklasIn>0.5||t.reklasOut>0.5);
+  const useReklas=(t.reklasIn>0.5||t.reklasOut>0.5||t.reklasOutX>0.5);
+  const useReklasOutAccum=(t.reklasOutXDep>0.5||t.reklasOutXImp>0.5);
   const useReval=(t.revalCount>0);
   const useImpair=(t.impairCount>0);
 
-  /* ---- stat cards (5 inti + kartu kondisional) ---- */
+  /* ---- stat cards (5 inti + kartu kondisional + fiskal/pajak tangguhan) ---- */
+  const netDtEnd=t.dtEnd; /* + = liabilitas, - = aset */
+  const dtLabel=netDtEnd>=0?'Liabilitas Pajak Tangguhan':'Aset Pajak Tangguhan';
   let stats=
     statCard('Nilai Perolehan (Akhir)',acc(t.costEnd),true)+
     statCard('Akumulasi Penyusutan (Akhir)',acc(t.accumEnd),true)+
     statCard('Nilai Buku Neto (Akhir)',acc(t.nbvEnd),true)+
-    statCard('Beban Penyusutan Periode',acc(t.depExpense),true)+
+    statCard('Beban Penyusutan Komersial',acc(t.depExpense),true)+
+    statCard('Beban Penyusutan Fiskal',acc(t.fDepExpense),true)+
+    statCard('Koreksi Fiskal Neto (Aset Tetap)',signed(t.korTemp),true)+
+    statCard(dtLabel+' (Akhir)',acc(Math.abs(netDtEnd)),true)+
     statCard('Laba/(Rugi) Pelepasan',acc(t.gainLoss),true);
   if(useReval)stats+=statCard('Surplus Revaluasi',acc(t.revalSurplus),true);
   if(useImpair)stats+=statCard('Rugi Penurunan Nilai',acc(t.impairLoss),true);
+  if(t.reklasOutX>0.5)stats+=statCard('Reklasifikasi Keluar (NBV)',acc(t.reklasOutXNbv),true);
   const sc=document.getElementById('stats');
   sc.innerHTML=stats;
   /* lebar kolom diatur via CSS auto-fit/minmax agar membungkus otomatis di layar kecil (tanpa scroll horizontal) */
@@ -1065,12 +1421,13 @@ function renderResults(){
   cols.push({h:'Penambahan',cls:'num',f:a=>acc(a.addition)});
   if(useReklas){
     cols.push({h:'Reklas Masuk',cls:'num',f:a=>acc(a.reklasIn)});
-    cols.push({h:'Reklas Keluar',cls:'num',f:a=>fmtParen(a.reklasOut)});
+    cols.push({h:'Reklas Keluar',cls:'num',f:a=>fmtParen(a.reklasOut+a.reklasOutX)});
   }
   if(useReval)cols.push({h:'Revaluasi HP',cls:'num',f:a=>acc(a.costReval)});
   cols.push({h:'Beban Peny.',cls:'num',f:a=>fmtParen(a.depExpense)});
   if(useImpair)cols.push({h:'Penurunan Nilai',cls:'num',f:a=>fmtParen(a.impairLoss)});
   if(useReval)cols.push({h:'Eliminasi Reval (Akum.)',cls:'num',f:a=>acc(a.accumRevalElim)});
+  if(useReklasOutAccum)cols.push({h:'Reklas Keluar (Akum.)',cls:'num',f:a=>acc(a.reklasOutXDep+a.reklasOutXImp)});
   cols.push({h:'Pengurangan HP',cls:'num',f:a=>fmtParen(a.costDisp)});
   cols.push({h:'Pengurangan Akum.',cls:'num',f:a=>acc(a.accumDisp)});
   cols.push({h:'HP Akhir',cls:'num',f:a=>acc(a.costEnd)});
@@ -1085,7 +1442,8 @@ function renderResults(){
   assets.forEach(a=>{h+='<tr>'+cols.map(c=>'<td'+(c.cls?' class="'+c.cls+'"':'')+'>'+c.f(a)+'</td>').join('')+'</tr>';});
   /* footer totals */
   const tf={};
-  tf['Penambahan']=acc(t.addition);tf['Reklas Masuk']=acc(t.reklasIn);tf['Reklas Keluar']=fmtParen(t.reklasOut);
+  tf['Penambahan']=acc(t.addition);tf['Reklas Masuk']=acc(t.reklasIn);tf['Reklas Keluar']=fmtParen(t.reklasOut+t.reklasOutX);
+  tf['Reklas Keluar (Akum.)']=acc(t.reklasOutXDep+t.reklasOutXImp);
   tf['Revaluasi HP']=acc(t.costReval);tf['Beban Peny.']=fmtParen(t.depExpense);tf['Penurunan Nilai']=fmtParen(t.impairLoss);
   tf['Eliminasi Reval (Akum.)']=acc(t.accumRevalElim);
   tf['HP Awal']=acc(t.costOpen);tf['Akum. Awal']=fmtParen(t.accumOpen);tf['NBV Awal']=acc(t.nbvOpen);
@@ -1110,7 +1468,7 @@ function renderResults(){
   rcols.push({h:'Penambahan',cls:'num',f:g=>acc(g.addition),t:acc(t.addition)});
   if(useReklas){
     rcols.push({h:'Reklas Masuk',cls:'num',f:g=>acc(g.reklasIn),t:acc(t.reklasIn)});
-    rcols.push({h:'Reklas Keluar',cls:'num',f:g=>fmtParen(g.reklasOut),t:fmtParen(t.reklasOut)});
+    rcols.push({h:'Reklas Keluar',cls:'num',f:g=>fmtParen(g.reklasOut+g.reklasOutX),t:fmtParen(t.reklasOut+t.reklasOutX)});
   }
   if(useReval)rcols.push({h:'Revaluasi',cls:'num',f:g=>acc(g.costReval),t:acc(t.costReval)});
   rcols.push({h:'Pengurangan',cls:'num',f:g=>fmtParen(g.costDisp),t:fmtParen(t.costDisp)});
@@ -1126,6 +1484,9 @@ function renderResults(){
   document.getElementById('recapTable').innerHTML=r;
 
   renderCALK(ag,t);
+  renderFiscal(ag,t);
+  renderDeferredTax(ag,t);
+  renderDisposalNote(ag,t);
 
   /* ---- asset selector ---- */
   const sel=document.getElementById('assetSelect');
@@ -1139,7 +1500,7 @@ function renderResults(){
 
 function renderCALK(ag,t){
   const yStart=longDate(pStart), yEnd=longDate(pEnd);
-  const useReklas=(t.reklasIn>0.5||t.reklasOut>0.5);
+  const useReklas=(t.reklasIn>0.5||t.reklasOut>0.5||t.reklasOutX>0.5);
   const useReval=(t.revalCount>0);
   const useImpair=(t.impairCount>0);
 
@@ -1157,9 +1518,9 @@ function renderCALK(ag,t){
   let html='<table><thead>'+headRow+'</thead><tbody>';
 
   /* nilai bertanda: biaya perolehan positif (pengurangan negatif); akumulasi disajikan negatif (pengurang NBV) */
-  const costV=g=>rowVals({'Saldo Awal':g.costOpen,'Penambahan':g.addition,'Reklasifikasi':g.reklasIn-g.reklasOut,'Revaluasi':g.costReval,'Pengurangan':-g.costDisp,'Saldo Akhir':g.costEnd});
-  const depV =g=>rowVals({'Saldo Awal':-g.accumDepOpen,'Penambahan':-g.depExpense,'Reklasifikasi':0,'Revaluasi':g.accumRevalElimDep,'Pengurangan':g.accumDispDep,'Saldo Akhir':-g.accumDepEnd});
-  const impV =g=>rowVals({'Saldo Awal':-g.accumImpOpen,'Penambahan':-g.impairLoss,'Reklasifikasi':0,'Revaluasi':g.accumRevalElimImp,'Pengurangan':g.accumDispImp,'Saldo Akhir':-g.accumImpEnd});
+  const costV=g=>rowVals({'Saldo Awal':g.costOpen,'Penambahan':g.addition,'Reklasifikasi':g.reklasIn-g.reklasOut-g.reklasOutX,'Revaluasi':g.costReval,'Pengurangan':-g.costDisp,'Saldo Akhir':g.costEnd});
+  const depV =g=>rowVals({'Saldo Awal':-g.accumDepOpen,'Penambahan':-g.depExpense,'Reklasifikasi':g.reklasOutXDep,'Revaluasi':g.accumRevalElimDep,'Pengurangan':g.accumDispDep,'Saldo Akhir':-g.accumDepEnd});
+  const impV =g=>rowVals({'Saldo Awal':-g.accumImpOpen,'Penambahan':-g.impairLoss,'Reklasifikasi':g.reklasOutXImp,'Revaluasi':g.accumRevalElimImp,'Pengurangan':g.accumDispImp,'Saldo Akhir':-g.accumImpEnd});
 
   const section=(title,jml,rows,valFn,totVals)=>{
     html+='<tr class="sec"><td colspan="'+span+'">'+title+'</td></tr>';
@@ -1168,13 +1529,13 @@ function renderCALK(ag,t){
   };
 
   section('Biaya Perolehan / Nilai Revaluasian','Jumlah Biaya Perolehan',ag,costV,
-    rowVals({'Saldo Awal':t.costOpen,'Penambahan':t.addition,'Reklasifikasi':t.reklasIn-t.reklasOut,'Revaluasi':t.costReval,'Pengurangan':-t.costDisp,'Saldo Akhir':t.costEnd}));
+    rowVals({'Saldo Awal':t.costOpen,'Penambahan':t.addition,'Reklasifikasi':t.reklasIn-t.reklasOut-t.reklasOutX,'Revaluasi':t.costReval,'Pengurangan':-t.costDisp,'Saldo Akhir':t.costEnd}));
   section('Akumulasi Penyusutan','Jumlah Akumulasi Penyusutan',
     ag.filter(g=>!g.nonDep||g.accumDepEnd>0||g.accumDepOpen>0||g.depExpense>0),depV,
-    rowVals({'Saldo Awal':-t.accumDepOpen,'Penambahan':-t.depExpense,'Reklasifikasi':0,'Revaluasi':t.accumRevalElimDep,'Pengurangan':t.accumDispDep,'Saldo Akhir':-t.accumDepEnd}));
+    rowVals({'Saldo Awal':-t.accumDepOpen,'Penambahan':-t.depExpense,'Reklasifikasi':t.reklasOutXDep,'Revaluasi':t.accumRevalElimDep,'Pengurangan':t.accumDispDep,'Saldo Akhir':-t.accumDepEnd}));
   if(useImpair)section('Akumulasi Penurunan Nilai','Jumlah Akumulasi Penurunan Nilai',
     ag.filter(g=>g.accumImpEnd>0||g.accumImpOpen>0||g.impairLoss>0),impV,
-    rowVals({'Saldo Awal':-t.accumImpOpen,'Penambahan':-t.impairLoss,'Reklasifikasi':0,'Revaluasi':t.accumRevalElimImp,'Pengurangan':t.accumDispImp,'Saldo Akhir':-t.accumImpEnd}));
+    rowVals({'Saldo Awal':-t.accumImpOpen,'Penambahan':-t.impairLoss,'Reklasifikasi':t.reklasOutXImp,'Revaluasi':t.accumRevalElimImp,'Pengurangan':t.accumDispImp,'Saldo Akhir':-t.accumImpEnd}));
 
   /* Nilai Buku Neto: hanya Saldo Awal & Saldo Akhir (kolom tengah kosong) */
   const nbvCells=cols.map(c=>c.h==='Saldo Awal'?'<td class="num">'+acc(t.nbvOpen)+'</td>':c.h==='Saldo Akhir'?'<td class="num">'+acc(t.nbvEnd)+'</td>':'<td class="num"></td>').join('');
@@ -1196,6 +1557,9 @@ function renderCALK(ag,t){
     if(t.reklasFromAdp>0)parts.push(t.reklasFromAdp+' unit dari aset dalam penyelesaian yang telah selesai dan siap digunakan');
     if(t.reklasFromLuar>0)parts.push(t.reklasFromLuar+' unit reklasifikasi dari akun di luar aset tetap (misalnya persediaan, properti investasi, atau uang muka)');
     n+='<p>Selama periode berjalan terdapat <b>reklasifikasi</b> sebesar <b>Rp '+acc(t.reklasIn)+'</b> ke kelompok aset tetap, yang terdiri atas '+parts.join(' serta ')+'. Aset hasil reklasifikasi mulai disusutkan sejak tanggal siap digunakan/tanggal reklasifikasi.</p>';
+  }
+  if(t.reklasOutCount>0){
+    n+='<p>Perusahaan juga mereklasifikasi <b>'+t.reklasOutCount+' unit</b> aset <b>keluar</b> dari pos aset tetap pada nilai tercatatnya, dengan biaya perolehan bruto Rp '+acc(t.reklasOutX)+' dan akumulasi penyusutan/penurunan nilai Rp '+acc(t.reklasOutXDep+t.reklasOutXImp)+' (nilai buku neto <b>Rp '+acc(t.reklasOutXNbv)+'</b>). Reklasifikasi keluar bukan merupakan pelepasan sehingga tidak menimbulkan laba/(rugi); penyusutan dihentikan pada tanggal reklasifikasi dan saldo dipindahkan ke pos terkait (misalnya properti investasi, persediaan, atau aset dimiliki untuk dijual).</p>';
   }
   if(t.revalCount>0){
     n+='<p>Perusahaan menerapkan <b>model revaluasi</b> atas '+t.revalCount+' unit aset tetap. Revaluasi menaikkan/menurunkan nilai tercatat neto sebesar <b>Rp '+acc(t.revalSurplus)+'</b>'+
@@ -1219,6 +1583,210 @@ function renderCALK(ag,t){
   document.getElementById('calkNarr').innerHTML=n;
 }
 
+/* ============ PENYUSUTAN FISKAL & KOREKSI FISKAL ============ */
+function renderFiscal(ag,t){
+  const yEnd=longDate(pEnd);
+  const ratePct=(taxRate*100).toLocaleString('id-ID',{maximumFractionDigits:2});
+  /* ---- tabel detail per aset ---- */
+  let anyAuto=false;
+  const cols=[
+    {h:'Nama Aset',cls:'',f:a=>'<b>'+escapeHtml(a.name)+'</b>'},
+    {h:'Kelompok Fiskal',cls:'',f:a=>{
+        if(a.fiscalSource==='auto'&&a.fiscalCode!=='NONE')anyAuto=true;
+        const mark=(a.fiscalSource==='auto'&&a.fiscalCode!=='NONE')?'<sup style="color:var(--accent)">*</sup>':'';
+        return '<span class="pill '+fiscalGroupPill(a.fiscalCode)+'">'+fiscalGroupLabel(a.fiscalCode)+'</span>'+mark;
+      }},
+    {h:'Metode Fiskal',cls:'',f:a=>a.fiscalNonDep?'-':(a.fiscalMethod==='ddb'?'Saldo Menurun':'Garis Lurus')},
+    {h:'Dasar Fiskal (HP)',cls:'num',f:a=>acc(a.fCostBase)},
+    {h:'NSB Fiskal Awal',cls:'num',f:a=>acc(a.fNbvOpen)},
+    {h:'Penyusutan Fiskal',cls:'num',f:a=>fmtParen(a.fDepExpense)},
+    {h:'NSB Fiskal Akhir',cls:'num',f:a=>acc(a.fNbvEnd)},
+    {h:'Penyusutan Komersial',cls:'num',f:a=>fmtParen(a.depExpense)},
+    {h:'Koreksi Penyusutan',cls:'num',f:a=>signed(a.korPenyusutan)}
+  ];
+  let h='<thead><tr>'+cols.map(c=>'<th'+(c.cls?' class="'+c.cls+'"':'')+'>'+c.h+'</th>').join('')+'</tr></thead><tbody>';
+  assets.forEach(a=>{h+='<tr>'+cols.map(c=>'<td'+(c.cls?' class="'+c.cls+'"':'')+'>'+c.f(a)+'</td>').join('')+'</tr>';});
+  h+='</tbody><tfoot><tr class="total">'+
+     '<td colspan="3">TOTAL</td>'+
+     '<td class="num">'+acc(assets.reduce((s,a)=>s+a.fCostBase,0))+'</td>'+
+     '<td class="num">'+acc(t.fNbvOpen)+'</td>'+
+     '<td class="num">'+fmtParen(t.fDepExpense)+'</td>'+
+     '<td class="num">'+acc(t.fNbvEnd)+'</td>'+
+     '<td class="num">'+fmtParen(t.depExpense)+'</td>'+
+     '<td class="num">'+signed(t.korPenyusutan)+'</td>'+
+     '</tr></tfoot>';
+  document.getElementById('fiscalTable').innerHTML=h;
+
+  /* ---- tabel rekonsiliasi fiskal (komersial vs fiskal vs koreksi) ---- */
+  const sc=(label,kom,fis,kor,opts)=>{
+    opts=opts||{};
+    const cls=opts.sub?' class="sub"':(opts.sec?' class="sec"':'');
+    return '<tr'+cls+'><td>'+label+'</td>'+
+      '<td class="num">'+(kom===null?'':opts.signedKF?signed(kom):acc(kom))+'</td>'+
+      '<td class="num">'+(fis===null?'':opts.signedKF?signed(fis):acc(fis))+'</td>'+
+      '<td class="num">'+(kor===null?'':signed(kor))+'</td></tr>';
+  };
+  let r='<table><thead><tr><th>Keterangan</th><th class="num">Komersial</th><th class="num">Fiskal</th><th class="num">Koreksi (+/&minus;)</th></tr></thead><tbody>';
+  r+=sc('Beban penyusutan periode',t.depExpense,t.fDepExpense,t.korPenyusutan);
+  if(t.impairCount>0||t.impairLoss>0.5)r+=sc('Rugi penurunan nilai (impairment)',t.impairLoss,0,t.korImpair);
+  if(t.dispCount>0)r+=sc('Laba/(rugi) pelepasan aset tetap',t.gainLoss,t.fGainLoss,t.korDisposal,{signedKF:true});
+  r+='<tr class="sub"><td>Total Koreksi Fiskal Temporer atas Aset Tetap</td><td class="num"></td><td class="num"></td><td class="num">'+signed(t.korTemp)+'</td></tr>';
+  r+='</tbody></table>';
+  document.getElementById('reconTable').innerHTML='<div class="sec-sub no-print">Rekonsiliasi Fiskal atas Aset Tetap</div>'+r+
+    '<div class="fis-note">Koreksi <b>positif</b> menambah Penghasilan Kena Pajak (PKP); koreksi <b>negatif</b> menguranginya. Beban penyusutan &amp; rugi penurunan nilai merupakan pengurang laba komersial, sedangkan laba/(rugi) pelepasan merupakan unsur penghasilan. Surplus revaluasi diakui di penghasilan komprehensif lain (bukan laba rugi) sehingga tidak masuk rekonsiliasi ini; pajak tangguhannya dibebankan ke ekuitas/OCI.</div>';
+
+  /* ---- narasi ---- */
+  const deferredPL=-t.korTemp*taxRate;
+  const dpTxt=deferredPL>=0?('beban pajak tangguhan sebesar Rp '+acc(deferredPL)):('manfaat pajak tangguhan sebesar Rp '+acc(Math.abs(deferredPL)));
+  let n='';
+  n+='<p>Untuk keperluan perpajakan, penyusutan dihitung berdasarkan <b>Peraturan Menteri Keuangan Nomor 72 Tahun 2023</b> tentang Penyusutan Harta Berwujud dan/atau Amortisasi Harta Tak Berwujud. Masa manfaat fiskal ditetapkan menurut <b>kelompok harta</b> (Bukan Bangunan: Kelompok 1 = 4 tahun, Kelompok 2 = 8 tahun, Kelompok 3 = 16 tahun, Kelompok 4 = 20 tahun; Bangunan Permanen = 20 tahun, Tidak Permanen = 10 tahun), tanpa memperhitungkan nilai residu, dan dimulai pada bulan dilakukannya pengeluaran (Pasal 5). Bangunan hanya disusutkan dengan metode garis lurus.</p>';
+  n+='<p>Beban penyusutan komersial periode berjalan sebesar <b>Rp '+acc(t.depExpense)+'</b>, sedangkan beban penyusutan fiskal sebesar <b>Rp '+acc(t.fDepExpense)+'</b>, sehingga timbul koreksi penyusutan (neto) sebesar <b>Rp '+signed(t.korPenyusutan)+'</b>.';
+  if(t.impairCount>0)n+=' Rugi penurunan nilai sebesar Rp '+acc(t.impairLoss)+' tidak dapat dikurangkan secara fiskal (koreksi positif) sampai aset terealisasi.';
+  if(t.dispCount>0)n+=' Selisih laba/(rugi) pelepasan komersial dengan fiskal menimbulkan koreksi sebesar Rp '+signed(t.korDisposal)+' (akibat perbedaan nilai buku komersial dengan nilai sisa buku fiskal).';
+  n+='</p>';
+  n+='<p>Total <b>koreksi fiskal temporer atas aset tetap</b> adalah <b>Rp '+signed(t.korTemp)+'</b>. Atas perbedaan temporer ini diakui '+dpTxt+' (Rp '+acc(t.korTemp===0?0:Math.abs(t.korTemp))+' &times; '+ratePct+'%), yang dirinci pada kertas kerja pajak tangguhan.</p>';
+  if(anyAuto)n+='<p style="color:var(--muted);font-size:12.5px"><b>*</b> Kelompok fiskal aset bertanda bintang ditentukan secara otomatis menggunakan heuristik berdasarkan Lampiran PMK 72/2023 dan ketentuan Pasal 4 ayat (1) (jenis harta yang tidak tercantum dalam Lampiran menggunakan Kelompok 3). Harap verifikasi dan, bila perlu, tetapkan kelompok yang tepat melalui kolom <code>kelompok_fiskal</code>.</p>';
+  document.getElementById('fiscalNarr').innerHTML=n;
+}
+
+/* ============ PAJAK TANGGUHAN (DTA/DTL) ============ */
+function renderDeferredTax(ag,t){
+  const yEnd=longDate(pEnd);
+  const ratePct=(taxRate*100).toLocaleString('id-ID',{maximumFractionDigits:2});
+  /* ---- tabel per kelompok (posisi akhir) ---- */
+  const rows=ag.filter(g=>Math.abs(g.nbvEnd)>0.5||Math.abs(g.fNbvEnd)>0.5||Math.abs(g.tdEnd)>0.5);
+  let h='<thead><tr><th>Kelompok</th><th class="num">Nilai Tercatat (NBV)</th><th class="num">Dasar Pajak (NSB Fiskal)</th><th class="num">Perbedaan Temporer</th><th class="num">Liabilitas/(Aset) Pajak Tangguhan</th></tr></thead><tbody>';
+  rows.forEach(g=>{
+    const tag=g.dtEnd>0.5?' <span class="pill dtl">DTL</span>':g.dtEnd<-0.5?' <span class="pill dta">DTA</span>':'';
+    h+='<tr><td><b>'+escapeHtml(g.kelompok)+'</b></td>'+
+       '<td class="num">'+acc(g.nbvEnd)+'</td>'+
+       '<td class="num">'+acc(g.fNbvEnd)+'</td>'+
+       '<td class="num">'+signed(g.tdEnd)+'</td>'+
+       '<td class="num">'+signed(g.dtEnd)+tag+'</td></tr>';
+  });
+  h+='</tbody><tfoot><tr class="total"><td>JUMLAH</td>'+
+     '<td class="num">'+acc(t.nbvEnd)+'</td>'+
+     '<td class="num">'+acc(t.fNbvEnd)+'</td>'+
+     '<td class="num">'+signed(t.tdEnd)+'</td>'+
+     '<td class="num">'+signed(t.dtEnd)+'</td></tr></tfoot>';
+  document.getElementById('dtTable').innerHTML=h;
+
+  /* ---- mutasi pajak tangguhan ---- */
+  const deferredPL=(t.dtEnd-t.dtOpen)-t.dtOCI-t.dtReklasOut;
+  const crossPL=-t.korTemp*taxRate;
+  const tie=Math.abs(deferredPL-crossPL)<1.5;
+  const mrow=(label,val,opts)=>{opts=opts||{};const cls=opts.sub?' class="sub"':'';return '<tr'+cls+'><td>'+label+'</td><td class="num">'+(val===null?'':signed(val))+'</td></tr>';};
+  let m='<table><thead><tr><th>Keterangan</th><th class="num">Jumlah (Rp)</th></tr></thead><tbody>';
+  m+=mrow('Liabilitas/(Aset) Pajak Tangguhan &mdash; Saldo Awal',t.dtOpen);
+  m+=mrow('Beban/(Manfaat) Pajak Tangguhan &mdash; Laba Rugi',deferredPL);
+  if(Math.abs(t.dtOCI)>0.5)m+=mrow('Pajak Tangguhan &mdash; Penghasilan Komprehensif Lain (atas surplus revaluasi)',t.dtOCI);
+  if(Math.abs(t.dtReklasOut)>0.5)m+=mrow('Reklasifikasi Pajak Tangguhan Keluar (ke pos lain)',t.dtReklasOut);
+  m+=mrow('Liabilitas/(Aset) Pajak Tangguhan &mdash; Saldo Akhir',t.dtEnd,{sub:true});
+  m+='</tbody></table>';
+  const netLbl=t.dtEnd>0.5?('<b>Liabilitas Pajak Tangguhan</b> neto sebesar <b>Rp '+acc(t.dtEnd)+'</b>'):t.dtEnd<-0.5?('<b>Aset Pajak Tangguhan</b> neto sebesar <b>Rp '+acc(Math.abs(t.dtEnd))+'</b>'):'saldo pajak tangguhan nihil';
+  document.getElementById('dtMutTable').innerHTML='<div class="sec-sub no-print">Mutasi &amp; Beban/(Manfaat) Pajak Tangguhan</div>'+m+
+    '<div class="fis-note">Nilai positif menunjukkan <b>liabilitas</b> pajak tangguhan (DTL); nilai dalam kurung menunjukkan <b>aset</b> pajak tangguhan (DTA). Pada akhir periode terdapat '+netLbl+'. '+
+    'Pemeriksaan silang: &minus;(koreksi fiskal temporer) &times; tarif = &minus;(Rp '+signed(t.korTemp)+') &times; '+ratePct+'% = Rp '+signed(crossPL)+', '+(tie?'cocok dengan':'mendekati')+' beban/(manfaat) pajak tangguhan laba rugi sebesar Rp '+signed(deferredPL)+'.</div>';
+
+  /* ---- narasi ---- */
+  let n='';
+  n+='<p>Pajak tangguhan diakui atas seluruh <b>perbedaan temporer</b> antara nilai tercatat aset tetap menurut komersial dengan dasar pengenaan pajaknya (nilai sisa buku fiskal), sesuai <b>PSAK 46</b> dengan metode liabilitas (<i>balance sheet liability method</i>) menggunakan tarif pajak '+ratePct+'%.</p>';
+  n+='<p>Perbedaan temporer <b>kena pajak</b> (nilai tercatat &gt; dasar pajak) menimbulkan <b>liabilitas pajak tangguhan</b> &mdash; umumnya karena penyusutan fiskal lebih cepat dari komersial atau adanya surplus revaluasi. Sebaliknya, perbedaan temporer <b>dapat dikurangkan</b> (nilai tercatat &lt; dasar pajak) menimbulkan <b>aset pajak tangguhan</b> &mdash; umumnya karena rugi penurunan nilai yang belum dapat dikurangkan secara fiskal atau penyusutan komersial lebih cepat.</p>';
+  n+='<p>Saldo perbedaan temporer neto bergerak dari Rp '+signed(t.tdOpen)+' pada awal periode menjadi Rp '+signed(t.tdEnd)+' pada akhir periode, sehingga liabilitas/(aset) pajak tangguhan neto menjadi <b>Rp '+signed(t.dtEnd)+'</b>. ';
+  const deferredPL2=(t.dtEnd-t.dtOpen)-t.dtOCI-t.dtReklasOut;
+  n+=(deferredPL2>=0?'Beban':'Manfaat')+' pajak tangguhan yang dibebankan ke laba rugi periode berjalan adalah Rp '+acc(Math.abs(deferredPL2))+'.';
+  if(Math.abs(t.dtOCI)>0.5)n+=' Pajak tangguhan atas surplus revaluasi sebesar Rp '+acc(t.dtOCI)+' dibebankan langsung ke penghasilan komprehensif lain (ekuitas), sehingga surplus revaluasi neto setelah pajak yang diakui dalam ekuitas adalah Rp '+acc(t.revalSurplus-t.dtOCI)+'.';
+  n+='</p>';
+  document.getElementById('dtNarr').innerHTML=n;
+}
+
+/* ============ CALK PELEPASAN, PENJUALAN, PENURUNAN NILAI & REKLAS KELUAR ============
+   Disajikan secara agregat (tidak per nama aset) dan transpose (ke bawah). */
+function renderDisposalNote(ag,t){
+  const disp=assets.filter(a=>a.disposed);
+  const imp=assets.filter(a=>a.impairInPeriod&&a.impairLoss>0.5);
+  const rout=assets.filter(a=>a.reklasOutInPeriod);
+  let html='';
+
+  /* baris transpose: label di kiri, satu kolom Jumlah di kanan; opts.sub=baris jumlah/total */
+  const trow=(label,val,opts)=>{opts=opts||{};const cls=opts.sub?' class="sub"':(opts.sec?' class="sec"':'');return '<tr'+cls+'><td>'+label+'</td><td class="num">'+(val===null||val===''?'':val)+'</td></tr>';};
+  const wrapT=(rows)=>'<div class="calk"><table><thead><tr><th>Keterangan</th><th class="num">Jumlah (Rp)</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+
+  /* ---- A. Pelepasan & Penjualan ---- */
+  html+='<div class="calk-block"><div class="sec-sub">A. Pelepasan &amp; Penjualan Aset Tetap</div>';
+  if(!disp.length){
+    html+='<div class="narr" style="margin-top:0">Tidak terdapat pelepasan atau penjualan aset tetap selama periode berjalan.</div>';
+  } else {
+    let r='';
+    r+=trow('Jumlah aset dilepas (unit)',t.dispCount);
+    r+=trow('Biaya perolehan / nilai tercatat bruto',acc(t.costDisp));
+    r+=trow('Akumulasi penyusutan',fmtParen(t.accumDisp));
+    r+=trow('Nilai buku neto yang dilepas',acc(t.nbvDisp),{sub:true});
+    r+=trow('Hasil penjualan',acc(t.proceeds));
+    if(t.insurance>0.5)r+=trow('Penggantian asuransi',acc(t.insurance));
+    r+=trow('Biaya pelepasan',fmtParen(t.bebanDisp));
+    r+=trow('Laba/(rugi) pelepasan &mdash; komersial',signed(t.gainLoss),{sub:true});
+    r+=trow('Nilai sisa buku fiskal (NSB)',acc(t.fNbvDisp));
+    r+=trow('Laba/(rugi) pelepasan &mdash; fiskal',signed(t.fGainLoss),{sub:true});
+    html+=wrapT(r);
+  }
+  html+='</div>';
+
+  /* ---- B. Penurunan Nilai (Impairment) ---- */
+  html+='<div class="calk-block"><div class="sec-sub">B. Penurunan Nilai (Impairment) Aset Tetap</div>';
+  if(!imp.length){
+    html+='<div class="narr" style="margin-top:0">Tidak terdapat pengakuan rugi penurunan nilai aset tetap selama periode berjalan.</div>';
+  } else {
+    let totBefore=0,totRec=0,totLoss=0;
+    imp.forEach(a=>{totBefore+=carryingState(a,endOfPrevMonth(a.impairDate),true).nbv;totRec+=a.impairRecoverable;totLoss+=a.impairLoss;});
+    let r='';
+    r+=trow('Jumlah aset turun nilai (unit)',imp.length);
+    r+=trow('Nilai tercatat sebelum penurunan',acc(totBefore));
+    r+=trow('Jumlah terpulihkan',acc(totRec));
+    r+=trow('Rugi penurunan nilai (laba rugi)',fmtParen(totLoss),{sub:true});
+    html+=wrapT(r);
+  }
+  html+='</div>';
+
+  /* ---- C. Reklasifikasi Keluar dari Aset Tetap ---- */
+  html+='<div class="calk-block"><div class="sec-sub">C. Reklasifikasi Keluar dari Aset Tetap</div>';
+  if(!rout.length){
+    html+='<div class="narr" style="margin-top:0">Tidak terdapat reklasifikasi keluar dari aset tetap selama periode berjalan.</div>';
+  } else {
+    const fNbvRout=rout.reduce((s,a)=>s+(a.fNbvReklasOut||0),0);
+    /* daftar pos tujuan unik (tanpa nama aset) */
+    const dests=[...new Set(rout.map(a=>a.reklasOutXTo||'Luar Aset Tetap'))];
+    let r='';
+    r+=trow('Jumlah aset direklasifikasi keluar (unit)',rout.length);
+    r+=trow('Biaya perolehan / nilai tercatat bruto',acc(t.reklasOutX));
+    r+=trow('Akumulasi penyusutan &amp; penurunan nilai',fmtParen(t.reklasOutXDep+t.reklasOutXImp));
+    r+=trow('Nilai buku neto direklasifikasi keluar',acc(t.reklasOutXNbv),{sub:true});
+    r+=trow('Nilai sisa buku fiskal (NSB)',acc(fNbvRout));
+    r+=trow('Pos tujuan reklasifikasi',escapeHtml(dests.join(', ')));
+    html+=wrapT(r);
+  }
+  html+='</div>';
+
+  /* ---- narasi gabungan ---- */
+  let n='';
+  if(disp.length){
+    const lr=t.gainLoss>=0?'laba':'rugi';
+    n+='<p>Sesuai <b>PSAK 16</b> (paragraf 67&ndash;72), aset tetap dihentikan pengakuannya pada saat dilepas. Selama periode berjalan Perusahaan melepas <b>'+t.dispCount+' unit</b> aset tetap dengan jumlah tercatat bruto Rp '+acc(t.costDisp)+' dan akumulasi penyusutan Rp '+acc(t.accumDisp)+' (nilai buku neto Rp '+acc(t.nbvDisp)+'). Hasil penjualan sebesar Rp '+acc(t.proceeds)+(t.insurance>0.5?' ditambah penggantian asuransi Rp '+acc(t.insurance):'')+(t.bebanDisp>0.5?' dikurangi biaya pelepasan Rp '+acc(t.bebanDisp):'')+', sehingga diakui <b>'+lr+' pelepasan</b> sebesar <b>Rp '+acc(Math.abs(t.gainLoss))+'</b> dalam laba rugi (disajikan neto, bukan sebagai pendapatan).</p>';
+    n+='<p>Untuk tujuan perpajakan, sesuai <b>Pasal 8 PMK 72/2023</b> dan Undang-Undang Pajak Penghasilan, nilai sisa buku fiskal aset yang dialihkan (Rp '+acc(t.fNbvDisp)+') dibebankan sebagai kerugian, sedangkan harga jual dan/atau penggantian asuransi diakui sebagai penghasilan pada tahun terjadinya pelepasan, sehingga laba/(rugi) pelepasan secara fiskal sebesar Rp '+signed(t.fGainLoss)+'. Selisihnya dengan laba/(rugi) komersial merupakan koreksi fiskal yang membalik perbedaan temporer terkait.';
+    if(t.insurance>0.5)n+=' Apabila jumlah penggantian asuransi baru dapat dipastikan di kemudian hari, pembebanan kerugian dapat ditunda hingga tahun pajak diterimanya penggantian asuransi dengan persetujuan Direktur Jenderal Pajak (Pasal 8 ayat (3)&ndash;(5)).';
+    n+='</p>';
+  }
+  if(imp.length){
+    n+='<p>Sesuai <b>PSAK 48</b>, Perusahaan menguji penurunan nilai ketika terdapat indikasi bahwa nilai tercatat aset melebihi jumlah terpulihkannya (mana yang lebih tinggi antara nilai wajar dikurangi biaya pelepasan dan nilai pakai). Pada periode berjalan diakui <b>rugi penurunan nilai</b> sebesar <b>Rp '+acc(t.impairLoss)+'</b> dalam laba rugi atas '+imp.length+' unit aset tetap, sehingga nilai tercatatnya diturunkan menjadi sebesar jumlah terpulihkan. Rugi penurunan nilai ini <b>tidak dapat dikurangkan</b> secara fiskal sampai aset terealisasi sehingga menimbulkan perbedaan temporer yang diakui sebagai aset pajak tangguhan (lihat kertas kerja pajak tangguhan).</p>';
+  }
+  if(rout.length){
+    n+='<p>Sesuai <b>PSAK 16</b> dan PSAK terkait (mis. PSAK 13 Properti Investasi, PSAK 14 Persediaan, atau PSAK 58 Aset Tidak Lancar yang Dimiliki untuk Dijual), Perusahaan mereklasifikasi <b>'+rout.length+' unit</b> aset <b>keluar</b> dari pos aset tetap pada nilai tercatatnya (jumlah tercatat bruto Rp '+acc(t.reklasOutX)+', akumulasi penyusutan/penurunan nilai Rp '+acc(t.reklasOutXDep+t.reklasOutXImp)+', nilai buku neto <b>Rp '+acc(t.reklasOutXNbv)+'</b>). Reklasifikasi ini <b>bukan pelepasan</b> sehingga tidak menimbulkan laba/(rugi); penyusutan dihentikan pada tanggal reklasifikasi dan saldo dipindahkan ke pos terkait. Secara fiskal, nilai sisa buku yang dipindahkan adalah Rp '+acc(rout.reduce((s,a)=>s+(a.fNbvReklasOut||0),0))+', dan perbedaan temporer terkait beserta pajak tangguhannya direklasifikasi mengikuti aset ke pos barunya (lihat kertas kerja pajak tangguhan).</p>';
+  }
+  if(!disp.length&&!imp.length&&!rout.length)n='<p>Tidak terdapat pelepasan, penjualan, penurunan nilai, maupun reklasifikasi keluar aset tetap selama periode berjalan.</p>';
+  html+='<div class="narr">'+n+'</div>';
+  document.getElementById('dispNote').innerHTML=html;
+}
+
 function renderSchedule(idx){
   const a=assets[idx];
   const stag=document.getElementById('schedTag');if(stag)stag.textContent=a.name+' \u00b7 '+(a.catEnd||a.kelompok);
@@ -1227,6 +1795,11 @@ function renderSchedule(idx){
   if(a.reklasFrom){
     extra.push(['Reklasifikasi Dari',a.reklasFrom==='adp'?'Aset Dalam Penyelesaian':'Akun di Luar Aset Tetap']);
     extra.push(['Tgl Reklasifikasi',fmtDateFull(a.reklasDate)]);
+  }
+  if(a.hasReklasOut){
+    extra.push(['Reklasifikasi Keluar Ke',a.reklasOutTo||'Luar Aset Tetap']);
+    extra.push(['Tgl Reklas Keluar',fmtDateFull(a.reklasOutDate)]);
+    if(a.reklasOutInPeriod)extra.push(['NBV saat Reklas Keluar',acc(a.reklasOutXNbv)]);
   }
   if(a.hasReval){
     extra.push(['Tgl Revaluasi',fmtDateFull(a.revalDate)]);
@@ -1246,50 +1819,102 @@ function renderSchedule(idx){
     '<div class="row"><span class="lbl">Metode</span><span class="val">'+(a.nonDep?'Tidak Disusutkan':methodLabel(a.method))+'</span></div>'+
     '<div class="row"><span class="lbl">Masa Manfaat</span><span class="val">'+(a.nonDep?'-':a.lifeYears+' tahun')+'</span></div>'+
     '<div class="row"><span class="lbl">Nilai Residu</span><span class="val">'+acc(a.residual)+'</span></div>'+
+    '<div class="row"><span class="lbl">Kelompok Fiskal</span><span class="val">'+fiscalGroupLabel(a.fiscalCode)+(a.fiscalSource==='auto'&&a.fiscalCode!=='NONE'?' <span style="color:var(--accent);font-size:11px">(otomatis)</span>':'')+'</span></div>'+
+    '<div class="row"><span class="lbl">Metode Fiskal</span><span class="val">'+(a.fiscalNonDep?'-':(a.fiscalMethod==='ddb'?'Saldo Menurun':'Garis Lurus'))+'</span></div>'+
     extraRows+
     '<div class="row"><span class="lbl">Status</span><span class="val"><span class="pill '+a.status+'" style="margin:0;">'+statusText(a.status)+'</span></span></div>'+
     '</div>';
   const right='<div class="col">'+
     '<div class="row"><span class="lbl">HP / Akum. Awal</span><span class="val">'+acc(a.costOpen)+' / '+acc(a.accumOpen)+'</span></div>'+
-    '<div class="row"><span class="lbl">NBV Awal</span><span class="val">'+acc(a.nbvOpen)+'</span></div>'+
+    '<div class="row"><span class="lbl">NBV Awal (Komersial)</span><span class="val">'+acc(a.nbvOpen)+'</span></div>'+
     (a.reklasIn>0.5?'<div class="row"><span class="lbl">Reklasifikasi Masuk</span><span class="val">'+acc(a.reklasIn)+'</span></div>':'')+
     (a.costReval!==0?'<div class="row"><span class="lbl">Revaluasi (HP)</span><span class="val">'+signed(a.costReval)+'</span></div>':'')+
-    '<div class="row"><span class="lbl">Beban Penyusutan</span><span class="val">'+acc(a.depExpense)+'</span></div>'+
+    '<div class="row"><span class="lbl">Beban Penyusutan (Kom.)</span><span class="val">'+acc(a.depExpense)+'</span></div>'+
     (a.impairLoss>0.5?'<div class="row"><span class="lbl">Rugi Penurunan Nilai</span><span class="val">'+acc(a.impairLoss)+'</span></div>':'')+
     '<div class="row"><span class="lbl">HP / Akum. Akhir</span><span class="val">'+acc(a.costEnd)+' / '+acc(a.accumEnd)+'</span></div>'+
-    '<div class="row"><span class="lbl">NBV Akhir</span><span class="val">'+acc(a.nbvEnd)+'</span></div>'+
-    '<div class="row"><span class="lbl">Tgl Pelepasan</span><span class="val">'+fmtDateFull(a.disposalDate)+'</span></div>'+
-    '<div class="row"><span class="lbl">Harga Jual / Biaya Pelepasan</span><span class="val">'+acc(a.proceeds)+' / '+acc(a.bebanDisp)+'</span></div>'+
-    '<div class="row"><span class="lbl">Laba/(Rugi) Pelepasan</span><span class="val">'+acc(a.gainLoss)+'</span></div>'+
+    '<div class="row"><span class="lbl">NBV Akhir (Komersial)</span><span class="val">'+acc(a.nbvEnd)+'</span></div>'+
+    (a.fiscalNonDep?'':'<div class="row"><span class="lbl">Beban Penyusutan (Fiskal)</span><span class="val">'+acc(a.fDepExpense)+'</span></div>'+
+      '<div class="row"><span class="lbl">NSB Fiskal Akhir</span><span class="val">'+acc(a.fNbvEnd)+'</span></div>'+
+      '<div class="row"><span class="lbl">Perbedaan Temporer</span><span class="val">'+signed(a.tdEnd)+'</span></div>'+
+      '<div class="row"><span class="lbl">Liabilitas/(Aset) Pjk Tangguhan</span><span class="val">'+signed(a.dtEnd)+'</span></div>')+
+    (a.reklasOutInPeriod?'<div class="row"><span class="lbl">Reklas Keluar (NBV)</span><span class="val">'+acc(a.reklasOutXNbv)+'</span></div>':'')+
+    (a.disposed?'<div class="row"><span class="lbl">Tgl Pelepasan</span><span class="val">'+fmtDateFull(a.disposalDate)+'</span></div>'+
+      '<div class="row"><span class="lbl">Harga Jual / Biaya Pelepasan</span><span class="val">'+acc(a.proceeds)+' / '+acc(a.bebanDisp)+'</span></div>'+
+      ((a.insuranceProceeds||0)>0.5?'<div class="row"><span class="lbl">Penggantian Asuransi</span><span class="val">'+acc(a.insuranceProceeds)+'</span></div>':'')+
+      '<div class="row"><span class="lbl">Laba/(Rugi) Pelepasan (Kom.)</span><span class="val">'+signed(a.gainLoss)+'</span></div>'+
+      '<div class="row"><span class="lbl">Laba/(Rugi) Pelepasan (Fiskal)</span><span class="val">'+signed(a.fGainLoss)+'</span></div>':
+      a.hasReklasOut?'<div class="row"><span class="lbl">Tgl Reklas Keluar</span><span class="val">'+fmtDateFull(a.reklasOutDate)+'</span></div>'+
+      '<div class="row"><span class="lbl">Direklasifikasi Ke</span><span class="val">'+escapeHtml(a.reklasOutTo||'Luar Aset Tetap')+'</span></div>':
+      '<div class="row"><span class="lbl">Tgl Pelepasan</span><span class="val">-</span></div>')+
     '</div>';
   document.getElementById('schedMeta').innerHTML='<div class="detail-grid">'+left+right+'</div>';
 
-  const sched=buildYearlySchedule(a);
-  if(!sched.length){
-    const why=a.cip?'Aset dalam penyelesaian belum disusutkan sampai selesai dan siap digunakan.':'Aset ini tidak disusutkan (tanah / masa manfaat tidak ditentukan).';
+  /* ---- jadwal gabungan: komersial & fiskal dalam satu tabel ---- */
+  const com=buildYearlySchedule(a);                       /* {year,dep,impair,accum,nbv} */
+  const fis=a.fiscalNonDep?[]:buildFiscalSchedule(a);     /* {year,dep,accum,nbv} */
+  const noteEl=document.getElementById('schedNote');
+
+  if(!com.length&&!fis.length){
+    const why=a.cip?'Aset dalam penyelesaian belum disusutkan sampai selesai dan siap digunakan.':'Aset ini tidak disusutkan secara komersial maupun fiskal (tanah / masa manfaat tidak ditentukan).';
     document.getElementById('schedTable').innerHTML='<thead><tr><th>Jadwal Penyusutan</th></tr></thead><tbody><tr><td>'+why+' Nilai buku tetap sebesar nilai tercatatnya.</td></tr></tbody>';
+    if(noteEl)noteEl.innerHTML='';
     return;
   }
-  const anyImp=sched.some(s=>Math.abs(s.impair)>0.5);
-  let h='<thead><tr><th>Tahun</th><th class="num">Beban Penyusutan</th>'+(anyImp?'<th class="num">Penurunan Nilai</th>':'')+'<th class="num">Akumulasi Penyusutan</th><th class="num">Nilai Buku Akhir Tahun</th></tr></thead><tbody>';
-  sched.forEach(s=>{
-    const cur=(pEnd&&s.year===pEnd.getFullYear());
+
+  const comMap={},fisMap={};
+  com.forEach(s=>comMap[s.year]=s);
+  fis.forEach(s=>fisMap[s.year]=s);
+  const years=[...new Set([...com.map(s=>s.year),...fis.map(s=>s.year)])].sort((x,y)=>x-y);
+  const anyImp=com.some(s=>Math.abs(s.impair)>0.5);
+  const div='border-left:2px solid #e8e8ed';
+  const subKom='<br><span style="font-weight:400;color:var(--muted)">Komersial</span>';
+  const subFis='<br><span style="font-weight:400;color:var(--muted)">Fiskal</span>';
+
+  let h='<thead><tr>'+
+    '<th>Tahun</th>'+
+    '<th class="num">Beban Penyusutan'+subKom+'</th>'+
+    (anyImp?'<th class="num">Penurunan Nilai'+subKom+'</th>':'')+
+    '<th class="num">Akumulasi'+subKom+'</th>'+
+    '<th class="num">Nilai Buku'+subKom+'</th>'+
+    '<th class="num" style="'+div+'">Penyusutan'+subFis+'</th>'+
+    '<th class="num">Akumulasi'+subFis+'</th>'+
+    '<th class="num">Nilai Sisa Buku'+subFis+'</th>'+
+    '</tr></thead><tbody>';
+  years.forEach(y=>{
+    const c=comMap[y],f=fisMap[y];
+    const cur=(pEnd&&y===pEnd.getFullYear());
     h+='<tr'+(cur?' style="background:#eef4fb;font-weight:600"':'')+'>'+
-      '<td>'+s.year+(cur?' &middot; periode berjalan':'')+'</td>'+
-      '<td class="num">'+acc(s.dep)+'</td>'+
-      (anyImp?'<td class="num">'+fmtParen(s.impair)+'</td>':'')+
-      '<td class="num">'+acc(s.accum)+'</td>'+
-      '<td class="num">'+acc(s.nbv)+'</td></tr>';
+      '<td>'+y+(cur?' &middot; periode berjalan':'')+'</td>'+
+      '<td class="num">'+(c?acc(c.dep):'-')+'</td>'+
+      (anyImp?'<td class="num">'+(c?fmtParen(c.impair):'-')+'</td>':'')+
+      '<td class="num">'+(c?acc(c.accum):'-')+'</td>'+
+      '<td class="num">'+(c?acc(c.nbv):'-')+'</td>'+
+      '<td class="num" style="'+div+'">'+(f?acc(f.dep):'-')+'</td>'+
+      '<td class="num">'+(f?acc(f.accum):'-')+'</td>'+
+      '<td class="num">'+(f?acc(f.nbv):'-')+'</td>'+
+      '</tr>';
   });
   h+='</tbody>';
   document.getElementById('schedTable').innerHTML=h;
+
+  /* catatan gabungan */
+  let note='';
+  if(!com.length){
+    note='<div class="fis-note">Aset ini <b>tidak disusutkan secara komersial</b> (tanah / masa manfaat tidak ditentukan). Kolom <b>Fiskal</b> ('+fiscalGroupLabel(a.fiscalCode)+' &middot; '+(a.fiscalMethod==='ddb'?'Saldo Menurun':'Garis Lurus')+', PMK 72/2023) memakai harga perolehan historis Rp '+acc(a.fCostBase)+', tanpa nilai residu, dimulai pada bulan pengeluaran ('+fmtDateFull(a.fiscalDepStartDate)+').</div>';
+  } else if(a.fiscalNonDep){
+    note='<div class="fis-note">Kolom <b>Komersial</b> memakai metode '+methodLabel(a.method)+(a.residual>0?' (residu Rp '+acc(a.residual)+')':'')+' atas masa manfaat '+a.lifeYears+' tahun. Aset ini <b>tidak disusutkan secara fiskal</b> (tanah / aset dalam penyelesaian), sehingga nilai sisa buku fiskal tetap sebesar harga perolehannya.</div>';
+  } else {
+    note='<div class="fis-note">Kolom <b>Komersial</b> memakai metode '+methodLabel(a.method)+(a.residual>0?' (residu Rp '+acc(a.residual)+')':'')+'. Kolom <b>Fiskal</b> ('+fiscalGroupLabel(a.fiscalCode)+' &middot; '+(a.fiscalMethod==='ddb'?'Saldo Menurun':'Garis Lurus')+', PMK 72/2023) memakai harga perolehan historis Rp '+acc(a.fCostBase)+', tanpa nilai residu, dimulai pada bulan pengeluaran ('+fmtDateFull(a.fiscalDepStartDate)+').</div>';
+  }
+  if(noteEl)noteEl.innerHTML=note;
 }
 
 /* ---------- export ---------- */
 function exportExcel(){
   if(!assets.length||pStart===null){toast('Proses kertas kerja dulu sebelum mengunduh.');return;}
   const t=totals();const ag=aggByGroup();
-  const useReklas=(t.reklasIn>0.5||t.reklasOut>0.5);
+  const useReklas=(t.reklasIn>0.5||t.reklasOut>0.5||t.reklasOutX>0.5);
+  const useReklasOutAccum=(t.reklasOutXDep>0.5||t.reklasOutXImp>0.5);
   const useReval=(t.revalCount>0);
   const useImpair=(t.impairCount>0);
   const wb=XLSX.utils.book_new();
@@ -1308,25 +1933,28 @@ function exportExcel(){
   head.push('Beban Penyusutan');
   if(useImpair)head.push('Penurunan Nilai');
   if(useReval)head.push('Eliminasi Akum. (Reval)');
+  if(useReklasOutAccum)head.push('Reklas Keluar (Akum.)');
   head.push('Pengurangan HP','Pengurangan Akum.','HP Akhir','Akum. Akhir','NBV Akhir','Harga Jual','Biaya Pelepasan','Laba/(Rugi) Pelepasan','Status');
   kk.push(head);
   assets.forEach(a=>{
     const row=[a.name,a.catEnd||a.kelompok,a.catOpen||a.kelompok,fmtDateFull(a.acqDate),a.nonDep?'-':methodLabel(a.method),a.nonDep?'-':a.lifeYears,a.residual,
       a.costOpen,neg(a.accumOpen),a.nbvOpen,a.addition];
-    if(useReklas)row.push(a.reklasIn,neg(a.reklasOut));
+    if(useReklas)row.push(a.reklasIn,neg(a.reklasOut+a.reklasOutX));
     if(useReval)row.push(a.costReval);
     row.push(neg(a.depExpense));
     if(useImpair)row.push(neg(a.impairLoss));
     if(useReval)row.push(a.accumRevalElim);
+    if(useReklasOutAccum)row.push(a.reklasOutXDep+a.reklasOutXImp);
     row.push(neg(a.costDisp),a.accumDisp,a.costEnd,neg(a.accumEnd),a.nbvEnd,a.proceeds!==null?a.proceeds:'',a.bebanDisp,a.gainLoss!==null?a.gainLoss:'',statusText(a.status));
     kk.push(row);
   });
   const totalRow=['TOTAL','','','','','','',t.costOpen,neg(t.accumOpen),t.nbvOpen,t.addition];
-  if(useReklas)totalRow.push(t.reklasIn,neg(t.reklasOut));
+  if(useReklas)totalRow.push(t.reklasIn,neg(t.reklasOut+t.reklasOutX));
   if(useReval)totalRow.push(t.costReval);
   totalRow.push(neg(t.depExpense));
   if(useImpair)totalRow.push(neg(t.impairLoss));
   if(useReval)totalRow.push(t.accumRevalElim);
+  if(useReklasOutAccum)totalRow.push(t.reklasOutXDep+t.reklasOutXImp);
   totalRow.push(neg(t.costDisp),t.accumDisp,t.costEnd,neg(t.accumEnd),t.nbvEnd,t.proceeds,t.bebanDisp,t.gainLoss,'');
   kk.push(totalRow);
   const ws1=XLSX.utils.aoa_to_sheet(kk);
@@ -1346,9 +1974,9 @@ function exportExcel(){
   if(useReval)rh.push('Eliminasi (Reval)');
   rh.push('Peng. Akum.','Akum. Akhir','NBV Awal','NBV Akhir');
   rk.push(rh);
-  const rrow=(g)=>{const r=[g.kelompok,g.costOpen,g.addition];if(useReklas)r.push(g.reklasIn,neg(g.reklasOut));if(useReval)r.push(g.costReval);r.push(neg(g.costDisp),g.costEnd,neg(g.accumOpen),neg(g.depExpense));if(useImpair)r.push(neg(g.impairLoss));if(useReval)r.push(g.accumRevalElim);r.push(g.accumDisp,neg(g.accumEnd),g.nbvOpen,g.nbvEnd);return r;};
+  const rrow=(g)=>{const r=[g.kelompok,g.costOpen,g.addition];if(useReklas)r.push(g.reklasIn,neg(g.reklasOut+(g.reklasOutX||0)));if(useReval)r.push(g.costReval);r.push(neg(g.costDisp),g.costEnd,neg(g.accumOpen),neg(g.depExpense));if(useImpair)r.push(neg(g.impairLoss));if(useReval)r.push(g.accumRevalElim);r.push(g.accumDisp,neg(g.accumEnd),g.nbvOpen,g.nbvEnd);return r;};
   ag.forEach(g=>rk.push(rrow(g)));
-  rk.push(rrow({kelompok:'JUMLAH',costOpen:t.costOpen,addition:t.addition,reklasIn:t.reklasIn,reklasOut:t.reklasOut,costReval:t.costReval,costDisp:t.costDisp,costEnd:t.costEnd,accumOpen:t.accumOpen,depExpense:t.depExpense,impairLoss:t.impairLoss,accumRevalElim:t.accumRevalElim,accumDisp:t.accumDisp,accumEnd:t.accumEnd,nbvOpen:t.nbvOpen,nbvEnd:t.nbvEnd}));
+  rk.push(rrow({kelompok:'JUMLAH',costOpen:t.costOpen,addition:t.addition,reklasIn:t.reklasIn,reklasOut:t.reklasOut,reklasOutX:t.reklasOutX,costReval:t.costReval,costDisp:t.costDisp,costEnd:t.costEnd,accumOpen:t.accumOpen,depExpense:t.depExpense,impairLoss:t.impairLoss,accumRevalElim:t.accumRevalElim,accumDisp:t.accumDisp,accumEnd:t.accumEnd,nbvOpen:t.nbvOpen,nbvEnd:t.nbvEnd}));
   const ws2=XLSX.utils.aoa_to_sheet(rk);
   ws2['!cols']=[{wch:24}].concat(Array(rh.length-1).fill({wch:16}));
   XLSX.utils.book_append_sheet(wb,ws2,'Rekap Kelompok');
@@ -1375,17 +2003,17 @@ function exportExcel(){
     return r;
   };
   ck.push(['Biaya Perolehan / Nilai Revaluasian']);
-  ag.forEach(g=>ck.push(rowC('  '+g.kelompok,g.costOpen,g.addition,g.reklasIn-g.reklasOut,g.costReval,neg(g.costDisp),g.costEnd)));
-  ck.push(rowC('Jumlah Biaya Perolehan',t.costOpen,t.addition,t.reklasIn-t.reklasOut,t.costReval,neg(t.costDisp),t.costEnd));
+  ag.forEach(g=>ck.push(rowC('  '+g.kelompok,g.costOpen,g.addition,g.reklasIn-g.reklasOut-(g.reklasOutX||0),g.costReval,neg(g.costDisp),g.costEnd)));
+  ck.push(rowC('Jumlah Biaya Perolehan',t.costOpen,t.addition,t.reklasIn-t.reklasOut-t.reklasOutX,t.costReval,neg(t.costDisp),t.costEnd));
   ck.push([]);
   ck.push(['Akumulasi Penyusutan']);
-  ag.filter(g=>!g.nonDep||g.accumDepEnd>0||g.accumDepOpen>0||g.depExpense>0).forEach(g=>ck.push(rowC('  '+g.kelompok,neg(g.accumDepOpen),neg(g.depExpense),0,g.accumRevalElimDep,g.accumDispDep,neg(g.accumDepEnd))));
-  ck.push(rowC('Jumlah Akumulasi Penyusutan',neg(t.accumDepOpen),neg(t.depExpense),0,t.accumRevalElimDep,t.accumDispDep,neg(t.accumDepEnd)));
+  ag.filter(g=>!g.nonDep||g.accumDepEnd>0||g.accumDepOpen>0||g.depExpense>0).forEach(g=>ck.push(rowC('  '+g.kelompok,neg(g.accumDepOpen),neg(g.depExpense),g.reklasOutXDep||0,g.accumRevalElimDep,g.accumDispDep,neg(g.accumDepEnd))));
+  ck.push(rowC('Jumlah Akumulasi Penyusutan',neg(t.accumDepOpen),neg(t.depExpense),t.reklasOutXDep,t.accumRevalElimDep,t.accumDispDep,neg(t.accumDepEnd)));
   ck.push([]);
   if(useImpair){
     ck.push(['Akumulasi Penurunan Nilai']);
-    ag.filter(g=>g.accumImpEnd>0||g.accumImpOpen>0||g.impairLoss>0).forEach(g=>ck.push(rowC('  '+g.kelompok,neg(g.accumImpOpen),neg(g.impairLoss),0,g.accumRevalElimImp,g.accumDispImp,neg(g.accumImpEnd))));
-    ck.push(rowC('Jumlah Akumulasi Penurunan Nilai',neg(t.accumImpOpen),neg(t.impairLoss),0,t.accumRevalElimImp,t.accumDispImp,neg(t.accumImpEnd)));
+    ag.filter(g=>g.accumImpEnd>0||g.accumImpOpen>0||g.impairLoss>0).forEach(g=>ck.push(rowC('  '+g.kelompok,neg(g.accumImpOpen),neg(g.impairLoss),g.reklasOutXImp||0,g.accumRevalElimImp,g.accumDispImp,neg(g.accumImpEnd))));
+    ck.push(rowC('Jumlah Akumulasi Penurunan Nilai',neg(t.accumImpOpen),neg(t.impairLoss),t.reklasOutXImp,t.accumRevalElimImp,t.accumDispImp,neg(t.accumImpEnd)));
     ck.push([]);
   }
   /* Nilai Buku Neto: hanya Saldo Awal & Saldo Akhir terisi */
@@ -1399,6 +2027,10 @@ function exportExcel(){
     if(t.reklasFromAdp>0)ck.push(['  dari aset dalam penyelesaian (unit)',t.reklasFromAdp]);
     if(t.reklasFromLuar>0)ck.push(['  dari akun di luar aset tetap (unit)',t.reklasFromLuar]);
     ck.push(['Nilai reklasifikasi masuk',t.reklasIn]);
+  }
+  if(t.reklasOutCount>0){
+    ck.push(['Reklasifikasi keluar dari aset tetap (unit)',t.reklasOutCount]);
+    ck.push(['Nilai buku neto direklasifikasi keluar',t.reklasOutXNbv]);
   }
   if(t.revalCount>0){
     ck.push(['Aset direvaluasi (unit)',t.revalCount]);
@@ -1420,26 +2052,112 @@ function exportExcel(){
   ws3['!cols']=[{wch:42},{wch:18},{wch:16},{wch:15},{wch:15},{wch:16},{wch:18}];
   XLSX.utils.book_append_sheet(wb,ws3,'CALK');
 
+  /* Sheet 4: Penyusutan Fiskal & Koreksi Fiskal (PMK 72/2023) */
+  const fk=[];
+  fk.push(['KERTAS KERJA PENYUSUTAN FISKAL & KOREKSI FISKAL ASET TETAP']);
+  fk.push(['Dasar','PMK 72 Tahun 2023','','Periode',ds+' s.d. '+de,'','Tarif PPh Badan',(taxRate*100)+'%']);
+  fk.push([]);
+  fk.push(['Nama Aset','Kelompok Fiskal','Sumber Kelompok','Metode Fiskal','Dasar Fiskal (HP)','NSB Fiskal Awal','Penyusutan Fiskal','NSB Fiskal Akhir','Penyusutan Komersial','Koreksi Penyusutan (+/-)']);
+  assets.forEach(a=>{
+    fk.push([a.name,fiscalGroupLabel(a.fiscalCode),a.fiscalSource==='input'?'Input':a.fiscalSource==='nature'?'Tdk disusutkan':'Otomatis',
+      a.fiscalNonDep?'-':(a.fiscalMethod==='ddb'?'Saldo Menurun':'Garis Lurus'),
+      a.fCostBase,a.fNbvOpen,neg(a.fDepExpense),a.fNbvEnd,neg(a.depExpense),a.korPenyusutan]);
+  });
+  fk.push(['TOTAL','','','',assets.reduce((s,a)=>s+a.fCostBase,0),t.fNbvOpen,neg(t.fDepExpense),t.fNbvEnd,neg(t.depExpense),t.korPenyusutan]);
+  fk.push([]);
+  fk.push(['REKONSILIASI FISKAL ATAS ASET TETAP','Komersial','Fiskal','Koreksi (+/-)']);
+  fk.push(['Beban penyusutan periode',t.depExpense,t.fDepExpense,t.korPenyusutan]);
+  if(t.impairLoss>0.5)fk.push(['Rugi penurunan nilai (impairment)',t.impairLoss,0,t.korImpair]);
+  if(t.dispCount>0)fk.push(['Laba/(rugi) pelepasan aset tetap',t.gainLoss,t.fGainLoss,t.korDisposal]);
+  fk.push(['Total Koreksi Fiskal Temporer atas Aset Tetap','','',t.korTemp]);
+  fk.push(['(+ menambah PKP; - mengurangi PKP)']);
+  fk.push(['Beban/(Manfaat) Pajak Tangguhan = -(Koreksi Temporer) x Tarif',-t.korTemp*taxRate]);
+  const ws4=XLSX.utils.aoa_to_sheet(fk);
+  ws4['!cols']=[{wch:34},{wch:24},{wch:16},{wch:16},{wch:16},{wch:16},{wch:16},{wch:16},{wch:18},{wch:18}];
+  XLSX.utils.book_append_sheet(wb,ws4,'Penyusutan Fiskal');
+
+  /* Sheet 5: Pajak Tangguhan (DTA/DTL) */
+  const dt=[];
+  dt.push(['KERTAS KERJA PAJAK TANGGUHAN (DTA/DTL) ATAS ASET TETAP']);
+  dt.push(['Dasar','PSAK 46 - Metode Liabilitas Neraca','','Tarif',(taxRate*100)+'%','','Per',de]);
+  dt.push([]);
+  dt.push(['Kelompok','Nilai Tercatat (NBV)','Dasar Pajak (NSB Fiskal)','Perbedaan Temporer','Liabilitas/(Aset) Pajak Tangguhan','Jenis']);
+  ag.filter(g=>Math.abs(g.nbvEnd)>0.5||Math.abs(g.fNbvEnd)>0.5||Math.abs(g.tdEnd)>0.5).forEach(g=>{
+    dt.push([g.kelompok,g.nbvEnd,g.fNbvEnd,g.tdEnd,g.dtEnd,g.dtEnd>0.5?'DTL':g.dtEnd<-0.5?'DTA':'-']);
+  });
+  dt.push(['JUMLAH',t.nbvEnd,t.fNbvEnd,t.tdEnd,t.dtEnd,t.dtEnd>0.5?'DTL':t.dtEnd<-0.5?'DTA':'-']);
+  dt.push([]);
+  const deferredPL=(t.dtEnd-t.dtOpen)-t.dtOCI-t.dtReklasOut;
+  dt.push(['MUTASI PAJAK TANGGUHAN','Jumlah (Rp)']);
+  dt.push(['Liabilitas/(Aset) Pajak Tangguhan - Saldo Awal',t.dtOpen]);
+  dt.push(['Beban/(Manfaat) Pajak Tangguhan - Laba Rugi',deferredPL]);
+  if(Math.abs(t.dtOCI)>0.5)dt.push(['Pajak Tangguhan - OCI (atas surplus revaluasi)',t.dtOCI]);
+  if(Math.abs(t.dtReklasOut)>0.5)dt.push(['Reklasifikasi Pajak Tangguhan Keluar (ke pos lain)',t.dtReklasOut]);
+  dt.push(['Liabilitas/(Aset) Pajak Tangguhan - Saldo Akhir',t.dtEnd]);
+  dt.push(['(+ = Liabilitas Pajak Tangguhan; - = Aset Pajak Tangguhan)']);
+  const ws5=XLSX.utils.aoa_to_sheet(dt);
+  ws5['!cols']=[{wch:44},{wch:20},{wch:20},{wch:18},{wch:26},{wch:8}];
+  XLSX.utils.book_append_sheet(wb,ws5,'Pajak Tangguhan');
+
+  /* Sheet 6: CALK Pelepasan, Penjualan & Penurunan Nilai */
+  const dp=[];
+  dp.push(['CALK - PELEPASAN, PENJUALAN, PENURUNAN NILAI & REKLASIFIKASI KELUAR ASET TETAP']);
+  dp.push(['Periode',ds+' s.d. '+de]);
+  dp.push([]);
+  dp.push(['A. PELEPASAN & PENJUALAN ASET TETAP']);
+  const dispA=assets.filter(a=>a.disposed);
+  if(!dispA.length){dp.push(['Tidak terdapat pelepasan/penjualan aset tetap.']);}
+  else{
+    dp.push(['Nama Aset','Tgl Pelepasan','Biaya Perolehan','Akum. Penyusutan','Nilai Buku Neto','Hasil Penjualan','Penggantian Asuransi','Biaya Pelepasan','Laba/(Rugi) Komersial','NSB Fiskal','Laba/(Rugi) Fiskal']);
+    dispA.forEach(a=>dp.push([a.name,fmtDateFull(a.disposalDate),a.costDisp,neg(a.accumDisp),a.nbvDisp,a.proceeds,a.insuranceProceeds,neg(a.bebanDisp),a.gainLoss,a.fNbvDisp,a.fGainLoss]));
+    dp.push(['TOTAL','',t.costDisp,neg(t.accumDisp),t.nbvDisp,t.proceeds,t.insurance,neg(t.bebanDisp),t.gainLoss,t.fNbvDisp,t.fGainLoss]);
+  }
+  dp.push([]);
+  dp.push(['B. PENURUNAN NILAI (IMPAIRMENT) ASET TETAP']);
+  const impB=assets.filter(a=>a.impairInPeriod&&a.impairLoss>0.5);
+  if(!impB.length){dp.push(['Tidak terdapat rugi penurunan nilai aset tetap.']);}
+  else{
+    dp.push(['Nama Aset','Kelompok','Tgl Pengujian','Nilai Tercatat Sebelum','Jumlah Terpulihkan','Rugi Penurunan Nilai']);
+    let tb=0,tr=0,tl=0;
+    impB.forEach(a=>{const before=carryingState(a,endOfPrevMonth(a.impairDate),true).nbv;tb+=before;tr+=a.impairRecoverable;tl+=a.impairLoss;dp.push([a.name,a.impairCat||a.kelompok,fmtDateFull(a.impairDate),before,a.impairRecoverable,neg(a.impairLoss)]);});
+    dp.push(['TOTAL','','',tb,tr,neg(tl)]);
+  }
+  dp.push([]);
+  dp.push(['C. REKLASIFIKASI KELUAR DARI ASET TETAP']);
+  const routC=assets.filter(a=>a.reklasOutInPeriod);
+  if(!routC.length){dp.push(['Tidak terdapat reklasifikasi keluar dari aset tetap.']);}
+  else{
+    dp.push(['Nama Aset','Dari Kelompok','Direklasifikasi Ke','Tgl Reklas Keluar','Biaya Perolehan','Akum. Peny./Pen. Nilai','Nilai Buku Neto','NSB Fiskal']);
+    let cb=0,ca=0,cn=0,cf=0;
+    routC.forEach(a=>{cb+=a.reklasOutX;ca+=(a.reklasOutXDep+a.reklasOutXImp);cn+=a.reklasOutXNbv;cf+=(a.fNbvReklasOut||0);
+      dp.push([a.name,a.reklasOutXCat||a.kelompok,a.reklasOutXTo||'Luar Aset Tetap',fmtDateFull(a.reklasOutDate),a.reklasOutX,neg(a.reklasOutXDep+a.reklasOutXImp),a.reklasOutXNbv,a.fNbvReklasOut]);});
+    dp.push(['TOTAL','','','',cb,neg(ca),cn,cf]);
+  }
+  const ws6=XLSX.utils.aoa_to_sheet(dp);
+  ws6['!cols']=[{wch:30},{wch:16},{wch:16},{wch:18},{wch:16},{wch:18},{wch:18},{wch:16},{wch:18},{wch:16},{wch:18}];
+  XLSX.utils.book_append_sheet(wb,ws6,'CALK Pelepasan');
+
   XLSX.writeFile(wb,'kertas_kerja_aset_tetap.xlsx');
   toast('File Excel berhasil diunduh.');
 }
 
 function downloadTemplate(){
   const aoa=[
-    ['nama','kelompok','tipe','tgl_perolehan','harga_perolehan','metode','masa_manfaat','nilai_residu','reklas_dari','tgl_reklas','tgl_revaluasi','nilai_revaluasi','tgl_impairment','nilai_terpulihkan','tgl_pelepasan','harga_jual','biaya_pelepasan'],
-    ['Tanah Kantor Pusat','Tanah','','10/01/2018',5000000000,'',0,0,'','','','','','','','',''],
-    ['Gedung Kantor Pusat','Bangunan','','10/01/2018',3000000000,'GL',20,0,'','','','','','','','',''],
-    ['Toyota Avanza B 1234 XYZ','Kendaraan','','15/06/2021',250000000,'GL',8,25000000,'','','','','','','','',''],
-    ['Mesin Produksi A','Mesin','','01/03/2020',1200000000,'GL',10,0,'','','','','','','','',''],
-    ['Pembangunan Gudang (CIP)','','ADP','01/02/2024',600000000,'',0,0,'','','','','','','','',''],
-    ['Mesin Lini Baru (selesai dari CIP)','Mesin','','01/05/2023',2000000000,'GL',20,0,'ADP','01/04/2024','','','','','','',''],
-    ['Tanah eks Persediaan (reklas)','Tanah','','01/03/2024',400000000,'',0,0,'luar','01/03/2024','','','','','','',''],
-    ['Gedung Direvaluasi','Bangunan','','01/01/2019',1000000000,'GL',20,0,'','','01/07/2024',1500000000,'','','','',''],
-    ['Mesin Turun Nilai','Mesin','','01/01/2021',800000000,'GL',8,0,'','','','','30/06/2024',300000000,'','',''],
-    ['Mobil Box (dijual)','Kendaraan','','10/04/2019',300000000,'GL',8,0,'','','','','','','30/06/2024',180000000,2000000]
+    ['nama','kelompok','tipe','tgl_perolehan','harga_perolehan','metode','masa_manfaat','nilai_residu','kelompok_fiskal','metode_fiskal','reklas_dari','tgl_reklas','tgl_reklas_keluar','reklas_ke','tgl_revaluasi','nilai_revaluasi','tgl_impairment','nilai_terpulihkan','tgl_pelepasan','harga_jual','biaya_pelepasan','penggantian_asuransi'],
+    ['Tanah Kantor Pusat','Tanah','','10/01/2018',5000000000,'',0,0,'Tanah','','','','','','','','','','','','',''],
+    ['Gedung Kantor Pusat','Bangunan','','10/01/2018',3000000000,'GL',20,0,'Bangunan Permanen','GL','','','','','','','','','','','',''],
+    ['Toyota Avanza B 1234 XYZ','Kendaraan','','15/06/2021',250000000,'GL',8,25000000,'2','GL','','','','','','','','','','','',''],
+    ['Mesin Produksi A','Mesin','','01/03/2020',1200000000,'GL',10,0,'3','GL','','','','','','','','','','','',''],
+    ['Pembangunan Gudang (CIP)','','ADP','01/02/2024',600000000,'',0,0,'','','','','','','','','','','','','',''],
+    ['Mesin Lini Baru (selesai dari CIP)','Mesin','','01/05/2023',2000000000,'GL',20,0,'3','GL','ADP','01/04/2024','','','','','','','','','',''],
+    ['Tanah eks Persediaan (reklas)','Tanah','','01/03/2024',400000000,'',0,0,'Tanah','','luar','01/03/2024','','','','','','','','','',''],
+    ['Gedung Direvaluasi','Bangunan','','01/01/2019',1000000000,'GL',20,0,'Bangunan Permanen','GL','','','','','01/07/2024',1500000000,'','','','','',''],
+    ['Mesin Turun Nilai','Mesin','','01/01/2021',800000000,'GL',8,0,'2','GL','','','','','','','30/06/2024',300000000,'','','',''],
+    ['Mobil Box (dijual)','Kendaraan','','10/04/2019',300000000,'GL',8,0,'2','GL','','','','','','','','','30/06/2024',180000000,2000000,''],
+    ['Gedung Disewakan (ke Properti Investasi)','Bangunan','','01/01/2020',2400000000,'GL',20,0,'Bangunan Permanen','GL','','','01/09/2024','Properti Investasi','','','','','','','','']
   ];
   const ws=XLSX.utils.aoa_to_sheet(aoa);
-  ws['!cols']=[{wch:30},{wch:14},{wch:7},{wch:13},{wch:15},{wch:8},{wch:11},{wch:12},{wch:12},{wch:12},{wch:13},{wch:15},{wch:14},{wch:15},{wch:13},{wch:14},{wch:14}];
+  ws['!cols']=[{wch:34},{wch:14},{wch:7},{wch:13},{wch:15},{wch:8},{wch:11},{wch:12},{wch:20},{wch:13},{wch:12},{wch:12},{wch:16},{wch:18},{wch:13},{wch:15},{wch:14},{wch:15},{wch:13},{wch:14},{wch:14},{wch:18}];
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,'input');
   XLSX.writeFile(wb,'template_aset_tetap.xlsx');
@@ -1448,21 +2166,23 @@ function downloadTemplate(){
 
 function loadSample(){
   handleRecords([
-    {_row:2,nama:'Tanah Kantor Pusat',kelompok:'Tanah',tgl_perolehan:'10/01/2018',harga_perolehan:5000000000,metode:'',masa_manfaat:0,nilai_residu:0},
-    {_row:3,nama:'Gedung Kantor Pusat',kelompok:'Bangunan',tgl_perolehan:'10/01/2018',harga_perolehan:3000000000,metode:'GL',masa_manfaat:20,nilai_residu:0},
-    {_row:4,nama:'Toyota Avanza B 1234 XYZ',kelompok:'Kendaraan',tgl_perolehan:'15/06/2021',harga_perolehan:250000000,metode:'GL',masa_manfaat:8,nilai_residu:25000000},
-    {_row:5,nama:'Mesin Produksi A',kelompok:'Mesin',tgl_perolehan:'01/03/2020',harga_perolehan:1200000000,metode:'SM',masa_manfaat:10,nilai_residu:0},
-    {_row:6,nama:'Laptop Dell Latitude',kelompok:'Peralatan Kantor',tgl_perolehan:'20/09/2022',harga_perolehan:18000000,metode:'GL',masa_manfaat:4,nilai_residu:0},
-    {_row:7,nama:'Printer Canon (perolehan 2024)',kelompok:'Peralatan Kantor',tgl_perolehan:'12/03/2024',harga_perolehan:8000000,metode:'GL',masa_manfaat:4,nilai_residu:0},
+    {_row:2,nama:'Tanah Kantor Pusat',kelompok:'Tanah',tgl_perolehan:'10/01/2018',harga_perolehan:5000000000,metode:'',masa_manfaat:0,nilai_residu:0,kelompok_fiskal:'Tanah'},
+    {_row:3,nama:'Gedung Kantor Pusat',kelompok:'Bangunan',tgl_perolehan:'10/01/2018',harga_perolehan:3000000000,metode:'GL',masa_manfaat:20,nilai_residu:0,kelompok_fiskal:'Bangunan Permanen',metode_fiskal:'GL'},
+    {_row:4,nama:'Toyota Avanza B 1234 XYZ',kelompok:'Kendaraan',tgl_perolehan:'15/06/2021',harga_perolehan:250000000,metode:'GL',masa_manfaat:8,nilai_residu:25000000,kelompok_fiskal:'2',metode_fiskal:'GL'},
+    {_row:5,nama:'Mesin Produksi A',kelompok:'Mesin',tgl_perolehan:'01/03/2020',harga_perolehan:1200000000,metode:'SM',masa_manfaat:10,nilai_residu:0,kelompok_fiskal:'3',metode_fiskal:'SM'},
+    {_row:6,nama:'Laptop Dell Latitude',kelompok:'Peralatan Kantor',tgl_perolehan:'20/09/2022',harga_perolehan:18000000,metode:'GL',masa_manfaat:4,nilai_residu:0,kelompok_fiskal:'1',metode_fiskal:'GL'},
+    {_row:7,nama:'Printer Canon (perolehan 2024)',kelompok:'Peralatan Kantor',tgl_perolehan:'12/03/2024',harga_perolehan:8000000,metode:'GL',masa_manfaat:4,nilai_residu:0,kelompok_fiskal:'1',metode_fiskal:'GL'},
     {_row:8,nama:'Pembangunan Gudang (dalam proses)',tipe:'ADP',tgl_perolehan:'01/02/2024',harga_perolehan:600000000,metode:'',masa_manfaat:0,nilai_residu:0},
-    {_row:9,nama:'Mesin Lini Baru (selesai dari CIP)',kelompok:'Mesin',tgl_perolehan:'01/05/2023',harga_perolehan:2000000000,metode:'GL',masa_manfaat:20,nilai_residu:0,reklas_dari:'ADP',tgl_reklas:'01/04/2024'},
-    {_row:10,nama:'Tanah eks Persediaan (reklasifikasi)',kelompok:'Tanah',tgl_perolehan:'01/03/2024',harga_perolehan:400000000,metode:'',masa_manfaat:0,nilai_residu:0,reklas_dari:'luar',tgl_reklas:'01/03/2024'},
-    {_row:11,nama:'Gedung Direvaluasi',kelompok:'Bangunan',tgl_perolehan:'01/01/2019',harga_perolehan:1000000000,metode:'GL',masa_manfaat:20,nilai_residu:0,tgl_revaluasi:'01/07/2024',nilai_revaluasi:1500000000},
-    {_row:12,nama:'Mesin Turun Nilai (impairment)',kelompok:'Mesin',tgl_perolehan:'01/01/2021',harga_perolehan:800000000,metode:'GL',masa_manfaat:8,nilai_residu:0,tgl_impairment:'30/06/2024',nilai_terpulihkan:300000000},
-    {_row:13,nama:'Mobil Box B 9876 ZZZ (dijual)',kelompok:'Kendaraan',tgl_perolehan:'10/04/2019',harga_perolehan:300000000,metode:'GL',masa_manfaat:8,nilai_residu:0,tgl_pelepasan:'30/06/2024',harga_jual:180000000,biaya_pelepasan:2000000}
+    {_row:9,nama:'Mesin Lini Baru (selesai dari CIP)',kelompok:'Mesin',tgl_perolehan:'01/05/2023',harga_perolehan:2000000000,metode:'GL',masa_manfaat:20,nilai_residu:0,reklas_dari:'ADP',tgl_reklas:'01/04/2024',kelompok_fiskal:'3',metode_fiskal:'GL'},
+    {_row:10,nama:'Tanah eks Persediaan (reklasifikasi)',kelompok:'Tanah',tgl_perolehan:'01/03/2024',harga_perolehan:400000000,metode:'',masa_manfaat:0,nilai_residu:0,reklas_dari:'luar',tgl_reklas:'01/03/2024',kelompok_fiskal:'Tanah'},
+    {_row:11,nama:'Gedung Direvaluasi',kelompok:'Bangunan',tgl_perolehan:'01/01/2019',harga_perolehan:1000000000,metode:'GL',masa_manfaat:20,nilai_residu:0,tgl_revaluasi:'01/07/2024',nilai_revaluasi:1500000000,kelompok_fiskal:'Bangunan Permanen',metode_fiskal:'GL'},
+    {_row:12,nama:'Mesin Turun Nilai (impairment)',kelompok:'Mesin',tgl_perolehan:'01/01/2021',harga_perolehan:800000000,metode:'GL',masa_manfaat:8,nilai_residu:0,tgl_impairment:'30/06/2024',nilai_terpulihkan:300000000,kelompok_fiskal:'2',metode_fiskal:'GL'},
+    {_row:13,nama:'Mobil Box B 9876 ZZZ (dijual)',kelompok:'Kendaraan',tgl_perolehan:'10/04/2019',harga_perolehan:300000000,metode:'GL',masa_manfaat:8,nilai_residu:0,tgl_pelepasan:'30/06/2024',harga_jual:180000000,biaya_pelepasan:2000000,kelompok_fiskal:'2',metode_fiskal:'GL'},
+    {_row:14,nama:'Gedung Disewakan (ke Properti Investasi)',kelompok:'Bangunan',tgl_perolehan:'01/01/2020',harga_perolehan:2400000000,metode:'GL',masa_manfaat:20,nilai_residu:0,tgl_reklas_keluar:'01/09/2024',reklas_ke:'Properti Investasi',kelompok_fiskal:'Bangunan Permanen',metode_fiskal:'GL'}
   ]);
   document.getElementById('periodStart').value='2024-01-01';
   document.getElementById('periodEnd').value='2024-12-31';
+  const tr=document.getElementById('taxRate');if(tr)tr.value='22';
   updateCalcBtn();
   calculate();
 }
@@ -1480,6 +2200,7 @@ document.getElementById('tplBtn').addEventListener('click',downloadTemplate);
 document.getElementById('sampleBtn').addEventListener('click',loadSample);
 document.getElementById('periodStart').addEventListener('change',updateCalcBtn);
 document.getElementById('periodEnd').addEventListener('change',updateCalcBtn);
+document.getElementById('taxRate').addEventListener('change',()=>{if(assets.length&&!document.getElementById('results').classList.contains('hidden'))calculate();});
 document.getElementById('calcBtn').addEventListener('click',calculate);
 document.getElementById('dlBtn').addEventListener('click',exportExcel);
 document.getElementById('printBtn').addEventListener('click',()=>window.print());
