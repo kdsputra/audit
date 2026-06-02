@@ -610,7 +610,7 @@ function renderMeta(){
         <div class="sub"><span class="ix">${esc(p.wpCode)}</span>${esc(p.wpName)}</div>
       </div>
       <div class="wpbox">
-        <div class="top"><div class="c">${esc(p.wpCode)}</div><div class="c">${esc(p.wpName)}</div></div>
+        <div class="top"><div class="c">LEAD</div><div class="c">Leadsheet</div></div>
         <div class="rowx"><div class="lab">PREPARED BY</div><div>${esc(p.prep)}</div><div class="lab">REVIEWED BY</div><div>${esc(p.rev)}</div></div>
         <div class="rowx"><div class="lab">DATE</div><div>${esc(p.datePrep)}</div><div class="lab">DATE</div><div>${esc(p.dateRev)}</div></div>
       </div>
@@ -745,7 +745,7 @@ async function exportExcel(opts){
   function buildContent(){
     const ws=wb.addWorksheet('Content',{views:[{showGridLines:false}],pageSetup:pageLand});
     ws.getColumn(1).width=5; ws.getColumn(2).width=20; ws.getColumn(3).width=38;
-    header(ws,'D1','Content','Contents - Table of Content',4,true);
+    header(ws,'Content','Table of Content','Contents - Table of Content',4,true);
     set(ws,'A5','Table of Contents',{bold:true,size:10});
     const hr=6;
     ['No','Contents','Ref'].forEach((t,i)=>{const c=ws.getCell(hr,i+1);c.value=t;c.font={bold:true,size:FS};c.alignment={horizontal:'center',vertical:'middle'};c.fill={type:'pattern',pattern:'solid',fgColor:{argb:HF}};c.border=allThin;});
@@ -784,7 +784,7 @@ async function exportExcel(opts){
   function buildLeadsheet(){
     const ws=wb.addWorksheet('Leadsheet',{views:[{showGridLines:false}],pageSetup:pageLand});
     [20,13,7,7,32,9,20,20,20,20,20,20,20,20].forEach((w,i)=>ws.getColumn(i+1).width=w);
-    header(ws,p.wpCode,p.wpName,'Leadsheets',LEAD_C0,false);  // kotak WP di kolom H..K
+    header(ws,'LEAD','Leadsheet','Leadsheets',LEAD_C0,false);  // kotak WP di kolom H..K
     set(ws,'A6','Leadsheet'+(SC?(SC===2?' (dalam jutaan)':' (dalam ribuan)'):''),{bold:true,size:10});
     set(ws,'G6','|--------- GL ---------|',{size:9,color:{argb:RED}},{horizontal:'center'});
     set(ws,'L6','|--------- PY ---------|',{size:9,color:{argb:RED}},{horizontal:'center'});
@@ -807,7 +807,7 @@ async function exportExcel(opts){
         {formula:`IF(L${r}=0,0,M${r}/L${r})`,result:d.varPct}];
       vals.forEach((v,i)=>{const c=ws.getCell(r,i+1);c.value=v;c.border=allThin;c.font={size:FS};
         if(i>=6){c.alignment={horizontal:'right',vertical:'middle'};c.numFmt=(i===13)?fmtPctX:(i===12)?fmtVar:fmtN;}
-        else c.alignment={horizontal:i===4?'left':'center',vertical:'middle',wrapText:i===4};
+        else c.alignment={horizontal:i===4?'left':'center',vertical:i===4?'top':'middle',wrapText:i===4};
         if(mat&&(i===12||i===13))c.font={size:FS,bold:true,color:{argb:RED}};});
       ws.getRow(r).height=16; r++;
     });
@@ -835,7 +835,7 @@ async function exportExcel(opts){
     const ws=wb.addWorksheet('Nature of Account',{views:[{showGridLines:false}],pageSetup:pageLand});
     // COA(A) COA CSL(B) INDX(C) ORB(D) DESC(E) | Nature of Account = merge F:I per baris
     [18,13,7,7,30,18,18,18,18].forEach((w,i)=>ws.getColumn(i+1).width=w);
-    header(ws,p.wpCode,p.wpName,'Nature of Account',6,false);  // kotak WP di kolom F..I (di atas kolom Nature)
+    header(ws,'NOA','Nature of Account','Nature of Account',6,false);  // kotak WP di kolom F..I (di atas kolom Nature)
     set(ws,'A6','Nature of Account',{bold:true,size:10});
     const hr=7;
     ['COA','COA CSL','INDX','ORB','DESC'].forEach((t,i)=>{const c=ws.getCell(hr,i+1);c.value=t;c.font={bold:true,size:FS};c.alignment={horizontal:'center',vertical:'middle',wrapText:true};c.fill={type:'pattern',pattern:'solid',fgColor:{argb:HF}};c.border=allThin;});
