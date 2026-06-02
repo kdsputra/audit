@@ -1,6 +1,7 @@
 <!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Generator Leadsheet Audit</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
   :root{
     --bg:#f5f5f7; --card:#ffffff; --text:#1d1d1f; --muted:#86868b;
@@ -56,6 +57,8 @@
   .field label{display:block;font-size:13px;font-weight:600;margin-bottom:7px;letter-spacing:-0.01em}
   .field input,.field select{font-family:inherit;font-size:14px;padding:11px 14px;border:1px solid var(--border);border-radius:12px;background:var(--card);color:var(--text);width:100%;outline:none;-webkit-appearance:none;}
   .field input:focus,.field select:focus{border-color:var(--text)}
+  .field label.chk{display:flex;align-items:center;gap:9px;font-weight:500;font-size:13.5px;cursor:pointer;margin:0;padding:9px 0}
+  .field label.chk input{width:18px;height:18px;flex:none;-webkit-appearance:auto;appearance:auto;padding:0;border-radius:5px;cursor:pointer}
   .hint{font-size:13px;color:var(--muted);margin-top:16px;line-height:1.55}
   .banner{border-radius:14px;padding:16px;font-size:13.5px;margin-bottom:24px}
   .banner.err{background:var(--danger-light);border:1px solid #ffccd0;color:var(--danger)}
@@ -67,18 +70,20 @@
   .stat .val.dn{color:var(--danger)}
   .stat .sub{font-size:12px;color:var(--muted);margin-top:4px;font-variant-numeric:tabular-nums}
   /* leadsheet meta header (mirip gambar) */
-  .ls-meta{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;border-bottom:1px solid #000;padding-bottom:14px;margin-bottom:6px}
-  .ls-meta .left .client{font-weight:700;font-size:14px}
-  .ls-meta .left .ttl{font-size:13px;margin-top:2px}
-  .ls-meta .left .sub{font-size:13px;margin-top:2px}
-  .wpbox{border:1px solid #000;font-size:12px;min-width:360px}
-  .wpbox .top{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid #000}
-  .wpbox .top .c{padding:8px 10px;font-weight:700;font-size:15px;text-align:center}
-  .wpbox .top .c:first-child{border-right:1px solid #000}
+  .ls-meta{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap;align-items:flex-start;border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:8px}
+  .ls-meta .left .client{font-weight:700;font-size:15px;letter-spacing:-0.01em}
+  .ls-meta .left .ttl{font-size:13px;margin-top:3px;color:var(--muted)}
+  .ls-meta .left .sub{font-size:12.5px;margin-top:8px;font-weight:600}
+  .ls-meta .left .sub .ix{font-size:11px;font-weight:700;color:var(--muted);background:var(--line);border-radius:6px;padding:2px 8px;margin-right:6px}
+  .wpbox{border:1px solid var(--line);border-radius:12px;overflow:hidden;font-size:12px;min-width:380px}
+  .wpbox .top{display:grid;grid-template-columns:1fr 1fr;border-bottom:1px solid var(--line);background:#fafafa}
+  .wpbox .top .c{padding:11px 14px;font-weight:700;font-size:14px;text-align:center;letter-spacing:-0.01em}
+  .wpbox .top .c:first-child{border-right:1px solid var(--line)}
   .wpbox .rowx{display:grid;grid-template-columns:auto 1fr auto 1fr}
-  .wpbox .rowx>div{padding:5px 10px;border-top:1px solid #000;border-right:1px solid #000}
+  .wpbox .rowx>div{padding:8px 14px;border-top:1px solid var(--line);border-right:1px solid var(--line)}
   .wpbox .rowx>div:last-child{border-right:none}
-  .wpbox .rowx .lab{font-weight:700;background:#f2f2f2;white-space:nowrap}
+  .wpbox .rowx>div:not(.lab){font-weight:600;font-variant-numeric:tabular-nums}
+  .wpbox .rowx .lab{font-weight:600;background:#f7f7f9;white-space:nowrap;font-size:10px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);display:flex;align-items:center}
   .ls-tag{font-weight:700;font-size:13px;margin:14px 0 6px}
   .tbl-wrap{overflow:auto;border:1px solid var(--line);border-radius:14px;max-height:620px;background:var(--card)}
   table.ls{border-collapse:collapse;width:100%;font-size:12.5px;min-width:1746px;table-layout:fixed}
@@ -94,6 +99,41 @@
   table.ls tr.total td{background:#f1f1f4;font-weight:700;border-top:2px solid #1d1d1f;color:#000}
   .vred{color:var(--danger);font-weight:700}
   .arrow{font-size:11px;margin-left:3px}
+  /* ringkasan saldo per FSL line (tampilan web) — kartu collapsible minimalis */
+  .fsl-list{margin-top:18px;display:flex;flex-direction:column;gap:8px;max-height:62vh;overflow-y:auto;padding-right:4px}
+  .fsl-list::-webkit-scrollbar{width:5px}.fsl-list::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:10px}
+  .fsl-group{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--card)}
+  .fsl-group.open{box-shadow:0 1px 0 rgba(0,0,0,.02)}
+  .fsl-head{display:flex;align-items:flex-start;gap:9px;padding:10px 13px;background:var(--card);border:none;width:100%;text-align:left;font:inherit;cursor:pointer;color:var(--text)}
+  .fsl-head:hover{background:#f7f7f9}
+  .fsl-group.open .fsl-head{background:#f5f5f7;border-bottom:1px solid var(--line)}
+  .fsl-head .fsl-chev{flex:none;margin-top:2px;color:var(--muted);transition:transform .25s ease}
+  .fsl-group.open .fsl-head .fsl-chev{transform:rotate(90deg)}
+  .fsl-head .fsl-ix{flex:none;margin-top:1px;font-size:10.5px;font-weight:700;color:var(--muted);background:var(--line);border-radius:6px;padding:2px 7px}
+  .fsl-headmain{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+  .fsl-titlerow{display:flex;align-items:baseline;gap:8px}
+  .fsl-titlerow .fsl-nm{font-weight:700;font-size:13.5px;letter-spacing:-0.01em;flex:1;min-width:0;line-height:1.25}
+  .fsl-titlerow .fsl-cnt{flex:none;font-size:11px;color:var(--muted)}
+  .fsl-mini{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums;line-height:1.3}
+  .fsl-mini b{color:var(--text);font-weight:600}
+  .fsl-mini .vred{font-weight:700}
+  .fsl-detail{display:grid;grid-template-rows:0fr;transition:grid-template-rows .28s ease}
+  .fsl-group.open .fsl-detail{grid-template-rows:1fr}
+  .fsl-detail-in{overflow:hidden;min-height:0}
+  .fsl-review{padding:11px 14px;font-size:12px;color:#444;line-height:1.55;border-bottom:1px solid var(--line);background:#fcfcfd}
+  .fsl-detail-scroll{max-height:320px;overflow:auto}
+  .fsl-detail-scroll::-webkit-scrollbar{width:5px}.fsl-detail-scroll::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:10px}
+  table.fsl-sum{border-collapse:collapse;width:100%;font-size:12px}
+  table.fsl-sum th,table.fsl-sum td{padding:7px 13px;border-bottom:1px solid var(--line);white-space:nowrap}
+  table.fsl-sum th{position:sticky;top:0;font-size:9.5px;text-transform:uppercase;letter-spacing:.03em;color:var(--muted);font-weight:600;background:#fafafa;text-align:right;z-index:1}
+  table.fsl-sum th:nth-child(1),table.fsl-sum th:nth-child(2){text-align:left}
+  table.fsl-sum td.c{text-align:center;color:var(--muted);font-size:11.5px}
+  table.fsl-sum td.n{text-align:right;font-variant-numeric:tabular-nums}
+  table.fsl-sum td:nth-child(2){font-weight:600}
+  table.fsl-sum tbody tr:hover{background:#f7f7f9}
+  table.fsl-sum tr:last-child td{border-bottom:none}
+  /* leadsheet ringkas (web) */
+  table.ls.ls-mini{min-width:0;table-layout:auto}
   .narr-area{width:100%;min-height:150px;font-family:inherit;font-size:13.5px;line-height:1.7;color:#333;border:1px solid var(--line);border-radius:14px;padding:18px 20px;background:#fafafa;outline:none;resize:vertical}
   .narr-area:focus{border-color:var(--text);background:#fff}
   .period-tag{font-size:12px;color:var(--muted);font-weight:500;margin-bottom:14px}
@@ -162,7 +202,7 @@
         Muat Contoh Data
       </button>
     </div>
-    <div class="bond-list hidden" id="assetList"></div>
+    <div class="fsl-list hidden" id="assetList"></div>
   </div>
 
   <!-- STEP 2 -->
@@ -185,6 +225,12 @@
       <div class="field"><label>Date Reviewed</label><input type="date" id="pDateRev"></div>
       <div class="field"><label>Ambang Variance Material (%)</label><input type="number" id="pPct" value="5" min="0" step="0.5"></div>
       <div class="field"><label>Ambang Variance Material (nominal, 0 = nonaktif)</label><input type="number" id="pAmt" value="0" min="0" step="1000"></div>
+      <div class="field"><label>Skala Angka (web &amp; Excel)</label>
+        <select id="pScale"><option value="1">Penuh (angka utuh)</option><option value="1000">Ribuan (&divide; 1.000)</option><option value="1000000">Jutaan (&divide; 1.000.000)</option></select>
+      </div>
+      <div class="field"><label>Akun Bersaldo Nol (COA kosong)</label>
+        <label class="chk"><input type="checkbox" id="pShowEmpty"> Tampilkan COA kosong (web &amp; Excel)</label>
+      </div>
     </div>
     <div class="hint"><b>Alur perhitungan:</b> After CLA = Unaudited + CLA &nbsp;&middot;&nbsp; Audited = After CLA + AJE &nbsp;&middot;&nbsp; Variance = Audited &minus; Prior Year &nbsp;&middot;&nbsp; %Var = Variance &divide; Prior Year. Variance yang melampaui ambang materialitas (persentase <i>atau</i> nominal) ditandai merah.</div>
   </div>
@@ -196,7 +242,6 @@
 
   <!-- RESULTS -->
   <div id="results" class="hidden">
-    <div class="stats" id="stats"></div>
 
     <div class="card">
       <div class="card-head">
@@ -211,14 +256,18 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Unduh Excel
           </button>
+          <button class="btn btn-ghost" id="dlAllBtn" title="Unduh setiap FSL line sebagai file WP terpisah">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/><line x1="9" y1="3" x2="9" y2="9"/></svg>
+            Unduh Semua WP
+          </button>
         </div>
       </div>
       <div id="lsMeta"></div>
-      <div class="ls-tag">Leadsheet</div>
-      <div class="tbl-wrap"><table class="ls" id="lsTable"></table></div>
+      <div class="ls-tag" id="lsTag">Leadsheet</div>
+      <div class="tbl-wrap"><table class="ls ls-mini" id="lsTable"></table></div>
     </div>
 
-    <div class="card">
+    <div class="card" id="prelimCard" style="display:none">
       <div class="card-head">
         <div class="step-num" style="background:#1d1d1f">&#10003;</div>
         <h2>Preliminary Analytical Review</h2>
@@ -254,7 +303,9 @@
         <li><b>py</b> (atau <i>prior_year, tahun_lalu</i>) &mdash; saldo audited tahun sebelumnya. Opsional, default 0.</li>
       </ul>
       <blockquote>Angka boleh ditulis tanpa pemisah ribuan (<code>1300</code>) atau dengan titik (<code>1.300</code>). Saldo penambah ditulis positif, koreksi yang mengurangi ditulis negatif (mis. CLA <code>-50000</code>).</blockquote>
-      <h4>2. Langkah</h4>
+      <h4>2. Sheet AJE (opsional)</h4>
+      <p style="font-size:13.5px;color:#444;line-height:1.6">Tambahkan <b>satu sheet lagi</b> berisi kumpulan jurnal dengan kolom <code>no</code>, <code>type</code> (CLA/AJE), <code>coa</code>, <code>amt</code>, <code>desc</code>. Saat WP dibuat untuk sebuah FSL line, <b>hanya jurnal yang menyentuh COA pada FSL tersebut</b> yang dibawa &mdash; namun jurnal terbawa <b>utuh</b> (semua barisnya, termasuk lawan akun di luar FSL). Tiap jurnal dipisah satu baris kosong. CLA &amp; AJE per akun di Leadsheet otomatis dijumlahkan dari jurnal ini (SUMIFS).</p>
+      <h4>3. Langkah</h4>
       <ul>
         <li>Unggah Excel, atau klik <b>Unduh Template Excel</b> / <b>Muat Contoh Data</b>.</li>
         <li>Pada Langkah&nbsp;2, <b>pilih Lead (indx / FSL line)</b> yang ingin dibuat &mdash; Kode WP, Nama WP, Nama Pos Total, dan Kode ORB Total terisi otomatis dari data. Lengkapi juga klien, tanggal, prepared/reviewed by, dan ambang materialitas.</li>
@@ -293,15 +344,22 @@ function toNum(v){
   return neg?-n:n;
 }
 const idf=new Intl.NumberFormat('id-ID',{maximumFractionDigits:0});
-function fmt(n){if(Math.abs(n)<0.5)return '-';return idf.format(Math.round(n));}
-function fmtSignAbs(n){return Math.abs(n)<0.5?'-':idf.format(Math.round(Math.abs(n)));}
+let numScale=1; // 1 = penuh, 1000 = ribuan, 1e6 = jutaan (tampilan web)
+function applyScale(){numScale=parseFloat(($('pScale')||{}).value)||1;}
+function scaleLabel(s){return s===1e6?'dalam jutaan':(s===1000?'dalam ribuan':'angka penuh');}
+function fmt(n){if(Math.abs(n)<0.5)return '-';return idf.format(Math.round(n/numScale));}
+function fmtSignAbs(n){return Math.abs(n)<0.5?'-':idf.format(Math.round(Math.abs(n)/numScale));}
 function fmtPct(n){if(!isFinite(n))return '-';if(Math.abs(n)<0.00005)return '-';return (Math.abs(n)*100).toFixed(n*100%1===0?0:1)+'%';}
+// akun "kosong" = tidak punya saldo CY maupun PY dan tanpa koreksi
+function isBlankRow(r){return Math.abs(r.unaudited)<0.5&&Math.abs(r.cla)<0.5&&Math.abs(r.aje)<0.5&&Math.abs(r.py)<0.5;}
+function showEmptyOn(){return !!($('pShowEmpty')&&$('pShowEmpty').checked);}
 function isoToDMY(iso){if(!iso)return '';const[d]=iso.split('T');const p=d.split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:iso;}
 function dateLong(iso){if(!iso)return '';const dt=new Date(iso+'T00:00:00');if(isNaN(dt))return '';const M=['January','February','March','April','May','June','July','August','September','October','November','December'];return M[dt.getMonth()]+' '+dt.getDate()+', '+dt.getFullYear();}
 function yearOf(iso){if(!iso)return new Date().getFullYear();return +iso.split('-')[0];}
 
 /* ===================== state ===================== */
 let rows=[];      // baris input mentah {coa,coa_csl,indx,orb,desc,reff,unaudited,cla,aje,py}
+let ajeRecords=[];// baris jurnal dari sheet AJE pada input {no,type,coa,amt,desc}
 let model=null;   // hasil olah
 
 /* ===================== kolom alias ===================== */
@@ -319,11 +377,21 @@ const COLMAP=[
   ['nature',['nature','natureofaccount','noa','sifatakun','keteranganakun','uraianakun','natureaccount']],
   ['fsl',['fslname','fsl','fslline','fsllinename','namafsl','namapos','posname','namaleadsheet','leadname','namaposleadsheet']],
 ];
-function mapHeaders(headerRow){
+function mapHeaders(headerRow){return mapHeadersWith(headerRow,COLMAP);}
+function mapHeadersWith(headerRow,cmap){
   const map={};
-  headerRow.forEach((h,i)=>{const n=norm(h);for(const[key,al]of COLMAP){if(al.includes(n)){if(map[key]===undefined)map[key]=i;}}});
+  headerRow.forEach((h,i)=>{const n=norm(h);for(const[key,al]of cmap){if(al.includes(n)){if(map[key]===undefined)map[key]=i;}}});
   return map;
 }
+// kolom untuk sheet AJE pada input: no, type, coa, amt, desc
+const AJECOL=[
+  ['no',['no','nomor','nourut','nojurnal','journalno','jeno','ajeno','noaje','noje']],
+  ['type',['type','tipe','jenis','jenisjurnal','typejurnal']],
+  ['coa',['coa','akun','kodeakun','accountcode','account','glaccount','kodecoa','noakun']],
+  ['amt',['amt','amount','nilai','jumlah','nominal','saldo','value']],
+  ['desc',['desc','description','keterangan','uraian','narasi','deskripsi','memo','nama']]
+];
+function normType(t){return norm(t).includes('cla')?'CLA':'AJE';}
 
 /* ===================== file handling ===================== */
 function handleFile(file){
@@ -354,11 +422,45 @@ function handleFile(file){
         out.push(rec);
       }
       if(!out.length){showErr('<b>Tidak ada baris data.</b> Periksa kembali isian di bawah baris header.');return;}
+      // ---- sheet AJE (opsional): kumpulan jurnal {no,type,coa,amt,desc} ----
+      ajeRecords=parseAjeSheet(wb,0);
+      applyAjeToRows(out);
       handleRecords(out);
-      toast(out.length+' baris akun berhasil dimuat.');
+      toast(out.length+' baris akun berhasil dimuat'+(ajeRecords.length?(' &middot; '+ajeRecords.length+' baris AJE'):'')+'.');
     }catch(err){showErr('<b>Gagal membaca file.</b> '+(err.message||err));}
   };
   rd.readAsArrayBuffer(file);
+}
+/* baca sheet AJE (selain sheet utama) → [{no,type,coa,amt,desc}] */
+function parseAjeSheet(wb,mainIdx){
+  const recs=[];
+  for(let si=0;si<wb.SheetNames.length;si++){
+    if(si===mainIdx)continue;
+    const a2=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[si]],{header:1,raw:true,defval:''});
+    if(!a2.length)continue;
+    let h2=-1,m=null;
+    for(let i=0;i<Math.min(a2.length,10);i++){const mm=mapHeadersWith(a2[i],AJECOL);if(mm.coa!==undefined&&mm.amt!==undefined&&(mm.type!==undefined||mm.no!==undefined)){h2=i;m=mm;break;}}
+    if(h2<0)continue;
+    let curNo='';
+    for(let i=h2+1;i<a2.length;i++){
+      const r=a2[i];if(!r||r.every(c=>c===''||c==null))continue;
+      const gg=k=>m[k]!==undefined?r[m[k]]:'';
+      let no=String(gg('no')||'').trim(); if(no)curNo=no; else no=curNo; // no kosong = lanjut jurnal sebelumnya
+      const coa=String(gg('coa')||'').trim(), amt=toNum(gg('amt')), desc=String(gg('desc')||'').trim();
+      const tRaw=String(gg('type')||'').trim();
+      if(!coa&&!amt&&!desc)continue;
+      recs.push({no:String(no||'1'),type:normType(tRaw),typeRaw:tRaw,coa,amt,desc});
+    }
+    break; // ambil sheet AJE pertama yang cocok
+  }
+  return recs;
+}
+/* bila ada sheet AJE, CLA/AJE tiap akun = jumlah baris jurnal per COA (override input) */
+function applyAjeToRows(recs){
+  if(!ajeRecords.length)return;
+  const cla=new Map(),aje=new Map();
+  ajeRecords.forEach(a=>{const m=a.type==='CLA'?cla:aje;m.set(a.coa,(m.get(a.coa)||0)+a.amt);});
+  recs.forEach(rec=>{rec.cla=cla.get(rec.coa)||0;rec.aje=aje.get(rec.coa)||0;});
 }
 function handleRecords(recs){
   rows=recs;
@@ -401,7 +503,45 @@ function renderAssetList(){
   const el=$('assetList');
   if(!rows.length){el.classList.add('hidden');el.innerHTML='';return;}
   el.classList.remove('hidden');
-  el.innerHTML=rows.map(r=>`<div class="bond-item"><span class="dot"></span><span class="nm">${esc(r.desc||r.coa||'(tanpa nama)')}</span>${r.indx?`<span class="tag">${esc(r.indx)}</span>`:''}<span class="meta">GL ${fmt(r.unaudited)} &middot; PY ${fmt(r.py)}</span></div>`).join('');
+  applyScale();
+  const ye=$('pYearEnd')?$('pYearEnd').value:''; const cy=yearOf(ye), py=cy-1;
+  const showEmpty=showEmptyOn();
+  const src=showEmpty?rows:rows.filter(r=>!isBlankRow(r));
+  if(!src.length){el.innerHTML='<div class="hint" style="margin-top:18px">Semua akun bersaldo nol disembunyikan. Centang <b>Tampilkan COA kosong</b> untuk menampilkannya.</div>';return;}
+  const arrow=v=>Math.abs(v)<0.5?'':`<span class="arrow">${v<0?'&#9660;':'&#9650;'}</span>`;
+  const chev='<svg class="fsl-chev" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>';
+  // kelompokkan per FSL line (indx); saldo CY = unaudited + cla + aje (audited), PY = py
+  const groups=new Map();
+  src.forEach(r=>{
+    const k=(r.indx||'').trim();
+    if(!groups.has(k))groups.set(k,{indx:k,fsl:r.fsl||'',items:[],cy:0,py:0});
+    const g=groups.get(k); if(!g.fsl&&r.fsl)g.fsl=r.fsl;
+    const cyv=r.unaudited+r.cla+r.aje, pyv=r.py, v=cyv-pyv;
+    g.items.push({coa:r.coa,desc:r.desc,cy:cyv,py:pyv,v,vp:pyv!==0?v/pyv:(cyv!==0?(v>0?1:-1):0)});
+    g.cy+=cyv; g.py+=pyv;
+  });
+  let h='';
+  for(const g of groups.values()){
+    const gv=g.cy-g.py, gvp=g.py!==0?gv/g.py:(g.cy!==0?(gv>0?1:-1):0), dn=gv<0;
+    const decN=g.items.filter(it=>it.v<-0.5).length, incN=g.items.filter(it=>it.v>0.5).length;
+    const nm=g.fsl||g.indx||'(tanpa FSL line)';
+    const review=`Saldo audited <b>${esc(nm)}</b> ${dn?'turun':(Math.abs(gv)<0.5?'relatif stabil':'naik')} ${fmtSignAbs(gv)} (${fmtPct(gvp)}) dari ${fmt(g.py)} pada ${py} (PY) menjadi ${fmt(g.cy)} pada ${cy} (CY).`+((decN||incN)?` ${decN} akun turun &middot; ${incN} akun naik &middot; total ${g.items.length} akun.`:'');
+    h+=`<div class="fsl-group">
+      <button class="fsl-head" type="button" aria-expanded="false">
+        ${chev}<span class="fsl-ix">${esc(g.indx||'-')}</span>
+        <span class="fsl-headmain">
+          <span class="fsl-titlerow"><span class="fsl-nm">${esc(nm)}</span><span class="fsl-cnt">${g.items.length} akun</span></span>
+          <span class="fsl-mini">CY <b>${fmt(g.cy)}</b> &middot; PY <b>${fmt(g.py)}</b> &middot; <span class="${dn?'vred':''}">${fmtSignAbs(gv)}${arrow(gv)} (${fmtPct(gvp)})</span></span>
+        </span>
+      </button>
+      <div class="fsl-detail"><div class="fsl-detail-in">
+        <div class="fsl-review">${review}</div>
+        <div class="fsl-detail-scroll"><table class="fsl-sum"><thead><tr><th>COA</th><th>Akun</th><th>Audited ${cy}</th><th>Audited ${py}</th><th>Kenaikan / Penurunan</th><th>%</th></tr></thead><tbody>`;
+    g.items.forEach(it=>{const d2=it.v<0;
+      h+=`<tr><td class="c">${esc(it.coa)}</td><td>${esc(it.desc||'(tanpa nama)')}</td><td class="n">${fmt(it.cy)}</td><td class="n">${fmt(it.py)}</td><td class="n ${d2?'vred':''}">${fmtSignAbs(it.v)}${arrow(it.v)}</td><td class="n ${d2?'vred':''}">${fmtPct(it.vp)}</td></tr>`;});
+    h+='</tbody></table></div></div></div></div>';
+  }
+  el.innerHTML=h;
 }
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function updateCalcBtn(){$('calcBtn').disabled=!rows.length;}
@@ -435,14 +575,15 @@ function isMaterial(p,variance,varPct){
   if(p.pct<=0&&p.amt<=0)return Math.abs(variance)>=0.5; // semua selisih ditandai
   return pctHit||amtHit;
 }
-function build(){
+function build(forceIndx){
   const p=getParams();
   // satu WP = satu indx (FSL line). Bila ada lebih dari satu indx, pakai yang dipilih.
   const groups=leadGroups();
-  let sel=p.selIndx;
+  let sel=(arguments.length>0)?forceIndx:p.selIndx;
   if(!groups.some(g=>g.indx===sel))sel=(groups[0]||{indx:''}).indx;
   const grp=rows.filter(r=>(r.indx||'').trim()===sel);
-  const used=grp.length?grp:rows;                 // fallback: semua baris bila grup kosong
+  let used=grp.length?grp:rows;                   // fallback: semua baris bila grup kosong
+  if(!showEmptyOn())used=used.filter(r=>!isBlankRow(r)); // sembunyikan akun bersaldo nol
   // nilai diambil dari data input:
   const fslName=(used.find(r=>r.fsl)||{}).fsl||'';
   p.wpCode  = sel || 'CODE WP';                    // indx -> CODE WP
@@ -466,7 +607,7 @@ function renderMeta(){
       <div class="left">
         <div class="client">${esc(p.client)}</div>
         <div class="ttl">${esc(p.titleLong)}</div>
-        <div class="sub">Leadsheets</div>
+        <div class="sub"><span class="ix">${esc(p.wpCode)}</span>${esc(p.wpName)}</div>
       </div>
       <div class="wpbox">
         <div class="top"><div class="c">${esc(p.wpCode)}</div><div class="c">${esc(p.wpName)}</div></div>
@@ -482,35 +623,30 @@ function vcell(variance,varPct,material){
           pp:`<span class="${cls}">${fmtPct(varPct)}${Math.abs(varPct)<0.00005?'':`<span class="arrow">${up?'&#9650;':'&#9660;'}</span>`}</span>`};
 }
 function renderTable(){
-  const {p,data,T,indxTotal,orbTotal}=model;
+  const {p,data,T}=model;
   const cy=p.cy,py=p.py;
-  // lebar kolom terkunci (px) — proporsi persis seperti gambar, kolom angka seragam
-  const cw=[141,91,49,49,224,64,141,141,141,141,141,141,141,141];
-  let h=`<colgroup>${cw.map(w=>`<col style="width:${w}px">`).join('')}</colgroup><thead>
-    <tr class="grp"><th colspan="6"></th><th>|--------- GL ---------|</th><th colspan="4"></th><th>|--------- PY ---------|</th><th colspan="2"></th></tr>
+  const AL={c:'text-align:center',l:'text-align:left',r:'text-align:right'};
+  let h=`<thead>
     <tr class="hdr">
-      <th>COA</th><th>COA CSL</th><th>INDX</th><th>ORB</th><th>DESC</th><th>REFF</th>
-      <th>DEC 31, ${cy}<br>(UNAUDITED)</th><th>CLA</th><th>DEC 31, ${cy}<br>(AFTER CLA)</th><th>AJE</th>
-      <th>DEC 31, ${cy}<br>(AUDITED)</th><th>DEC 31, ${py}<br>(AUDITED)</th><th>VARIANCE</th><th>% VAR</th>
+      <th>COA</th><th>DESC</th>
+      <th>DEC 31, ${cy}<br>(AUDITED)</th><th>DEC 31, ${py}<br>(AUDITED)</th>
+      <th>VARIANCE</th><th>% VAR</th>
     </tr></thead><tbody>`;
   data.forEach(d=>{
     const m=isMaterial(p,d.variance,d.varPct);const c=vcell(d.variance,d.varPct,m);
     h+=`<tr>
-      <td>${esc(d.coa)}</td><td>${esc(d.coa_csl)}</td><td>${esc(d.indx)}</td><td>${esc(d.orb)}</td>
-      <td class="desc">${esc(d.desc)}</td><td>${esc(d.reff)}</td>
-      <td class="num">${fmt(d.unaudited)}</td><td class="num">${fmt(d.cla)}</td><td class="num">${fmt(d.afterCla)}</td>
-      <td class="num">${fmt(d.aje)}</td><td class="num">${fmt(d.audited)}</td><td class="num">${fmt(d.py)}</td>
-      <td class="num">${c.v}</td><td class="num">${c.pp}</td></tr>`;
+      <td style="${AL.c}">${esc(d.coa)}</td><td class="desc" style="${AL.l}">${esc(d.desc)}</td>
+      <td class="num" style="${AL.r}">${fmt(d.audited)}</td><td class="num" style="${AL.r}">${fmt(d.py)}</td>
+      <td class="num" style="${AL.r}">${c.v}</td><td class="num" style="${AL.r}">${c.pp}</td></tr>`;
   });
   const mT=isMaterial(p,T.variance,T.varPct);const cT=vcell(T.variance,T.varPct,mT);
   h+=`<tr class="total">
-      <td></td><td></td><td>${esc(indxTotal)}</td><td>${esc(orbTotal)}</td>
-      <td class="desc">Total ${esc(p.leadName)}</td><td></td>
-      <td class="num">${fmt(T.unaudited)}</td><td class="num">${fmt(T.cla)}</td><td class="num">${fmt(T.afterCla)}</td>
-      <td class="num">${fmt(T.aje)}</td><td class="num">${fmt(T.audited)}</td><td class="num">${fmt(T.py)}</td>
-      <td class="num">${cT.v}</td><td class="num">${cT.pp}</td></tr>`;
+      <td style="${AL.c}"></td><td class="desc" style="${AL.l}">Total ${esc(p.leadName)}</td>
+      <td class="num" style="${AL.r}">${fmt(T.audited)}</td><td class="num" style="${AL.r}">${fmt(T.py)}</td>
+      <td class="num" style="${AL.r}">${cT.v}</td><td class="num" style="${AL.r}">${cT.pp}</td></tr>`;
   h+='</tbody>';
   $('lsTable').innerHTML=h;
+  const lt=$('lsTag'); if(lt)lt.textContent='Leadsheet'+(numScale!==1?' ('+scaleLabel(numScale)+')':'');
 }
 function renderStats(){
   const T=model.T;
@@ -545,15 +681,17 @@ function genPrelim(){
 function calculate(){
   clearErr();
   if(!rows.length){showErr('Belum ada data akun. Unggah Excel atau muat contoh data.');return;}
+  applyScale();
   build();
-  renderMeta();renderTable();renderStats();
-  $('prelimArea').value=genPrelim();
+  renderMeta();renderTable();
+  $('prelimArea').value=genPrelim();  // tetap dihasilkan untuk Excel (tidak ditampilkan di web)
   $('results').classList.remove('hidden');
   $('results').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
 /* ===================== EXCEL EXPORT (ExcelJS, berformat — 3 sheet) ===================== */
-async function exportExcel(){
+async function exportExcel(opts){
+  opts=(opts&&typeof opts==='object'&&!opts.target)?opts:{}; // abaikan objek event dari listener
   if(!model){toast('Proses leadsheet terlebih dahulu.');return;}
   const {p,data,T,indxTotal,orbTotal}=model;
   const wb=new ExcelJS.Workbook();
@@ -564,8 +702,12 @@ async function exportExcel(){
   const allThin={top:thin,left:thin,bottom:thin,right:thin};
   const wpb={top:thinDk,left:thinDk,bottom:thinDk,right:thinDk};
   const FS=10, HF='FFF2F2F2', TF='FFF1F1F3', RED='FFFF0000';
-  const fmtN='[$-421]#,##0;([$-421]#,##0);"-"';
-  const fmtVar='[$-421]#,##0" \u25B2";[$-421]#,##0" \u25BC";"-"';
+  // skala tampilan angka Excel: nilai & rumus tetap utuh, hanya format yang menampilkan ribuan/jutaan
+  const _sc=parseFloat(($('pScale')||{}).value)||1;
+  const SC=_sc===1e6?2:(_sc===1000?1:0);
+  const scl=f=>f.replace(/#,##0/g,'#,##0'+','.repeat(SC));
+  const fmtN=scl('[$-421]#,##0;([$-421]#,##0);"-"');
+  const fmtVar=scl('[$-421]#,##0" \u25B2";[$-421]#,##0" \u25BC";"-"');
   const fmtPctX='[$-421]0.0%" \u25B2";[$-421]0.0%" \u25BC";"-"';
 
   // posisi kotak WP di sheet Leadsheet (jadi acuan/master untuk mirror PREPARED/REVIEWED/DATE)
@@ -643,7 +785,7 @@ async function exportExcel(){
     const ws=wb.addWorksheet('Leadsheet',{views:[{showGridLines:false}],pageSetup:pageLand});
     [20,13,7,7,32,9,20,20,20,20,20,20,20,20].forEach((w,i)=>ws.getColumn(i+1).width=w);
     header(ws,p.wpCode,p.wpName,'Leadsheets',LEAD_C0,false);  // kotak WP di kolom H..K
-    set(ws,'A6','Leadsheet',{bold:true,size:10});
+    set(ws,'A6','Leadsheet'+(SC?(SC===2?' (dalam jutaan)':' (dalam ribuan)'):''),{bold:true,size:10});
     set(ws,'G6','|--------- GL ---------|',{size:9,color:{argb:RED}},{horizontal:'center'});
     set(ws,'L6','|--------- PY ---------|',{size:9,color:{argb:RED}},{horizontal:'center'});
     const hr=7;
@@ -767,12 +909,28 @@ async function exportExcel(){
   // ===== data baris sheet AJE dipusatkan di sini =====
   // dipakai buildAJE (isi tabel) sekaligus jadi sumber rumus SUMIFS di sheet Leadsheet.
   const AJE_SHEET='Adjusment Journal Entries';
-  const ajeLines=[]; { let n=0;
+  const ajeLines=[];
+  if(ajeRecords.length){
+    // hanya jurnal yang menyentuh COA pada FSL terpilih; satu jurnal terbawa utuh
+    const coaSet=new Set(data.map(d=>d.coa));
+    const acctName=new Map(rows.map(r=>[r.coa,r.desc]));
+    const byNo=new Map();
+    ajeRecords.forEach(a=>{if(!byNo.has(a.no))byNo.set(a.no,[]);byNo.get(a.no).push(a);});
+    let first=true;
+    for(const [,jl] of byNo){
+      if(!jl.some(l=>coaSet.has(l.coa)))continue;        // lewati jurnal yang tak menyentuh FSL
+      if(!first)ajeLines.push({sep:true});                // baris kosong pemisah antar jurnal
+      first=false;
+      jl.forEach((l,idx)=>ajeLines.push({no:idx===0?l.no:'',type:l.type,coa:l.coa,desc:acctName.get(l.coa)||'',reff:'',amount:l.amt,description:l.desc}));
+    }
+  }
+  if(!ajeLines.length){ // fallback: turunkan dari CLA/AJE per akun bila tak ada sheet AJE
+    let n=0;
     data.forEach(d=>{
       if(Math.abs(d.cla)>=0.5)ajeLines.push({no:++n,type:'CLA',coa:d.coa,desc:d.desc,reff:d.reff,amount:d.cla});
       if(Math.abs(d.aje)>=0.5)ajeLines.push({no:++n,type:'AJE',coa:d.coa,desc:d.desc,reff:d.reff,amount:d.aje});
     });
-    if(!ajeLines.length){ajeLines.push({no:1,type:'CLA'});ajeLines.push({});ajeLines.push({type:'AJE'});}
+    if(!ajeLines.length){ajeLines.push({no:1,type:'CLA'});ajeLines.push({sep:true});ajeLines.push({type:'AJE'});}
   }
   const ajeFirst=9;                                   // baris data pertama sheet AJE (sub-header di baris 8)
   const ajeRowCount=Math.max(ajeLines.length,15);
@@ -784,9 +942,61 @@ async function exportExcel(){
   buildContent(); buildLeadsheet(); buildAJE(); buildNature();
 
   const buf=await wb.xlsx.writeBuffer();
-  const fname='KertasKerja_'+(p.wpCode||'WP').replace(/[^\w-]/g,'')+'_'+p.cy+'.xlsx';
-  saveBlob(new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),fname);
-  toast('File Excel (3 sheet) berhasil diunduh.');
+  const out=await suppressExcelWarnings(buf);   // matikan notifikasi error-checking (segitiga hijau) di semua sheet
+  const fname=opts.fname||wpFileName(p);        // penamaan: "kode - nama fsl - nama klien.xlsx"
+  saveBlob(new Blob([out],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),fname);
+  if(!opts.silent)toast('File Excel (3 sheet) berhasil diunduh.');
+}
+/* nama file WP: "kode - nama fsl - nama klien.xlsx" (karakter ilegal dibersihkan) */
+function wpFileName(p){
+  const clean=s=>String(s||'').replace(/[\\/:*?"<>|]/g,' ').replace(/\s+/g,' ').trim();
+  return (clean(p.wpCode)||'WP')+' - '+(clean(p.wpName)||'FSL')+' - '+(clean(p.client)||'Klien')+'.xlsx';
+}
+/* Unduh seluruh WP (tiap FSL line / indx) sebagai file terpisah */
+async function exportAllWP(){
+  clearErr();
+  if(!rows.length){showErr('Belum ada data akun. Unggah Excel atau muat contoh data.');return;}
+  const groups=leadGroups();
+  if(!groups.length){showErr('Tidak ada FSL line untuk diunduh.');return;}
+  const btn=$('dlAllBtn'); const lbl=btn?btn.textContent:''; if(btn){btn.disabled=true;btn.textContent='Menyiapkan '+groups.length+' WP…';}
+  const selBefore=$('pLeadSelect')?$('pLeadSelect').value:'';
+  let n=0;
+  try{
+    for(const g of groups){
+      build(g.indx);                          // bangun model untuk indx ini
+      await exportExcel({silent:true});        // unduh sebagai file terpisah (nama: kode - fsl - klien)
+      n++;
+      await new Promise(r=>setTimeout(r,450)); // jeda agar browser tidak memblokir unduhan beruntun
+    }
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent=lbl||'Unduh Semua WP';}
+    // kembalikan tampilan ke lead yang dipilih semula
+    if($('pLeadSelect'))$('pLeadSelect').value=selBefore;
+    build(); renderMeta(); renderTable(); $('prelimArea').value=genPrelim();
+  }
+  toast(n+' WP berhasil diunduh (file terpisah).');
+}
+/* Sisipkan <ignoredErrors> ke tiap worksheet agar Excel tidak menampilkan
+   notifikasi (segitiga hijau) seperti "Inconsistent Formula" / "Number Stored as Text".
+   Logic & isi sel tidak diubah — hanya menambah penanda abaikan-error pada XML. */
+async function suppressExcelWarnings(buf){
+  try{
+    if(typeof JSZip==='undefined')return buf;
+    const zip=await JSZip.loadAsync(buf);
+    const names=Object.keys(zip.files).filter(n=>/^xl\/worksheets\/sheet\d+\.xml$/.test(n));
+    const TRAIL=/<(smartTags|drawing|legacyDrawing|legacyDrawingHF|drawingHF|picture|oleObjects|controls|webPublishItems|tableParts|extLst)\b/;
+    for(const n of names){
+      let xml=await zip.file(n).async('string');
+      if(xml.indexOf('<ignoredErrors')!==-1)continue;
+      const dim=xml.match(/<dimension ref="([^"]+)"\s*\/>/);
+      const sqref=dim?dim[1]:'A1:XFD1048576';
+      const ig='<ignoredErrors><ignoredError sqref="'+sqref+'" evalError="1" twoDigitTextYear="1" numberStoredAsText="1" formula="1" formulaRange="1" unlockedFormula="1" emptyCellReference="1" listDataValidation="1" calculatedColumn="1"/></ignoredErrors>';
+      const m=xml.match(TRAIL);
+      xml = m ? (xml.slice(0,m.index)+ig+xml.slice(m.index)) : xml.replace('</worksheet>',ig+'</worksheet>');
+      zip.file(n,xml);
+    }
+    return await zip.generateAsync({type:'arraybuffer'});
+  }catch(e){ return buf; } // bila gagal, unduh apa adanya
 }
 /* uraian sifat akun (Nature of Account) — pakai kolom input bila ada, jika tidak dihasilkan dari nama akun */
 function natureOf(d){
@@ -840,6 +1050,19 @@ function downloadTemplate(){
   const ws=XLSX.utils.aoa_to_sheet(aoa);
   ws['!cols']=[{wch:20},{wch:13},{wch:7},{wch:7},{wch:24},{wch:30},{wch:9},{wch:13},{wch:11},{wch:11},{wch:13}];
   const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'input');
+  // sheet kedua: kumpulan AJE (no, type, coa, amt, desc)
+  const aje=[
+    ['no','type','coa','amt','desc'],
+    [1,'CLA','1.07.01.01.001.001',-10,'Reklasifikasi nilai perolehan tanah'],
+    [1,'CLA','3.01.01.001.001',10,'Reklasifikasi nilai perolehan tanah'],
+    [2,'AJE','1.07.01.04.001.001',-20,'Koreksi beban penyusutan kendaraan'],
+    [2,'AJE','5.01.01.002.001',20,'Koreksi beban penyusutan kendaraan'],
+    [3,'AJE','1.01.01.001.001',8,'Jurnal kas (tidak terkait aset tetap)'],
+    [3,'AJE','4.01.01.001.001',-8,'Jurnal kas (tidak terkait aset tetap)']
+  ];
+  const wsA=XLSX.utils.aoa_to_sheet(aje);
+  wsA['!cols']=[{wch:6},{wch:8},{wch:22},{wch:13},{wch:36}];
+  XLSX.utils.book_append_sheet(wb,wsA,'aje');
   XLSX.writeFile(wb,'template_leadsheet.xlsx');
   toast('Template Excel berhasil diunduh.');
 }
@@ -861,7 +1084,20 @@ function loadSample(){
     ['1.07.01.07.001.001','A20','Kendaraan dan Peralatan','5200','Perabot Kantor'],
     ['1.07.01.07.002.001','A20','Kendaraan dan Peralatan','5200','Perabot Rumah Dinas']
   ];
-  handleRecords(recs.map(r=>({coa:r[0],coa_csl:'1110100000',indx:r[1],fsl:r[2],orb:r[3],desc:r[4],reff:'',unaudited:100,cla:0,aje:0,py:200,nature:''})));
+  const recs2=recs.map(r=>({coa:r[0],coa_csl:'1110100000',indx:r[1],fsl:r[2],orb:r[3],desc:r[4],reff:'',unaudited:100,cla:0,aje:0,py:200,nature:''}));
+  // contoh sheet AJE: jurnal yang menyentuh COA pada FSL akan terbawa utuh ke sheet AJE WP
+  ajeRecords=[
+    {no:'1',type:'CLA',typeRaw:'CLA',coa:'1.07.01.01.001.001',amt:-10,desc:'Reklasifikasi nilai perolehan tanah'},
+    {no:'1',type:'CLA',typeRaw:'CLA',coa:'3.01.01.001.001',amt:10,desc:'Reklasifikasi nilai perolehan tanah'},
+    {no:'2',type:'AJE',typeRaw:'AJE',coa:'1.07.01.02.001.001',amt:5,desc:'Koreksi kapitalisasi bangunan'},
+    {no:'2',type:'AJE',typeRaw:'AJE',coa:'5.02.01.001.001',amt:-5,desc:'Koreksi kapitalisasi bangunan'},
+    {no:'3',type:'AJE',typeRaw:'AJE',coa:'1.07.01.04.001.001',amt:-20,desc:'Koreksi beban penyusutan kendaraan'},
+    {no:'3',type:'AJE',typeRaw:'AJE',coa:'5.01.01.002.001',amt:20,desc:'Koreksi beban penyusutan kendaraan'},
+    {no:'4',type:'AJE',typeRaw:'AJE',coa:'1.01.01.001.001',amt:8,desc:'Jurnal kas (tidak terkait aset tetap)'},
+    {no:'4',type:'AJE',typeRaw:'AJE',coa:'4.01.01.001.001',amt:-8,desc:'Jurnal kas (tidak terkait aset tetap)'}
+  ];
+  applyAjeToRows(recs2);
+  handleRecords(recs2);
   $('pClient').value='NAMA KLIEN';
   $('pYearEnd').value='2025-12-31';
   $('pPrep').value='USER1'; $('pRev').value='USER2';
@@ -883,7 +1119,20 @@ $('pLeadSelect').addEventListener('change',()=>{
   updateLeadInfo();
   if(!$('results').classList.contains('hidden'))calculate(); // jika hasil sudah tampil, langsung perbarui ke lead terpilih
 });
-$('dlBtn').addEventListener('click',exportExcel);
+$('pYearEnd').addEventListener('change',()=>{ if(rows.length)renderAssetList(); });
+['pScale','pShowEmpty'].forEach(id=>$(id).addEventListener('change',()=>{
+  applyScale();
+  if(rows.length)renderAssetList();
+  if(!$('results').classList.contains('hidden'))calculate(); // sinkronkan tabel + prelim ke opsi baru
+}));
+// expand/collapse kartu FSL (default collapse; detail per COA muncul saat dibuka)
+$('assetList').addEventListener('click',e=>{
+  const head=e.target.closest('.fsl-head'); if(!head)return;
+  const grp=head.closest('.fsl-group'); const open=grp.classList.toggle('open');
+  head.setAttribute('aria-expanded',open?'true':'false');
+});
+$('dlBtn').addEventListener('click',()=>exportExcel());
+$('dlAllBtn').addEventListener('click',exportAllWP);
 $('printBtn').addEventListener('click',()=>window.print());
 const gm=$('guideModal');
 $('openGuideBtn').addEventListener('click',()=>gm.classList.add('show'));
