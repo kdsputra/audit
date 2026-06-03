@@ -103,12 +103,12 @@
   .fsl-list{margin-top:18px;display:flex;flex-direction:column;gap:8px;max-height:318px;overflow-y:auto;padding-right:4px}
   .fsl-list::-webkit-scrollbar{width:5px}.fsl-list::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:10px}
   .fsl-group{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--card);flex:none;transition:border-color .15s ease,box-shadow .15s ease}
-  .fsl-group.open{border-color:#e8860c;box-shadow:0 0 0 1px #e8860c}
+  .fsl-group.open{box-shadow:0 1px 0 rgba(0,0,0,.02)}
   .fsl-head{display:flex;align-items:center;gap:9px;padding:10px 13px;min-height:56px;box-sizing:border-box;background:var(--card);border:none;width:100%;text-align:left;font:inherit;cursor:pointer;color:var(--text)}
   .fsl-head:hover{background:#f7f7f9}
-  .fsl-group.open .fsl-head{background:#fff7ed;border-bottom:1px solid #f3d9b5}
+  .fsl-group.open .fsl-head{background:#f5f5f7;border-bottom:1px solid var(--line)}
   .fsl-head .fsl-chev{flex:none;color:var(--muted);transition:transform .25s ease}
-  .fsl-group.open .fsl-head .fsl-chev{transform:rotate(90deg);color:#e8860c}
+  .fsl-group.open .fsl-head .fsl-chev{transform:rotate(90deg)}
   .fsl-head .fsl-ix{flex:none;font-size:10.5px;font-weight:700;color:var(--muted);background:var(--line);border-radius:6px;padding:2px 7px}
   .fsl-headmain{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
   .fsl-titlerow{display:flex;align-items:baseline;gap:8px}
