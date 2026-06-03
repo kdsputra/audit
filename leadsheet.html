@@ -100,16 +100,16 @@
   .vred{color:var(--danger);font-weight:700}
   .arrow{font-size:11px;margin-left:3px}
   /* ringkasan saldo per FSL line (tampilan web) — kartu collapsible minimalis */
-  .fsl-list{margin-top:18px;display:flex;flex-direction:column;gap:8px;max-height:62vh;overflow-y:auto;padding-right:4px}
+  .fsl-list{margin-top:18px;display:flex;flex-direction:column;gap:8px;max-height:318px;overflow-y:auto;padding-right:4px}
   .fsl-list::-webkit-scrollbar{width:5px}.fsl-list::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:10px}
-  .fsl-group{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--card)}
-  .fsl-group.open{box-shadow:0 1px 0 rgba(0,0,0,.02)}
-  .fsl-head{display:flex;align-items:flex-start;gap:9px;padding:10px 13px;background:var(--card);border:none;width:100%;text-align:left;font:inherit;cursor:pointer;color:var(--text)}
+  .fsl-group{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--card);flex:none;transition:border-color .15s ease,box-shadow .15s ease}
+  .fsl-group.open{border-color:#e8860c;box-shadow:0 0 0 1px #e8860c}
+  .fsl-head{display:flex;align-items:center;gap:9px;padding:10px 13px;min-height:56px;box-sizing:border-box;background:var(--card);border:none;width:100%;text-align:left;font:inherit;cursor:pointer;color:var(--text)}
   .fsl-head:hover{background:#f7f7f9}
-  .fsl-group.open .fsl-head{background:#f5f5f7;border-bottom:1px solid var(--line)}
-  .fsl-head .fsl-chev{flex:none;margin-top:2px;color:var(--muted);transition:transform .25s ease}
-  .fsl-group.open .fsl-head .fsl-chev{transform:rotate(90deg)}
-  .fsl-head .fsl-ix{flex:none;margin-top:1px;font-size:10.5px;font-weight:700;color:var(--muted);background:var(--line);border-radius:6px;padding:2px 7px}
+  .fsl-group.open .fsl-head{background:#fff7ed;border-bottom:1px solid #f3d9b5}
+  .fsl-head .fsl-chev{flex:none;color:var(--muted);transition:transform .25s ease}
+  .fsl-group.open .fsl-head .fsl-chev{transform:rotate(90deg);color:#e8860c}
+  .fsl-head .fsl-ix{flex:none;font-size:10.5px;font-weight:700;color:var(--muted);background:var(--line);border-radius:6px;padding:2px 7px}
   .fsl-headmain{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
   .fsl-titlerow{display:flex;align-items:baseline;gap:8px}
   .fsl-titlerow .fsl-nm{font-weight:700;font-size:13.5px;letter-spacing:-0.01em;flex:1;min-width:0;line-height:1.25}
@@ -520,13 +520,19 @@ function renderAssetList(){
     g.items.push({coa:r.coa,desc:r.desc,cy:cyv,py:pyv,v,vp:pyv!==0?v/pyv:(cyv!==0?(v>0?1:-1):0)});
     g.cy+=cyv; g.py+=pyv;
   });
-  let h='';
+  // simpan grup untuk render detail saat di-expand (lazy) — penting untuk ribuan COA & puluhan FSL
+  _fslMeta={cy,cy_py:py};
+  _fslGroups=[];
   for(const g of groups.values()){
     const gv=g.cy-g.py, gvp=g.py!==0?gv/g.py:(g.cy!==0?(gv>0?1:-1):0), dn=gv<0;
     const decN=g.items.filter(it=>it.v<-0.5).length, incN=g.items.filter(it=>it.v>0.5).length;
     const nm=g.fsl||g.indx||'(tanpa FSL line)';
-    const review=`Saldo audited <b>${esc(nm)}</b> ${dn?'turun':(Math.abs(gv)<0.5?'relatif stabil':'naik')} ${fmtSignAbs(gv)} (${fmtPct(gvp)}) dari ${fmt(g.py)} pada ${py} (PY) menjadi ${fmt(g.cy)} pada ${cy} (CY).`+((decN||incN)?` ${decN} akun turun &middot; ${incN} akun naik &middot; total ${g.items.length} akun.`:'');
-    h+=`<div class="fsl-group">
+    _fslGroups.push({g,gv,gvp,dn,decN,incN,nm});
+  }
+  let h='';
+  _fslGroups.forEach((G,gi)=>{
+    const {g,gv,gvp,dn,nm}=G;
+    h+=`<div class="fsl-group" data-gi="${gi}">
       <button class="fsl-head" type="button" aria-expanded="false">
         ${chev}<span class="fsl-ix">${esc(g.indx||'-')}</span>
         <span class="fsl-headmain">
@@ -534,14 +540,23 @@ function renderAssetList(){
           <span class="fsl-mini">CY <b>${fmt(g.cy)}</b> &middot; PY <b>${fmt(g.py)}</b> &middot; <span class="${dn?'vred':''}">${fmtSignAbs(gv)}${arrow(gv)} (${fmtPct(gvp)})</span></span>
         </span>
       </button>
-      <div class="fsl-detail"><div class="fsl-detail-in">
-        <div class="fsl-review">${review}</div>
-        <div class="fsl-detail-scroll"><table class="fsl-sum"><thead><tr><th>COA</th><th>Akun</th><th>Audited ${cy}</th><th>Audited ${py}</th><th>Kenaikan / Penurunan</th><th>%</th></tr></thead><tbody>`;
-    g.items.forEach(it=>{const d2=it.v<0;
-      h+=`<tr><td class="c">${esc(it.coa)}</td><td>${esc(it.desc||'(tanpa nama)')}</td><td class="n">${fmt(it.cy)}</td><td class="n">${fmt(it.py)}</td><td class="n ${d2?'vred':''}">${fmtSignAbs(it.v)}${arrow(it.v)}</td><td class="n ${d2?'vred':''}">${fmtPct(it.vp)}</td></tr>`;});
-    h+='</tbody></table></div></div></div></div>';
-  }
+      <div class="fsl-detail"><div class="fsl-detail-in" data-detail="${gi}"></div></div>
+    </div>`;
+  });
   el.innerHTML=h;
+}
+let _fslGroups=[], _fslMeta={cy:0,cy_py:0};
+/* bangun isi detail satu FSL (review + tabel per-COA) — dipanggil saat kartu di-expand */
+function buildFslDetail(gi){
+  const G=_fslGroups[gi]; if(!G)return '';
+  const cy=_fslMeta.cy, py=_fslMeta.cy_py;
+  const {g,gv,gvp,dn,decN,incN,nm}=G;
+  const arrow=v=>Math.abs(v)<0.5?'':`<span class="arrow">${v<0?'&#9660;':'&#9650;'}</span>`;
+  const review=`Saldo audited <b>${esc(nm)}</b> ${dn?'turun':(Math.abs(gv)<0.5?'relatif stabil':'naik')} ${fmtSignAbs(gv)} (${fmtPct(gvp)}) dari ${fmt(g.py)} pada ${py} (PY) menjadi ${fmt(g.cy)} pada ${cy} (CY).`+((decN||incN)?` ${decN} akun turun &middot; ${incN} akun naik &middot; total ${g.items.length} akun.`:'');
+  let t=`<div class="fsl-review">${review}</div><div class="fsl-detail-scroll"><table class="fsl-sum"><thead><tr><th>COA</th><th>Akun</th><th>Audited ${cy}</th><th>Audited ${py}</th><th>Kenaikan / Penurunan</th><th>%</th></tr></thead><tbody>`;
+  g.items.forEach(it=>{const d2=it.v<0;
+    t+=`<tr><td class="c">${esc(it.coa)}</td><td>${esc(it.desc||'(tanpa nama)')}</td><td class="n">${fmt(it.cy)}</td><td class="n">${fmt(it.py)}</td><td class="n ${d2?'vred':''}">${fmtSignAbs(it.v)}${arrow(it.v)}</td><td class="n ${d2?'vred':''}">${fmtPct(it.vp)}</td></tr>`;});
+  return t+'</tbody></table></div>';
 }
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function updateCalcBtn(){$('calcBtn').disabled=!rows.length;}
@@ -814,7 +829,7 @@ async function exportExcel(opts){
     const lastRow=r-1, tr=r;
     const matT=isMaterial(p,T.variance,T.varPct);
     const sumF=(col,res)=>({formula:`SUM(${col}${firstRow}:${col}${lastRow})`,result:res});
-    const tvals=['','',indxTotal,orbTotal,'Total '+p.leadName,'',
+    const tvals=['','','',orbTotal,'Total '+p.leadName,'',
       sumF('G',T.unaudited), sumF('H',T.cla),
       sumF('I',T.afterCla), sumF('J',T.aje),
       sumF('K',T.audited), sumF('L',T.py),
@@ -847,11 +862,18 @@ async function exportExcel(opts){
     data.forEach(d=>{
       // kolom akun mirror dari sheet Leadsheet (baris sama) agar selalu sinkron
       const m=(col,res)=>({formula:`IF(Leadsheet!${col}${r}="","",Leadsheet!${col}${r})`,result:(res==null||res==='')?'':res});
-      const vals=[m('A',d.coa),m('B',d.coa_csl),m('C',d.indx),m('D',d.orb),m('E',d.desc),natureOf(d)];
+      const natTxt=natureOf(d);
+      const vals=[m('A',d.coa),m('B',d.coa_csl),m('C',d.indx),m('D',d.orb),m('E',d.desc),natTxt];
       vals.forEach((v,i)=>{const c=ws.getCell(r,i+1);c.value=v;c.border=allThin;c.font={size:FS};
         c.alignment={horizontal:(i<=3)?'center':'left',vertical:(i===5?'top':'middle'),wrapText:(i>=4)};});
       // kolom Nature lebar = merge F:I per baris
       ws.mergeCells(r,6,r,9); for(let cc=7;cc<=9;cc++)ws.getCell(r,cc).border=allThin;
+      // tinggi baris menyesuaikan teks (wrap) tanpa mengubah lebar kolom.
+      // Nature = merge F:I (lebar ~72), DESC kolom E (lebar 30). Estimasi jumlah baris terbungkus.
+      const lineH=14.2;
+      const linesNat=Math.max(1,Math.ceil(String(natTxt||'').length/60));
+      const linesDesc=Math.max(1,Math.ceil(String(d.desc||'').length/26));
+      ws.getRow(r).height=Math.max(16,Math.max(linesNat,linesDesc)*lineH+2);
       r++;
     });
     ws.views=[{state:'frozen',ySplit:hr,showGridLines:false}];
@@ -861,7 +883,7 @@ async function exportExcel(opts){
   function buildAJE(){
     const ws=wb.addWorksheet('Adjusment Journal Entries',{views:[{showGridLines:false}],pageSetup:pageLand});
     // No(A) Type(B) COA(C) Account Decription(D) Reff(E) Amount(F) | Description=merge G:J | Impact to: K..N
-    [5,9,18,28,8,14, 17,17,17,17, 18,18,18,18].forEach((w,i)=>ws.getColumn(i+1).width=w);
+    [5,9,18,28,8,18.43, 17,17,17,17, 18,18,18,18].forEach((w,i)=>ws.getColumn(i+1).width=w); // Amount ~134px
     header(ws,'AJE','Adjusment Journal Entries','Adjusment Journal Entry',7,false); // kotak WP di kolom G..J (di atas Description)
     set(ws,'A6','Adjusment Journal Entry',{bold:true,size:10});
 
@@ -895,10 +917,10 @@ async function exportExcel(opts){
       const L=lines[k]||{};
       const amt=(L.amount==null||L.amount==='')?'':L.amount;
       const setC=(col,v,align,nf)=>{const c=ws.getCell(r,col);c.value=v;c.border=allThin;c.font={size:FS};c.alignment=align;if(nf)c.numFmt=nf;};
-      const Cc={horizontal:'center',vertical:'middle'}, Lc={horizontal:'left',vertical:'middle',wrapText:true}, Rc={horizontal:'right',vertical:'middle'};
+      const Cc={horizontal:'center',vertical:'middle'}, Lm={horizontal:'left',vertical:'middle',wrapText:false}, Rc={horizontal:'right',vertical:'middle'};
       setC(1,L.no??'',Cc); setC(2,L.type??'',Cc); setC(3,L.coa??'',Cc);
-      setC(4,L.desc??'',Lc); setC(5,L.reff??'',Cc); setC(6,amt,Rc,fmtN);
-      setC(7,L.description??'',Lc);                 // Description (merge G:J)
+      setC(4,L.desc??'',Lm); setC(5,L.reff??'',Cc); setC(6,amt,Rc,fmtN);
+      setC(7,L.description??'',Lm);                 // Description (merge G:J)
       ws.mergeCells(r,7,r,10); for(let cc=8;cc<=10;cc++)ws.getCell(r,cc).border=allThin;
       [11,12,13,14].forEach(cc=>setC(cc,'',Rc,fmtN)); // Impact to: Assets/Liability/Equity/Loss(Profit)
       ws.getRow(r).height=16; r++;
@@ -912,16 +934,17 @@ async function exportExcel(opts){
   const ajeLines=[];
   if(ajeRecords.length){
     // hanya jurnal yang menyentuh COA pada FSL terpilih; satu jurnal terbawa utuh
-    const coaSet=new Set(data.map(d=>d.coa));
-    const acctName=new Map(rows.map(r=>[r.coa,r.desc]));
+    const coaSet=new Set(data.map(d=>String(d.coa).trim()));
+    const acctName=new Map(rows.map(r=>[String(r.coa).trim(),r.desc]));
     const byNo=new Map();
     ajeRecords.forEach(a=>{if(!byNo.has(a.no))byNo.set(a.no,[]);byNo.get(a.no).push(a);});
     let first=true;
     for(const [,jl] of byNo){
-      if(!jl.some(l=>coaSet.has(l.coa)))continue;        // lewati jurnal yang tak menyentuh FSL
+      if(!jl.some(l=>coaSet.has(String(l.coa).trim())))continue;        // lewati jurnal yang tak menyentuh FSL
       if(!first)ajeLines.push({sep:true});                // baris kosong pemisah antar jurnal
       first=false;
-      jl.forEach((l,idx)=>ajeLines.push({no:idx===0?l.no:'',type:l.type,coa:l.coa,desc:acctName.get(l.coa)||'',reff:'',amount:l.amt,description:l.desc}));
+      // Account Decription = nama akun (desc input) utk COA tsb; Description = desc jurnal dari input (per COA & no AJE)
+      jl.forEach((l,idx)=>ajeLines.push({no:idx===0?l.no:'',type:l.type,coa:l.coa,desc:(acctName.get(String(l.coa).trim())||l.desc||''),reff:'',amount:l.amt,description:l.desc}));
     }
   }
   if(!ajeLines.length){ // fallback: turunkan dari CLA/AJE per akun bila tak ada sheet AJE
@@ -1001,32 +1024,9 @@ async function suppressExcelWarnings(buf){
 /* uraian sifat akun (Nature of Account) — pakai kolom input bila ada, jika tidak dihasilkan dari nama akun */
 function natureOf(d){
   if(d.nature&&String(d.nature).trim())return String(d.nature).trim();
-  const c=norm(d.desc), L='Akun ini digunakan untuk mencatat ';
-  if(c.includes('hakguna'))
-    return L+(c.includes('kendaraan')?'aset tetap berupa hak guna atas kendaraan yang dipergunakan untuk operasional atau fasilitas kedinasan Perusahaan.':'aset tetap berupa hak guna atas gedung kantor yang dipergunakan Perusahaan untuk mendukung kegiatan operasional dan administratif.');
-  if(c.includes('tanah')){
-    if(c.includes('rumahdinas'))return L+'aset tetap berupa tanah yang digunakan sebagai rumah dinas pegawai untuk mendukung operasional Perusahaan.';
-    if(c.includes('kantor')||c.includes('gedung'))return L+'aset tetap berupa tanah yang dipergunakan Perusahaan sebagai lokasi gedung kantor untuk mendukung kegiatan usahanya.';
-    return L+'aset tetap berupa tanah yang dimiliki Perusahaan.';
-  }
-  if(c.includes('renovasi'))
-    return L+(c.includes('rumahdinas')?'biaya renovasi, perbaikan, atau peningkatan fasilitas yang dilakukan pada rumah dinas selama memenuhi kriteria kapitalisasi aset tetap.':'biaya renovasi, perbaikan, atau peningkatan fasilitas yang dilakukan pada gedung kantor Perusahaan sepanjang meningkatkan manfaat ekonomisnya.');
-  if(c.includes('bangunan')||c.includes('gedung'))
-    return L+(c.includes('rumahdinas')?'aset tetap berupa bangunan rumah dinas, yang disediakan Perusahaan bagi pegawai untuk kepentingan operasional.':'aset tetap berupa bangunan gedung kantor yang dipergunakan Perusahaan untuk menunjang kegiatan operasional dan administratif.');
-  if(c.includes('kendaraan')||c.includes('mobil')||c.includes('motor')){
-    if(c.includes('roda2')||c.includes('motor'))return L+'aset tetap berupa kendaraan bermotor roda 2 yang dipergunakan Perusahaan untuk mendukung kegiatan operasional.';
-    if(c.includes('roda4'))return L+'aset tetap berupa kendaraan bermotor roda 4 yang digunakan untuk operasional atau fasilitas kedinasan Perusahaan.';
-    return L+'aset tetap berupa kendaraan bermotor yang dipergunakan Perusahaan untuk kegiatan operasional.';
-  }
-  if(c.includes('peralatan')||c.includes('komputer')){
-    if(c.includes('komputer')&&!c.includes('non'))return L+'aset tetap berupa perangkat komputer dengan masa manfaat lebih dari satu tahun dan harga perolehan material sesuai ketentuan Perusahaan.';
-    if(c.includes('rumahdinas'))return L+'peralatan yang digunakan pada rumah dinas, termasuk perabot atau perangkat pendukung operasional di rumah dinas.';
-    return L+'aset tetap berupa peralatan kantor non-komputer seperti meja, kursi, lemari, dan perangkat lain yang digunakan dalam kegiatan usaha.';
-  }
-  if(c.includes('perabot'))
-    return L+(c.includes('rumahdinas')?'perabot atau peralatan rumah tangga yang ditempatkan di rumah dinas, selama memenuhi kriteria aset tetap.':'aset tetap berupa perabot kantor seperti mesin ketik, mesin fotokopi, dan peralatan kantor lainnya yang mendukung operasi Perusahaan.');
-  if(c.includes('mesin'))return L+'aset tetap berupa mesin yang digunakan dalam kegiatan produksi atau operasional Perusahaan.';
-  return L+(d.desc?String(d.desc).toLowerCase():'akun ini')+' sebagai bagian dari aset tetap Perusahaan.';
+  const coa=(d.desc&&String(d.desc).trim())?String(d.desc).trim():'akun ini';
+  const fsl=(d.fsl&&String(d.fsl).trim())?String(d.fsl).trim():(d.indx||'');
+  return 'Akun ini digunakan untuk mencatat '+coa+(fsl?(' yang merupakan bagian dari akun '+fsl):'')+'.';
 }
 function set(ws,addr,val,font,align,border,fill){
   const c=ws.getCell(addr); c.value=val;
@@ -1128,8 +1128,23 @@ $('pYearEnd').addEventListener('change',()=>{ if(rows.length)renderAssetList(); 
 // expand/collapse kartu FSL (default collapse; detail per COA muncul saat dibuka)
 $('assetList').addEventListener('click',e=>{
   const head=e.target.closest('.fsl-head'); if(!head)return;
-  const grp=head.closest('.fsl-group'); const open=grp.classList.toggle('open');
-  head.setAttribute('aria-expanded',open?'true':'false');
+  const grp=head.closest('.fsl-group');
+  const inner=grp.querySelector('.fsl-detail-in');
+  const wasOpen=grp.classList.contains('open');
+  // tutup semua kartu lain yang terbuka (accordion: hanya satu terbuka)
+  $('assetList').querySelectorAll('.fsl-group.open').forEach(o=>{
+    if(o===grp)return;
+    o.classList.remove('open'); const oh=o.querySelector('.fsl-head'); if(oh)oh.setAttribute('aria-expanded','false');
+    const oi=o.querySelector('.fsl-detail-in'); setTimeout(()=>{ if(oi && !o.classList.contains('open')){ oi.innerHTML=''; oi.dataset.loaded=''; } },320);
+  });
+  if(wasOpen){
+    grp.classList.remove('open'); head.setAttribute('aria-expanded','false');
+    setTimeout(()=>{ if(inner && !grp.classList.contains('open')){ inner.innerHTML=''; inner.dataset.loaded=''; } },320);
+    return;
+  }
+  if(inner && !inner.dataset.loaded){ inner.innerHTML=buildFslDetail(+inner.getAttribute('data-detail')); inner.dataset.loaded='1'; }
+  head.setAttribute('aria-expanded','true');
+  requestAnimationFrame(()=>grp.classList.add('open')); // animasikan setelah konten dimuat
 });
 $('dlBtn').addEventListener('click',()=>exportExcel());
 $('dlAllBtn').addEventListener('click',exportAllWP);
