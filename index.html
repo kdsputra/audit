@@ -28,7 +28,7 @@
       border-bottom: 1px solid #d2d2d7;
     }
     .nav-content {
-      max-width: 1200px; /* Disesuaikan dengan container baru */
+      max-width: 1200px;
       margin: 0 auto; padding: 0 24px; height: 100%;
       display: flex; align-items: center; justify-content: space-between;
     }
@@ -59,7 +59,7 @@
     .hero h1 { font-size: 56px; font-weight: 700; letter-spacing: -0.04em; margin-bottom: 16px; line-height: 1.05; }
     .hero p { font-size: 21px; color: var(--muted); font-weight: 400; letter-spacing: -0.01em; }
 
-    /* Cards Grid - Updated to 3 Columns */
+    /* Cards Grid - 3 Columns */
     .container { max-width: 1200px; margin: 0 auto; padding: 0 24px 80px; }
     .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
     
@@ -117,6 +117,7 @@
         <a href="#" class="active" data-app="home">Beranda</a>
         <a href="#" data-app="leadsheet.html">Leadsheet</a>
         <a href="#" data-app="aset-tetap.html">Aset Tetap</a>
+        <a href="#" data-app="sppi.html">Uji SPPI</a>
         <a href="#" data-app="lease.html">Sewa (Lease)</a>
         <a href="#" data-app="obligasi.html">Obligasi</a>
         <a href="#" data-app="pinjaman.html">Pinjaman</a>
@@ -158,6 +159,21 @@
             <li>Rollforward & Mutasi Otomatis</li>
             <li>Revaluasi & Penurunan Nilai</li>
             <li>Format CALK Siap Salin</li>
+          </ul>
+        </div>
+
+        <div class="card" onclick="openApp('sppi.html')">
+          <div class="card-icon" style="background: #0d9488;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+            </svg>
+          </div>
+          <h2>Uji SPPI (PSAK 109)</h2>
+          <p>Lakukan reviu model bisnis dan uji SPPI (Solely Payments of Principal and Interest) untuk klasifikasi instrumen aset keuangan secara sistematis.</p>
+          <ul class="card-features">
+            <li>Sintesis Matriks Otomatis</li>
+            <li>Identifikasi Pengecualian</li>
+            <li>Kertas Kerja Excel 6 Sheet</li>
           </ul>
         </div>
 
