@@ -28,7 +28,7 @@
       border-bottom: 1px solid #d2d2d7;
     }
     .nav-content {
-      max-width: 1200px;
+      max-width: 1300px;
       margin: 0 auto; padding: 0 24px; height: 100%;
       display: flex; align-items: center; justify-content: space-between;
     }
@@ -110,6 +110,7 @@
 </head>
 <body>
 
+  <!-- Header / Navigation -->
   <nav id="navbar">
     <div class="nav-content">
       <div class="nav-title" id="navTitle">Audit Tools</div>
@@ -121,10 +122,12 @@
         <a href="#" data-app="lease.html">Sewa (Lease)</a>
         <a href="#" data-app="obligasi.html">Obligasi</a>
         <a href="#" data-app="pinjaman.html">Pinjaman</a>
+        <a href="#" data-app="csv-to-excel.html">CSV Converter</a>
       </div>
     </div>
   </nav>
 
+  <!-- Landing Page Content -->
   <div id="landing">
     <div class="hero">
       <h1>Sistem Valuasi Finansial<br>Terintegrasi</h1>
@@ -134,6 +137,7 @@
     <div class="container">
       <div class="grid">
         
+        <!-- App 1: Leadsheet -->
         <div class="card" onclick="openApp('leadsheet.html')">
           <div class="card-icon" style="background: #34c759;">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -149,6 +153,7 @@
           </ul>
         </div>
 
+        <!-- App 2: Aset Tetap -->
         <div class="card" onclick="openApp('aset-tetap.html')">
           <div class="card-icon" style="background: #5856d6;">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M9 22v-4h6v4"/><path d="M8 6h.01"/><path d="M12 6h.01"/><path d="M16 6h.01"/><path d="M8 10h.01"/><path d="M12 10h.01"/><path d="M16 10h.01"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/></svg>
@@ -162,6 +167,7 @@
           </ul>
         </div>
 
+        <!-- App 3: Uji SPPI (PSAK 109) -->
         <div class="card" onclick="openApp('sppi.html')">
           <div class="card-icon" style="background: #0d9488;">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -177,6 +183,7 @@
           </ul>
         </div>
 
+        <!-- App 4: Sewa (Lease) -->
         <div class="card" onclick="openApp('lease.html')">
           <div class="card-icon" style="background: #0066cc;">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"/><rect x="9" y="9" width="6" height="6"/></svg>
@@ -190,6 +197,7 @@
           </ul>
         </div>
 
+        <!-- App 5: Obligasi -->
         <div class="card" onclick="openApp('obligasi.html')">
           <div class="card-icon" style="background: #1d1d1f;">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 16l4-6 4 3 5-8"/></svg>
@@ -203,6 +211,7 @@
           </ul>
         </div>
 
+        <!-- App 6: Pinjaman -->
         <div class="card" onclick="openApp('pinjaman.html')">
           <div class="card-icon" style="background: #ff9500;">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
@@ -215,11 +224,31 @@
             <li>Valuasi Saldo Cut-off</li>
           </ul>
         </div>
+
+        <!-- App 7: CSV to Excel Converter -->
+        <div class="card" onclick="openApp('csv-to-excel.html')">
+          <div class="card-icon" style="background: #10b981;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+              <line x1="8" y1="13" x2="16" y2="13"/>
+              <line x1="8" y1="17" x2="16" y2="17"/>
+            </svg>
+          </div>
+          <h2>CSV to Excel Converter</h2>
+          <p>Konversi instan file mentah (CSV, TXT, TSV) ke format Excel. Dilengkapi mesin cerdas pendeteksi encoding dan delimiter secara otomatis.</p>
+          <ul class="card-features">
+            <li>Auto-detect Delimiter & Encoding</li>
+            <li>Audit-grade (Zero Data Upload)</li>
+            <li>Custom Skip Row & Freeze Header</li>
+          </ul>
+        </div>
         
       </div>
     </div>
   </div>
 
+  <!-- App Container (Iframe) -->
   <div id="app-container">
     <iframe id="app-frame" title="Application Viewer"></iframe>
   </div>
