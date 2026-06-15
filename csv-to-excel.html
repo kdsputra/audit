@@ -1,0 +1,1300 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CSV to Excel Converter</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js" onerror="loadPapaParseBackup()"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" onerror="loadXLSXBackup()"></script>
+  <script>
+    // Backup loaders jika CDN utama gagal
+    function loadXLSXBackup() {
+      const script = document.createElement('script');
+      script.src = 'https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js';
+      document.head.appendChild(script);
+    }
+    function loadPapaParseBackup() {
+      const script = document.createElement('script');
+      script.src = 'https://unpkg.com/papaparse@5.4.1/papaparse.min.js';
+      document.head.appendChild(script);
+    }
+  </script>
+  <style>
+    :root {
+      --bg: #f5f5f7;
+      --card: #ffffff;
+      --text: #1d1d1f;
+      --muted: #86868b;
+      --border: #d2d2d7;
+      --accent: #0066cc;
+      --accent-dark: #0044aa;
+      --accent-light: #eef4fb;
+      --danger: #ff3b30;
+      --danger-light: #ffebee;
+      --warn: #ff9500;
+      --warn-light: #fff5e6;
+      --ok: #1b5e20;
+      --ok-light: #e8f5e9;
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.47;
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    header {
+      background: var(--card);
+      padding: 40px 24px 28px;
+      border-bottom: 1px solid #e8e8ed;
+    }
+    
+    .head-inner {
+      max-width: 1360px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+    
+    .logo {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      flex-shrink: 0;
+      background: #1d1d1f;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+    }
+    
+    .logo svg {
+      width: 26px;
+      height: 26px;
+    }
+    
+    header h1 {
+      font-size: 23px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+    }
+    
+    header p {
+      font-size: 13.5px;
+      color: var(--muted);
+      margin-top: 3px;
+      font-weight: 400;
+    }
+    
+    .container {
+      max-width: 1360px;
+      margin: 28px auto 60px;
+      padding: 0 24px;
+    }
+    
+    .card {
+      background: var(--card);
+      border: 1px solid #e8e8ed;
+      border-radius: 20px;
+      padding: 24px;
+      margin-bottom: 16px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+    }
+    
+    #previewCard {
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    
+    .card-head {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    
+    .step-num {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #1d1d1f;
+      color: #fff;
+      font-weight: 600;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    
+    .card-head h2 {
+      font-size: 18px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+    }
+    
+    .card-head .sub {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 400;
+      margin-left: auto;
+      text-align: right;
+      max-width: 580px;
+    }
+    
+    .drop {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 44px 24px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+      background: #fafafa;
+    }
+    
+    .drop:hover {
+      border-color: var(--text);
+      background: var(--card);
+    }
+    
+    .drop.drag {
+      border-color: var(--accent);
+      background: var(--accent-light);
+      transform: scale(1.005);
+    }
+    
+    .drop svg {
+      width: 36px;
+      height: 36px;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+    
+    .drop .t1 {
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+    
+    .drop .t2 {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    
+    .or {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      color: var(--muted);
+      font-size: 13px;
+      margin: 18px 0;
+      font-weight: 400;
+    }
+    
+    .or::before, .or::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: #e8e8ed;
+    }
+    
+    .btn-row {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    
+    button {
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s ease;
+    }
+    
+    .btn {
+      padding: 10px 20px;
+      border-radius: 30px;
+      font-size: 13.5px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      letter-spacing: -0.01em;
+    }
+    
+    .btn svg {
+      width: 16px;
+      height: 16px;
+    }
+    
+    .btn-primary {
+      background: #1d1d1f;
+      color: #fff;
+    }
+    
+    .btn-primary:hover {
+      background: #3a3a3c;
+    }
+    
+    .btn-primary:disabled {
+      background: #e8e8ed;
+      color: #a1a1a6;
+      cursor: not-allowed;
+    }
+    
+    .btn-accent {
+      background: var(--accent);
+      color: #fff;
+    }
+    
+    .btn-accent:hover {
+      background: var(--accent-dark);
+    }
+    
+    .btn-ghost {
+      background: #e8e8ed;
+      color: var(--text);
+    }
+    
+    .btn-ghost:hover {
+      background: #d2d2d7;
+    }
+    
+    .btn-lg {
+      padding: 15px 28px;
+      font-size: 16px;
+      font-weight: 600;
+      width: 100%;
+      justify-content: center;
+      border-radius: 30px;
+      margin-bottom: 22px;
+    }
+    
+    .btn-row .btn-lg {
+      width: auto;
+      flex: 1;
+      margin-bottom: 0;
+    }
+    
+    .field-row {
+      display: flex;
+      gap: 22px;
+      flex-wrap: wrap;
+    }
+    
+    .field {
+      flex: 1;
+      min-width: 220px;
+    }
+    
+    .field label {
+      display: block;
+      font-size: 13.5px;
+      font-weight: 600;
+      margin-bottom: 7px;
+      letter-spacing: -0.01em;
+    }
+    
+    input[type="date"],
+    input[type="text"].big,
+    select.big {
+      font-family: inherit;
+      font-size: 14px;
+      padding: 11px 14px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: var(--card);
+      color: var(--text);
+      width: 100%;
+      max-width: 100%;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    
+    select.big {
+      appearance: none;
+      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2386868b' stroke-width='3'><polyline points='6 9 12 15 18 9'/></svg>");
+      background-repeat: no-repeat;
+      background-position: right 14px center;
+      padding-right: 34px;
+    }
+    
+    input:focus, select:focus {
+      border-color: var(--text);
+    }
+    
+    .hint {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 14px;
+      line-height: 1.6;
+    }
+    
+    .banner {
+      border-radius: 14px;
+      padding: 15px 16px;
+      font-size: 13.5px;
+      margin-bottom: 20px;
+    }
+    
+    .banner.err {
+      background: var(--danger-light);
+      border: 1px solid #ffccd0;
+      color: var(--danger);
+    }
+    
+    .banner.warn {
+      background: var(--warn-light);
+      border: 1px solid #ffe0b2;
+      color: #b25e00;
+    }
+    
+    .banner.ok {
+      background: var(--ok-light);
+      border: 1px solid #c8e6c9;
+      color: var(--ok);
+    }
+    
+    .banner b {
+      font-weight: 600;
+    }
+    
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    
+    .stat {
+      background: var(--card);
+      border: 1px solid #e8e8ed;
+      border-radius: 16px;
+      padding: 18px 20px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.01);
+    }
+    
+    .stat .lbl {
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-bottom: 7px;
+    }
+    
+    .stat .val {
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      font-variant-numeric: tabular-nums;
+    }
+    
+    .tbl-wrap {
+      border: 1px solid #e8e8ed;
+      border-radius: 14px;
+      background: var(--card);
+      overflow: auto;
+      height: auto;
+      max-height: 500px;
+      width: 100%;
+    }
+    
+    table.preview {
+      border-collapse: collapse;
+      width: 100%;
+      min-width: max-content;
+      font-size: 12.5px;
+    }
+    
+    table.preview th {
+      background: #fafafa;
+      color: var(--text);
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 1.5px solid #1d1d1f;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      white-space: nowrap;
+      font-size: 11.5px;
+    }
+    
+    table.preview td {
+      padding: 8px 12px;
+      border-bottom: 1px solid #f3f3f5;
+      color: #666;
+      white-space: nowrap;
+    }
+    
+    table.preview tr:hover td {
+      background: #f8f9fb;
+    }
+    
+    .hidden {
+      display: none;
+    }
+    
+    footer {
+      text-align: center;
+      font-size: 12.5px;
+      color: var(--muted);
+      padding: 24px 24px 48px;
+      line-height: 1.8;
+      font-weight: 400;
+    }
+    
+    #toast {
+      position: fixed;
+      bottom: 32px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: rgba(29, 29, 31, 0.96);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      color: #fff;
+      padding: 13px 22px;
+      border-radius: 30px;
+      font-size: 13.5px;
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+      pointer-events: none;
+      z-index: 99;
+      font-weight: 500;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+    }
+    
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: #fff;
+      animation: spin 0.8s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    input[type="file"] {
+      display: none;
+    }
+    
+    @media (max-width: 720px) {
+      .card {
+        padding: 22px;
+      }
+      header {
+        padding: 30px 24px;
+      }
+      .head-inner {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .card-head .sub {
+        margin-left: 0;
+        text-align: left;
+      }
+      .field-row {
+        gap: 14px;
+      }
+      .stats {
+        grid-template-columns: 1fr 1fr;
+      }
+      .btn-row {
+        flex-direction: column;
+      }
+      .btn-row .btn {
+        width: 100%;
+        justify-content: center;
+      }
+      .btn-row #resetBtn {
+        margin-left: 0 !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="head-inner">
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+        <polyline points="14 2 14 8 20 8"/>
+        <line x1="8" y1="13" x2="16" y2="13"/>
+        <line x1="8" y1="17" x2="16" y2="17"/>
+      </svg>
+    </div>
+    <div>
+      <h1>CSV to Excel Converter</h1>
+      <p>Konversi CSV ke Excel dengan deteksi otomatis encoding &amp; delimiter &middot; Audit-grade handling &middot; Zero data upload</p>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+  <div id="errBanner" class="banner err hidden"></div>
+
+  <!-- STEP 1: Input File -->
+  <div class="card" id="step1">
+    <div class="card-head">
+      <div class="step-num">1</div>
+      <h2>Sumber Data CSV</h2>
+      <span class="sub">Pilih file CSV, TXT, atau TSV. Mesin auto-detect encoding (UTF-8, ISO-8859-1, Windows-1252) dan delimiter (,;|Tab). Data tetap di perangkat Anda.</span>
+    </div>
+    
+    <div class="drop" id="drop">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+      <div class="t1">Pilih atau jatuhkan file CSV di sini</div>
+      <div class="t2">Format: CSV, TXT, TSV. Tidak ada data yang dikirim ke server.</div>
+    </div>
+    
+    <input type="file" id="fileInput" accept=".csv,.txt,.tsv,.xls,.xlsx">
+    
+    <div class="or">atau</div>
+    
+    <div class="btn-row">
+      <button class="btn btn-ghost" id="sampleBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+        </svg>
+        Muat Contoh Data
+      </button>
+      <button class="btn btn-ghost" id="downloadSampleBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Unduh Contoh (100 baris)
+      </button>
+    </div>
+    
+    <div id="srcStatus" class="hidden">
+      <div id="detectionBanner" class="banner ok" style="margin-top: 22px;"></div>
+    </div>
+  </div>
+
+  <!-- STEP 2: Configuration -->
+  <div class="card" id="step2" class="hidden">
+    <div class="card-head">
+      <div class="step-num">2</div>
+      <h2>Konfigurasi Konversi</h2>
+    </div>
+    
+    <div class="field-row">
+      <div class="field">
+        <label for="delimiter">Delimiter</label>
+        <select class="big" id="delimiter">
+          <option value="auto">Auto Detect</option>
+          <option value=",">Comma (,)</option>
+          <option value=";">Semicolon (;)</option>
+          <option value="&#9;">Tab</option>
+          <option value="|">Pipe (|)</option>
+        </select>
+      </div>
+      
+      <div class="field">
+        <label for="headerRow">Baris Header</label>
+        <input type="text" class="big" id="headerRow" value="1" placeholder="1">
+      </div>
+      
+      <div class="field">
+        <label for="skipRows">Skip Baris (dari awal)</label>
+        <input type="text" class="big" id="skipRows" value="0" placeholder="0">
+      </div>
+      
+      <div class="field">
+        <label for="outputName">Nama File Output</label>
+        <input type="text" class="big" id="outputName" placeholder="data">
+      </div>
+    </div>
+    
+    <div class="hint">Delimiter akan auto-detect dari file. Header row akan di-freeze di Excel. Skip rows mengabaikan baris dari awal file sebelum proses.</div>
+  </div>
+
+  <!-- Preview -->
+  <div class="card" id="previewCard" class="hidden">
+    <div class="card-head">
+      <h2>Preview Data (10 baris pertama)</h2>
+      <button class="btn btn-ghost btn-sm" id="downloadPreviewBtn" style="margin-left: auto;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Download 10 Baris
+      </button>
+    </div>
+    <div class="stats" id="previewStats"></div>
+    <div class="tbl-wrap">
+      <table class="preview" id="previewTable"></table>
+    </div>
+  </div>
+
+  <!-- Action Buttons -->
+  <div class="btn-row" style="margin-bottom: 22px;">
+    <button class="btn btn-primary btn-lg" id="convertBtn" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      <span id="convertBtnText">Konversi & Download Excel</span>
+    </button>
+    <button class="btn btn-ghost" id="resetBtn" style="display: none; padding: 15px 28px; font-size: 16px; margin-left: 12px; font-weight: 600; border-radius: 30px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+      </svg>
+      Reset
+    </button>
+  </div>
+
+  <!-- Results -->
+  <div id="results" class="hidden">
+    <div class="card">
+      <div class="card-head">
+        <div class="step-num" style="background: #1b5e20;">✓</div>
+        <h2>Konversi Selesai</h2>
+      </div>
+      <div class="stats" id="resultStats"></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  CSV to Excel Converter &middot; Mesin deteksi encoding &amp; delimiter (client-side)<br>
+  Seluruh perhitungan berjalan di peramban Anda. Tidak ada data yang dikirim ke server.
+</footer>
+
+<div id="toast"></div>
+
+<script>
+  let csvData = null;
+  const MAX_ROWS = 1000000; // 1 juta baris
+  const SIZE_WARNING = 100 * 1024 * 1024; // 100MB warning threshold
+
+  const drop = document.getElementById('drop');
+  const fileInput = document.getElementById('fileInput');
+  const sampleBtn = document.getElementById('sampleBtn');
+  const downloadSampleBtn = document.getElementById('downloadSampleBtn');
+  const downloadPreviewBtn = document.getElementById('downloadPreviewBtn');
+  const convertBtn = document.getElementById('convertBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const step1 = document.getElementById('step1');
+  const step2 = document.getElementById('step2');
+  const previewCard = document.getElementById('previewCard');
+  const results = document.getElementById('results');
+
+  // ===== Event Listeners =====
+  drop.addEventListener('click', () => fileInput.click());
+
+  drop.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    drop.classList.add('drag');
+  });
+
+  drop.addEventListener('dragleave', () => {
+    drop.classList.remove('drag');
+  });
+
+  drop.addEventListener('drop', (e) => {
+    e.preventDefault();
+    drop.classList.remove('drag');
+    if (e.dataTransfer.files.length) {
+      handleFile(e.dataTransfer.files[0]);
+    }
+  });
+
+  fileInput.addEventListener('change', (e) => {
+    if (e.target.files.length) {
+      handleFile(e.target.files[0]);
+    }
+  });
+
+  sampleBtn.addEventListener('click', loadSampleData);
+  downloadSampleBtn.addEventListener('click', downloadSample100);
+  downloadPreviewBtn.addEventListener('click', downloadPreviewData);
+  convertBtn.addEventListener('click', convertFile);
+  resetBtn.addEventListener('click', resetApp);
+
+  // ===== Encoding Detection =====
+  function detectEncoding(uint8Array) {
+    // BOM detection
+    if (uint8Array.length >= 3) {
+      if (uint8Array[0] === 0xEF && uint8Array[1] === 0xBB && uint8Array[2] === 0xBF) {
+        return 'UTF-8';
+      }
+    }
+    if (uint8Array.length >= 2) {
+      if (uint8Array[0] === 0xFF && uint8Array[1] === 0xFE) return 'UTF-16LE';
+      if (uint8Array[0] === 0xFE && uint8Array[1] === 0xFF) return 'UTF-16BE';
+    }
+
+    // Try decoding
+    const encodings = ['UTF-8', 'ISO-8859-1', 'Windows-1252'];
+    for (const enc of encodings) {
+      try {
+        const decoder = new TextDecoder(enc, { fatal: true });
+        decoder.decode(uint8Array);
+        return enc;
+      } catch (e) {}
+    }
+    return 'UTF-8';
+  }
+
+  function safeDecodeText(uint8Array, encoding) {
+    try {
+      const decoder = new TextDecoder(encoding, { fatal: false });
+      return decoder.decode(uint8Array);
+    } catch (err) {
+      try {
+        return new TextDecoder('UTF-8', { fatal: false }).decode(uint8Array);
+      } catch (err2) {
+        return new TextDecoder('ISO-8859-1', { fatal: false }).decode(uint8Array);
+      }
+    }
+  }
+
+  // ===== Delimiter Detection =====
+  function autoDetectDelimiter(csvText) {
+    const delimiters = [',', ';', '\t', '|'];
+    const lines = csvText.split('\n').slice(0, 10).filter(line => line.trim());
+
+    if (lines.length === 0) return ',';
+
+    let bestDelimiter = ',';
+    let bestScore = -1;
+
+    for (const delim of delimiters) {
+      let totalCols = 0;
+      let consistentRows = 0;
+
+      const firstLineColCount = (lines[0].split(delim) || []).length;
+      
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        const colCount = (line.split(delim) || []).length;
+        totalCols += colCount;
+        if (colCount === firstLineColCount) {
+          consistentRows++;
+        }
+      }
+
+      const score = (consistentRows / lines.length) * (totalCols / lines.length);
+      
+      if (score > bestScore && totalCols / lines.length > 1) {
+        bestScore = score;
+        bestDelimiter = delim;
+      }
+    }
+
+    return bestDelimiter;
+  }
+
+  // ===== File Handling =====
+  function handleFile(file) {
+    // Warning untuk file besar
+    if (file.size > SIZE_WARNING) {
+      showToast(`⚠️ File besar (${(file.size / 1024 / 1024).toFixed(1)}MB). Processing mungkin akan lambat atau crash.`, 'warn');
+    }
+
+    const validExtensions = ['.csv', '.txt', '.tsv', '.xls', '.xlsx'];
+    const hasValidExt = validExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+    
+    if (!hasValidExt) {
+      showToast('Format file tidak didukung. Gunakan CSV, TXT, atau TSV.', 'err');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        processFile(e.target.result, file);
+      } catch (err) {
+        showToast(`Error: ${err.message}`, 'err');
+      }
+    };
+    reader.onerror = () => {
+      showToast('Gagal membaca file', 'err');
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  // ===== Sample Data =====
+  function loadSampleData() {
+    const sampleCsv = `Product,Region,Q1,Q2,Q3,Q4
+Widget A,Jakarta,1000,1200,1100,1300
+Widget B,Surabaya,800,900,950,1050
+Widget C,Bandung,600,700,750,800
+Widget A,Jakarta,1050,1250,1150,1350
+Widget B,Surabaya,850,950,1000,1100`;
+    
+    const blob = new Blob([sampleCsv], { type: 'text/csv' });
+    const file = new File([blob], 'sample.csv', { type: 'text/csv' });
+    handleFile(file);
+  }
+
+  // ===== Download Sample 100 Rows =====
+  function downloadSample100() {
+    // Generate 100 rows of sample data
+    let csvContent = 'Product,Region,Q1,Q2,Q3,Q4,Total,Status,Notes,Category\n';
+    
+    const products = ['Widget A', 'Widget B', 'Widget C', 'Gadget X', 'Gadget Y'];
+    const regions = ['Jakarta', 'Surabaya', 'Bandung', 'Medan', 'Semarang'];
+    const categories = ['Electronics', 'Hardware', 'Software', 'Accessories', 'Services'];
+    const statuses = ['Active', 'Pending', 'Inactive', 'Review', 'Approved'];
+    
+    for (let i = 1; i <= 100; i++) {
+      const product = products[Math.floor(Math.random() * products.length)];
+      const region = regions[Math.floor(Math.random() * regions.length)];
+      const q1 = Math.floor(Math.random() * 2000) + 500;
+      const q2 = Math.floor(Math.random() * 2000) + 500;
+      const q3 = Math.floor(Math.random() * 2000) + 500;
+      const q4 = Math.floor(Math.random() * 2000) + 500;
+      const total = q1 + q2 + q3 + q4;
+      const status = statuses[Math.floor(Math.random() * statuses.length)];
+      const category = categories[Math.floor(Math.random() * categories.length)];
+      const notes = `Row ${i} data sample - testing purposes`;
+      
+      csvContent += `${product},${region},${q1},${q2},${q3},${q4},${total},${status},${notes},${category}\n`;
+    }
+    
+    // Download file
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'sample-100-rows.csv');
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    showToast('✓ File sample 100 baris berhasil diunduh', 'ok');
+  }
+
+  // ===== Download Preview Data (First 10 Rows) =====
+  function downloadPreviewData() {
+    if (!csvData) {
+      showToast('Tidak ada data untuk didownload', 'err');
+      return;
+    }
+
+    // Check XLSX availability
+    if (typeof XLSX === 'undefined') {
+      showToast('⏳ Library Excel masih loading... Coba lagi dalam 2 detik.', 'warn');
+      setTimeout(downloadPreviewData, 2000);
+      return;
+    }
+
+    // Parse all data to get first 10 rows
+    Papa.parse(csvData.text, {
+      delimiter: csvData.delimiter,
+      header: false,
+      skipEmptyLines: true,
+      complete: (results) => {
+        if (!results.data || results.data.length === 0) {
+          showToast('Tidak ada data untuk didownload', 'err');
+          return;
+        }
+
+        try {
+          // Take first 10 rows (plus header = 11 total)
+          const dataToDownload = results.data.slice(0, 10);
+          
+          // Normalize columns
+          const maxCols = Math.max(...dataToDownload.map(row => row.length || 0));
+          const normalizedData = dataToDownload.map(row => {
+            const normalized = [...(row || [])];
+            while (normalized.length < maxCols) {
+              normalized.push('');
+            }
+            return normalized;
+          });
+
+          // Create Excel workbook
+          const ws = XLSX.utils.aoa_to_sheet(normalizedData);
+          
+          // Set column widths
+          const colWidths = [];
+          for (let i = 0; i < maxCols; i++) {
+            let maxWidth = 10;
+            for (let j = 0; j < Math.min(normalizedData.length, 50); j++) {
+              const cellLength = String(normalizedData[j][i] || '').length;
+              maxWidth = Math.max(maxWidth, Math.min(cellLength, 50));
+            }
+            colWidths.push({ wch: Math.max(maxWidth, 8) });
+          }
+          ws['!cols'] = colWidths;
+
+          // Freeze first row (header)
+          ws['!freeze'] = { xSplit: 0, ySplit: 1 };
+
+          // Create workbook
+          const wb = XLSX.utils.book_new();
+          XLSX.utils.book_append_sheet(wb, ws, 'Data');
+          
+          // Download
+          const fileName = csvData.fileName || 'preview';
+          XLSX.writeFile(wb, `${fileName}-preview-10.xlsx`);
+          
+          showToast(`✓ ${dataToDownload.length} baris berhasil diunduh sebagai Excel`, 'ok');
+        } catch (err) {
+          showToast(`Error: ${err.message}`, 'err');
+        }
+      },
+      error: (error) => {
+        showToast(`Error: ${error.message}`, 'err');
+      }
+    });
+  }
+  function processFile(arrayBuffer, file) {
+    const uint8Array = new Uint8Array(arrayBuffer);
+    
+    if (uint8Array.length === 0) {
+      showToast('File kosong', 'err');
+      return;
+    }
+
+    const encoding = detectEncoding(uint8Array);
+    const csvText = safeDecodeText(uint8Array, encoding);
+
+    if (!csvText || csvText.trim().length === 0) {
+      showToast('File tidak dapat dibaca', 'err');
+      return;
+    }
+
+    const detectedDelimiter = autoDetectDelimiter(csvText);
+    const rowCount = csvText.split('\n').filter(line => line.trim()).length;
+
+    if (rowCount === 0) {
+      showToast('File tidak mengandung data', 'err');
+      return;
+    }
+
+    if (rowCount > MAX_ROWS) {
+      showToast(`Baris terlalu banyak (${rowCount}). Preview akan terbatas.`, 'warn');
+    }
+
+    Papa.parse(csvText, {
+      delimiter: detectedDelimiter,
+      header: false,
+      preview: 10,
+      skipEmptyLines: true,
+      complete: (results) => {
+        if (!results.data || results.data.length === 0) {
+          showToast('Tidak dapat parse CSV', 'err');
+          return;
+        }
+
+        csvData = {
+          text: csvText,
+          delimiter: detectedDelimiter,
+          encoding: encoding,
+          rowCount: rowCount,
+          fileSize: file.size,
+          fileName: file.name.replace(/\.[^/.]+$/, '')
+        };
+
+        // Update UI
+        document.getElementById('outputName').value = csvData.fileName;
+        showDetectionStatus();
+        showPreviewData(results.data);
+        
+        step1.style.display = 'none';
+        step2.classList.remove('hidden');
+        previewCard.classList.remove('hidden');
+        convertBtn.disabled = false;
+        resetBtn.style.display = 'inline-flex';
+
+        showToast('File berhasil dimuat', 'ok');
+      },
+      error: (error) => {
+        showToast(`Parse error: ${error.message}`, 'err');
+      }
+    });
+  }
+
+  // ===== UI Updates =====
+  function showDetectionStatus() {
+    const delim = {
+      ',': 'Comma',
+      ';': 'Semicolon',
+      '\t': 'Tab',
+      '|': 'Pipe'
+    }[csvData.delimiter] || 'Custom';
+
+    const banner = document.getElementById('detectionBanner');
+    banner.innerHTML = `
+      ✓ <b>${csvData.fileName}</b> terdeteksi<br>
+      <small>
+        Size: ${(csvData.fileSize / 1024).toFixed(1)} KB &nbsp;|&nbsp;
+        Baris: ${csvData.rowCount} &nbsp;|&nbsp;
+        Delimiter: <b>${delim}</b> &nbsp;|&nbsp;
+        Encoding: <b>${csvData.encoding}</b>
+      </small>
+    `;
+
+    document.getElementById('srcStatus').classList.remove('hidden');
+  }
+
+  function showPreviewData(data) {
+    const stats = document.getElementById('previewStats');
+    const maxCols = Math.max(...data.map(row => row.length || 0));
+    
+    stats.innerHTML = `
+      <div class="stat">
+        <div class="lbl">Total Baris</div>
+        <div class="val">${csvData.rowCount}</div>
+      </div>
+      <div class="stat">
+        <div class="lbl">Total Kolom</div>
+        <div class="val">${maxCols}</div>
+      </div>
+      <div class="stat">
+        <div class="lbl">Encoding</div>
+        <div class="val" style="font-size: 15px;">${csvData.encoding}</div>
+      </div>
+    `;
+
+    const table = document.getElementById('previewTable');
+    let html = '<thead><tr>';
+    
+    // Use first row as headers
+    const headerRow = data[0] || [];
+    for (let i = 0; i < headerRow.length; i++) {
+      const headerText = String(headerRow[i] || `Col ${i + 1}`).substring(0, 100);
+      html += `<th>${escapeHtml(headerText)}</th>`;
+    }
+    html += '</tr></thead><tbody>';
+
+    // Show up to 10 rows (skip header row at index 0)
+    const startRow = 1;  // Skip header row
+    const endRow = Math.min(11, data.length);  // 10 data rows + header
+    
+    for (let i = startRow; i < endRow; i++) {
+      const row = data[i];
+      html += '<tr>';
+      for (let j = 0; j < headerRow.length; j++) {
+        const cell = row[j] || '';
+        const text = String(cell).substring(0, 100) + (String(cell).length > 100 ? '...' : '');
+        html += `<td>${escapeHtml(text)}</td>`;
+      }
+      html += '</tr>';
+    }
+
+    html += '</tbody>';
+    table.innerHTML = html;
+  }
+
+  // ===== Conversion =====
+  function convertFile() {
+    if (!csvData) return;
+
+    // Check library
+    if (typeof XLSX === 'undefined') {
+      showToast('⏳ Library Excel masih loading... Coba lagi dalam 2 detik.', 'warn');
+      setTimeout(convertFile, 2000);
+      return;
+    }
+
+    const delimiter = document.getElementById('delimiter').value;
+    const skipRows = parseInt(document.getElementById('skipRows').value) || 0;
+    const headerRow = parseInt(document.getElementById('headerRow').value) || 1;
+    const outputName = document.getElementById('outputName').value || 'data';
+
+    convertBtn.disabled = true;
+    convertBtn.innerHTML = '<span class="spinner"></span> Processing...';
+
+    setTimeout(() => {
+      try {
+        Papa.parse(csvData.text, {
+          delimiter: delimiter === 'auto' ? csvData.delimiter : delimiter,
+          header: false,
+          skipEmptyLines: true,
+          complete: (results) => {
+            if (!results.data || results.data.length === 0) {
+              showToast('Tidak ada data untuk dikonversi', 'err');
+              convertBtn.disabled = false;
+              convertBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Konversi & Download Excel';
+              resetBtn.style.display = 'inline-flex';
+              return;
+            }
+
+            processToExcel(results.data, skipRows, headerRow, outputName);
+          },
+          error: (error) => {
+            showToast(`Parse error: ${error.message}`, 'err');
+            convertBtn.disabled = false;
+            convertBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Konversi & Download Excel';
+            resetBtn.style.display = 'inline-flex';
+          }
+        });
+      } catch (err) {
+        showToast(`Error: ${err.message}`, 'err');
+        convertBtn.disabled = false;
+        convertBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Konversi & Download Excel';
+        resetBtn.style.display = 'inline-flex';
+      }
+    }, 100);
+  }
+
+  function processToExcel(data, skipRows, headerRow, fileName) {
+    try {
+      // Double-check XLSX availability
+      if (typeof XLSX === 'undefined') {
+        throw new Error('Library Excel (XLSX) tidak tersedia. Silakan refresh halaman dan coba lagi.');
+      }
+
+      let processedData = data.slice(skipRows);
+
+      if (processedData.length === 0) {
+        showToast('Tidak ada data setelah skip rows', 'err');
+        convertBtn.disabled = false;
+        convertBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Konversi & Download Excel';
+        resetBtn.style.display = 'inline-flex';
+        return;
+      }
+
+      // Normalize columns
+      const maxCols = Math.max(...processedData.map(row => row.length || 0));
+      processedData = processedData.map(row => {
+        const normalized = [...(row || [])];
+        while (normalized.length < maxCols) {
+          normalized.push('');
+        }
+        return normalized;
+      });
+
+      const ws = XLSX.utils.aoa_to_sheet(processedData);
+      
+      // Set column widths
+      const colWidths = [];
+      for (let i = 0; i < maxCols; i++) {
+        let maxWidth = 10;
+        for (let j = 0; j < Math.min(processedData.length, 100); j++) {
+          const cellLength = String(processedData[j][i] || '').length;
+          maxWidth = Math.max(maxWidth, Math.min(cellLength, 50));
+        }
+        colWidths.push({ wch: Math.max(maxWidth, 8) });
+      }
+      ws['!cols'] = colWidths;
+
+      // Freeze header
+      if (headerRow > 0) {
+        ws['!freeze'] = { xSplit: 0, ySplit: headerRow };
+      }
+
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Data');
+      
+      const safeFileName = fileName.replace(/[^a-z0-9_-]/gi, '_');
+      XLSX.writeFile(wb, `${safeFileName}.xlsx`);
+
+      // Show results
+      const resultStats = document.getElementById('resultStats');
+      resultStats.innerHTML = `
+        <div class="stat">
+          <div class="lbl">Baris Diproses</div>
+          <div class="val">${processedData.length}</div>
+        </div>
+        <div class="stat">
+          <div class="lbl">Kolom</div>
+          <div class="val">${maxCols}</div>
+        </div>
+        <div class="stat">
+          <div class="lbl">Output File</div>
+          <div class="val" style="font-size: 14px;">${safeFileName}.xlsx</div>
+        </div>
+      `;
+
+      previewCard.classList.add('hidden');
+      results.classList.remove('hidden');
+      convertBtn.disabled = false;
+      convertBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Konversi & Download Excel';
+      resetBtn.style.display = 'inline-flex';
+
+      showToast('✓ File berhasil dikonversi dan didownload', 'ok');
+    } catch (err) {
+      showToast(`Error creating Excel: ${err.message}`, 'err');
+      convertBtn.disabled = false;
+      convertBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Konversi & Download Excel';
+      resetBtn.style.display = 'inline-flex';
+    }
+  }
+
+  // ===== Reset Function =====
+  function resetApp() {
+    csvData = null;
+    fileInput.value = '';
+    
+    // Reset form values
+    document.getElementById('delimiter').value = 'auto';
+    document.getElementById('headerRow').value = '1';
+    document.getElementById('skipRows').value = '0';
+    document.getElementById('outputName').value = '';
+    
+    // Hide step2, preview, results
+    step1.style.display = 'block';
+    step2.classList.add('hidden');
+    previewCard.classList.add('hidden');
+    results.classList.add('hidden');
+    document.getElementById('srcStatus').classList.add('hidden');
+    
+    // Reset buttons
+    convertBtn.disabled = true;
+    convertBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Konversi & Download Excel';
+    resetBtn.style.display = 'none';
+    
+    showToast('Reset ke awal. Siap input file baru.', 'ok');
+  }
+
+  // ===== Toast Notification =====
+  function showToast(message, type = 'info') {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    
+    // Update background color based on type
+    let bgColor = 'rgba(29, 29, 31, 0.96)'; // default dark
+    if (type === 'err') {
+      bgColor = 'rgba(255, 59, 48, 0.96)'; // red for errors
+    } else if (type === 'warn') {
+      bgColor = 'rgba(255, 149, 0, 0.96)'; // orange for warnings
+    } else if (type === 'ok') {
+      bgColor = 'rgba(27, 94, 32, 0.96)'; // green for success
+    }
+    
+    toast.style.background = bgColor;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 4000);
+  }
+
+  // ===== Utils =====
+  function escapeHtml(text) {
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+    return String(text).replace(/[&<>"']/g, m => map[m]);
+  }
+</script>
+
+</body>
+</html>
