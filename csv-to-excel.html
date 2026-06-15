@@ -1,538 +1,144 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>CSV to Excel Converter</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js" onerror="loadPapaParseBackup()"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js" onerror="loadXLSXBackup()"></script>
-  <script>
-    // Backup loaders jika CDN utama gagal
-    function loadXLSXBackup() {
-      const script = document.createElement('script');
-      script.src = 'https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js';
-      document.head.appendChild(script);
-    }
-    function loadPapaParseBackup() {
-      const script = document.createElement('script');
-      script.src = 'https://unpkg.com/papaparse@5.4.1/papaparse.min.js';
-      document.head.appendChild(script);
-    }
-  </script>
-  <style>
-    :root {
-      --bg: #f5f5f7;
-      --card: #ffffff;
-      --text: #1d1d1f;
-      --muted: #86868b;
-      --border: #d2d2d7;
-      --accent: #0066cc;
-      --accent-dark: #0044aa;
-      --accent-light: #eef4fb;
-      --danger: #ff3b30;
-      --danger-light: #ffebee;
-      --warn: #ff9500;
-      --warn-light: #fff5e6;
-      --ok: #1b5e20;
-      --ok-light: #e8f5e9;
-    }
-    
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-    
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.47;
-      -webkit-font-smoothing: antialiased;
-    }
-    
-    header {
-      background: var(--card);
-      padding: 40px 24px 28px;
-      border-bottom: 1px solid #e8e8ed;
-    }
-    
-    .head-inner {
-      max-width: 1360px;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      gap: 20px;
-    }
-    
-    .logo {
-      width: 48px;
-      height: 48px;
-      border-radius: 12px;
-      flex-shrink: 0;
-      background: #1d1d1f;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #fff;
-    }
-    
-    .logo svg {
-      width: 26px;
-      height: 26px;
-    }
-    
-    header h1 {
-      font-size: 23px;
-      font-weight: 700;
-      letter-spacing: -0.03em;
-    }
-    
-    header p {
-      font-size: 13.5px;
-      color: var(--muted);
-      margin-top: 3px;
-      font-weight: 400;
-    }
-    
-    .container {
-      max-width: 1360px;
-      margin: 28px auto 60px;
-      padding: 0 24px;
-    }
-    
-    .card {
-      background: var(--card);
-      border: 1px solid #e8e8ed;
-      border-radius: 20px;
-      padding: 24px;
-      margin-bottom: 16px;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
-    }
-    
-    #previewCard {
-      padding: 20px;
-      margin-bottom: 16px;
-    }
-    
-    .card-head {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 16px;
-      flex-wrap: wrap;
-    }
-    
-    .step-num {
-      width: 24px;
-      height: 24px;
-      border-radius: 50%;
-      background: #1d1d1f;
-      color: #fff;
-      font-weight: 600;
-      font-size: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-    
-    .card-head h2 {
-      font-size: 18px;
-      font-weight: 600;
-      letter-spacing: -0.02em;
-    }
-    
-    .card-head .sub {
-      font-size: 12px;
-      color: var(--muted);
-      font-weight: 400;
-      margin-left: auto;
-      text-align: right;
-      max-width: 580px;
-    }
-    
-    .drop {
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 44px 24px;
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
-      background: #fafafa;
-    }
-    
-    .drop:hover {
-      border-color: var(--text);
-      background: var(--card);
-    }
-    
-    .drop.drag {
-      border-color: var(--accent);
-      background: var(--accent-light);
-      transform: scale(1.005);
-    }
-    
-    .drop svg {
-      width: 36px;
-      height: 36px;
-      color: var(--text);
-      margin-bottom: 12px;
-    }
-    
-    .drop .t1 {
-      font-size: 15px;
-      font-weight: 600;
-      letter-spacing: -0.01em;
-    }
-    
-    .drop .t2 {
-      font-size: 13px;
-      color: var(--muted);
-      margin-top: 4px;
-    }
-    
-    .or {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      color: var(--muted);
-      font-size: 13px;
-      margin: 18px 0;
-      font-weight: 400;
-    }
-    
-    .or::before, .or::after {
-      content: "";
-      flex: 1;
-      height: 1px;
-      background: #e8e8ed;
-    }
-    
-    .btn-row {
-      display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-    
-    button {
-      font-family: inherit;
-      cursor: pointer;
-      border: none;
-      transition: all 0.15s ease;
-    }
-    
-    .btn {
-      padding: 10px 20px;
-      border-radius: 30px;
-      font-size: 13.5px;
-      font-weight: 500;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      letter-spacing: -0.01em;
-    }
-    
-    .btn svg {
-      width: 16px;
-      height: 16px;
-    }
-    
-    .btn-primary {
-      background: #1d1d1f;
-      color: #fff;
-    }
-    
-    .btn-primary:hover {
-      background: #3a3a3c;
-    }
-    
-    .btn-primary:disabled {
-      background: #e8e8ed;
-      color: #a1a1a6;
-      cursor: not-allowed;
-    }
-    
-    .btn-accent {
-      background: var(--accent);
-      color: #fff;
-    }
-    
-    .btn-accent:hover {
-      background: var(--accent-dark);
-    }
-    
-    .btn-ghost {
-      background: #e8e8ed;
-      color: var(--text);
-    }
-    
-    .btn-ghost:hover {
-      background: #d2d2d7;
-    }
-    
-    .btn-lg {
-      padding: 15px 28px;
-      font-size: 16px;
-      font-weight: 600;
-      width: 100%;
-      justify-content: center;
-      border-radius: 30px;
-      margin-bottom: 22px;
-    }
-    
-    .btn-row .btn-lg {
-      width: auto;
-      flex: 1;
-      margin-bottom: 0;
-    }
-    
-    .field-row {
-      display: flex;
-      gap: 22px;
-      flex-wrap: wrap;
-    }
-    
-    .field {
-      flex: 1;
-      min-width: 220px;
-    }
-    
-    .field label {
-      display: block;
-      font-size: 13.5px;
-      font-weight: 600;
-      margin-bottom: 7px;
-      letter-spacing: -0.01em;
-    }
-    
-    input[type="date"],
-    input[type="text"].big,
-    select.big {
-      font-family: inherit;
-      font-size: 14px;
-      padding: 11px 14px;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      background: var(--card);
-      color: var(--text);
-      width: 100%;
-      max-width: 100%;
-      outline: none;
-      -webkit-appearance: none;
-    }
-    
-    select.big {
-      appearance: none;
-      background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2386868b' stroke-width='3'><polyline points='6 9 12 15 18 9'/></svg>");
-      background-repeat: no-repeat;
-      background-position: right 14px center;
-      padding-right: 34px;
-    }
-    
-    input:focus, select:focus {
-      border-color: var(--text);
-    }
-    
-    .hint {
-      font-size: 13px;
-      color: var(--muted);
-      margin-top: 14px;
-      line-height: 1.6;
-    }
-    
-    .banner {
-      border-radius: 14px;
-      padding: 15px 16px;
-      font-size: 13.5px;
-      margin-bottom: 20px;
-    }
-    
-    .banner.err {
-      background: var(--danger-light);
-      border: 1px solid #ffccd0;
-      color: var(--danger);
-    }
-    
-    .banner.warn {
-      background: var(--warn-light);
-      border: 1px solid #ffe0b2;
-      color: #b25e00;
-    }
-    
-    .banner.ok {
-      background: var(--ok-light);
-      border: 1px solid #c8e6c9;
-      color: var(--ok);
-    }
-    
-    .banner b {
-      font-weight: 600;
-    }
-    
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-    
-    .stat {
-      background: var(--card);
-      border: 1px solid #e8e8ed;
-      border-radius: 16px;
-      padding: 18px 20px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.01);
-    }
-    
-    .stat .lbl {
-      font-size: 11px;
-      color: var(--muted);
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-      margin-bottom: 7px;
-    }
-    
-    .stat .val {
-      font-size: 19px;
-      font-weight: 700;
-      letter-spacing: -0.03em;
-      font-variant-numeric: tabular-nums;
-    }
-    
-    .tbl-wrap {
-      border: 1px solid #e8e8ed;
-      border-radius: 14px;
-      background: var(--card);
-      overflow: auto;
-      height: auto;
-      max-height: 500px;
-      width: 100%;
-    }
-    
-    table.preview {
-      border-collapse: collapse;
-      width: 100%;
-      min-width: max-content;
-      font-size: 12.5px;
-    }
-    
-    table.preview th {
-      background: #fafafa;
-      color: var(--text);
-      padding: 8px 12px;
-      text-align: left;
-      font-weight: 600;
-      border-bottom: 1.5px solid #1d1d1f;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      white-space: nowrap;
-      font-size: 11.5px;
-    }
-    
-    table.preview td {
-      padding: 8px 12px;
-      border-bottom: 1px solid #f3f3f5;
-      color: #666;
-      white-space: nowrap;
-    }
-    
-    table.preview tr:hover td {
-      background: #f8f9fb;
-    }
-    
-    .hidden {
-      display: none;
-    }
-    
-    footer {
-      text-align: center;
-      font-size: 12.5px;
-      color: var(--muted);
-      padding: 24px 24px 48px;
-      line-height: 1.8;
-      font-weight: 400;
-    }
-    
-    #toast {
-      position: fixed;
-      bottom: 32px;
-      left: 50%;
-      transform: translateX(-50%) translateY(20px);
-      background: rgba(29, 29, 31, 0.96);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      color: #fff;
-      padding: 13px 22px;
-      border-radius: 30px;
-      font-size: 13.5px;
-      opacity: 0;
-      transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
-      pointer-events: none;
-      z-index: 99;
-      font-weight: 500;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-    }
-    
-    #toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(0);
-    }
-    
-    .spinner {
-      display: inline-block;
-      width: 14px;
-      height: 14px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-radius: 50%;
-      border-top-color: #fff;
-      animation: spin 0.8s linear infinite;
-    }
-    
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    
-    input[type="file"] {
-      display: none;
-    }
-    
-    @media (max-width: 720px) {
-      .card {
-        padding: 22px;
-      }
-      header {
-        padding: 30px 24px;
-      }
-      .head-inner {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-      .card-head .sub {
-        margin-left: 0;
-        text-align: left;
-      }
-      .field-row {
-        gap: 14px;
-      }
-      .stats {
-        grid-template-columns: 1fr 1fr;
-      }
-      .btn-row {
-        flex-direction: column;
-      }
-      .btn-row .btn {
-        width: 100%;
-        justify-content: center;
-      }
-      .btn-row #resetBtn {
-        margin-left: 0 !important;
-      }
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CSV to Excel Converter</title>
+<script>!function(f){typeof module!='undefined'&&typeof exports=='object'?module.exports=f():typeof define!='undefined'&&define.amd?define(f):(typeof self!='undefined'?self:this).fflate=f()}(function(){var _e={};"use strict";_e.deflate=zt,_e.deflateSync=kt,_e.inflate=At,_e.inflateSync=Tt,_e.gzip=It,_e.compress=It,_e.gzipSync=Ut,_e.compressSync=Ut,_e.gunzip=Zt,_e.gunzipSync=qt,_e.zlib=Lt,_e.zlibSync=Bt,_e.unzlib=Nt,_e.unzlibSync=Pt,_e.gzip=It,_e.compress=It,_e.decompress=Jt,_e.decompressSync=Kt,_e.strToU8=nn,_e.strFromU8=rn,_e.zip=dn,_e.zipSync=gn,_e.unzip=zn,_e.unzipSync=kn;var t=(typeof module!='undefined'&&typeof exports=='object'?function(_f){"use strict";var e,r,t,n=";var __w=require('worker_threads');__w.parentPort.on('message',function(m){onmessage({data:m})}),postMessage=function(m,t){__w.parentPort.postMessage(m,t)},close=process.exit;self=global";try{e=require("worker_threads"),r=e.Worker,t=e.isMarkedAsUntransferable}catch(e){}exports.default=r?function(e,o,a,s,u){var i=!1,l=new r(e+n,{eval:!0}).on("error",function(e){return u(e,null)}).on("message",function(e){return u(null,e)}).on("exit",function(e){e&&!i&&u(Error("exited with code "+e),null)});return t&&(s=s.filter(function(e){return!t(e)})),l.postMessage(a,s),l.terminate=function(){return i=!0,r.prototype.terminate.call(l)},l}:function(e,r,t,n,o){setImmediate(function(){return o(Error("async operations unsupported - update to Node 12+ (or Node 10-11 with the --experimental-worker CLI flag)"),null)});var a=function(){};return{terminate:a,postMessage:a}};return _f}:function(_f){"use strict";var e={};_f.default=function(r,t,s,a,n){var o=new Worker(e[t]||(e[t]=URL.createObjectURL(new Blob([r+';addEventListener("error",function(e){e=e.error;postMessage({$e$:[e.message,e.code,e.stack]})})'],{type:"text/javascript"}))));return o.onmessage=function(e){var r=e.data,t=r.$e$;if(t){var s=Error(t[0]);s.code=t[1],s.stack=t[2],n(s,null)}else n(null,r)},o.postMessage(s,a),o};return _f})({}),n=Uint8Array,r=Uint16Array,i=Int32Array,e=new n([0,0,0,0,0,0,0,0,1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5,0,0,0,0]),o=new n([0,0,0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7,8,8,9,9,10,10,11,11,12,12,13,13,0,0]),s=new n([16,17,18,0,8,7,9,6,10,5,11,4,12,3,13,2,14,1,15]),a=function(t,n){for(var e=new r(31),o=0;o<31;++o)e[o]=n+=1<<t[o-1];var s=new i(e[30]);for(o=1;o<30;++o)for(var a=e[o];a<e[o+1];++a)s[a]=a-e[o]<<5|o;return{b:e,r:s}},u=a(e,2),h=u.b,f=u.r;h[28]=258,f[258]=28;for(var c=a(o,0),l=c.b,p=c.r,v=new r(32768),d=0;d<32768;++d){var g=(43690&d)>>1|(21845&d)<<1;v[d]=((65280&(g=(61680&(g=(52428&g)>>2|(13107&g)<<2))>>4|(3855&g)<<4))>>8|(255&g)<<8)>>1}var y=function(t,n,i){for(var e=t.length,o=0,s=new r(n);o<e;++o)t[o]&&++s[t[o]-1];var a,u=new r(n);for(o=1;o<n;++o)u[o]=u[o-1]+s[o-1]<<1;if(i){a=new r(1<<n);var h=15-n;for(o=0;o<e;++o)if(t[o])for(var f=o<<4|t[o],c=n-t[o],l=u[t[o]-1]++<<c,p=l|(1<<c)-1;l<=p;++l)a[v[l]>>h]=f}else for(a=new r(e),o=0;o<e;++o)t[o]&&(a[o]=v[u[t[o]-1]++]>>15-t[o]);return a},m=new n(288);for(d=0;d<144;++d)m[d]=8;for(d=144;d<256;++d)m[d]=9;for(d=256;d<280;++d)m[d]=7;for(d=280;d<288;++d)m[d]=8;var b=new n(32);for(d=0;d<32;++d)b[d]=5;var w=y(m,9,0),x=y(m,9,1),z=y(b,5,0),k=y(b,5,1),M=function(t){for(var n=t[0],r=1;r<t.length;++r)t[r]>n&&(n=t[r]);return n},S=function(t,n,r){var i=n/8|0;return(t[i]|t[i+1]<<8)>>(7&n)&r},A=function(t,n){var r=n/8|0;return(t[r]|t[r+1]<<8|t[r+2]<<16)>>(7&n)},T=function(t){return(t+7)/8|0},D=function(t,r,i){return(null==r||r<0)&&(r=0),(null==i||i>t.length)&&(i=t.length),new n(t.subarray(r,i))};_e.FlateErrorCode={UnexpectedEOF:0,InvalidBlockType:1,InvalidLengthLiteral:2,InvalidDistance:3,StreamFinished:4,NoStreamHandler:5,InvalidHeader:6,NoCallback:7,InvalidUTF8:8,ExtraFieldTooLong:9,InvalidDate:10,FilenameTooLong:11,StreamFinishing:12,InvalidZipData:13,UnknownCompressionMethod:14};var C=["unexpected EOF","invalid block type","invalid length/literal","invalid distance","stream finished","no stream handler",,"no callback","invalid UTF-8 data","extra field too long","date not in range 1980-2099","filename too long","stream finishing","invalid zip data"],I=function(t,n,r){var i=Error(n||C[t]);if(i.code=t,Error.captureStackTrace&&Error.captureStackTrace(i,I),!r)throw i;return i},U=function(t,r,i,a){var u=t.length,f=a?a.length:0;if(!u||r.f&&!r.l)return i||new n(0);var c=!i,p=c||2!=r.i,v=r.i;c&&(i=new n(3*u));var d=function(t){var r=i.length;if(t>r){var e=new n(Math.max(2*r,t));e.set(i),i=e}},g=r.f||0,m=r.p||0,b=r.b||0,w=r.l,z=r.d,C=r.m,U=r.n,F=8*u;do{if(!w){g=S(t,m,1);var E=S(t,m+1,3);if(m+=3,!E){var Z=t[(Y=T(m)+4)-4]|t[Y-3]<<8,q=Y+Z;if(q>u){v&&I(0);break}p&&d(b+Z),i.set(t.subarray(Y,q),b),r.b=b+=Z,r.p=m=8*q,r.f=g;continue}if(1==E)w=x,z=k,C=9,U=5;else if(2==E){var O=S(t,m,31)+257,G=S(t,m+10,15)+4,L=O+S(t,m+5,31)+1;m+=14;for(var B=new n(L),H=new n(19),j=0;j<G;++j)H[s[j]]=S(t,m+3*j,7);m+=3*G;var N=M(H),P=(1<<N)-1,V=y(H,N,1);for(j=0;j<L;){var Y,J=V[S(t,m,P)];if(m+=15&J,(Y=J>>4)<16)B[j++]=Y;else{var K=0,Q=0;for(16==Y?(Q=3+S(t,m,3),m+=2,K=B[j-1]):17==Y?(Q=3+S(t,m,7),m+=3):18==Y&&(Q=11+S(t,m,127),m+=7);Q--;)B[j++]=K}}var R=B.subarray(0,O),W=B.subarray(O);C=M(R),U=M(W),w=y(R,C,1),z=y(W,U,1)}else I(1);if(m>F){v&&I(0);break}}p&&d(b+131072);for(var X=(1<<C)-1,$=(1<<U)-1,_=m;;_=m){var tt=(K=w[A(t,m)&X])>>4;if((m+=15&K)>F){v&&I(0);break}if(K||I(2),tt<256)i[b++]=tt;else{if(256==tt){_=m,w=null;break}var nt=tt-254;tt>264&&(nt=S(t,m,(1<<(et=e[j=tt-257]))-1)+h[j],m+=et);var rt=z[A(t,m)&$],it=rt>>4;if(rt||I(3),m+=15&rt,W=l[it],it>3){var et=o[it];W+=A(t,m)&(1<<et)-1,m+=et}if(m>F){v&&I(0);break}p&&d(b+131072);var ot=b+nt;if(b<W){var st=f-W,at=Math.min(W,ot);for(st+b<0&&I(3);b<at;++b)i[b]=a[st+b]}for(;b<ot;++b)i[b]=i[b-W]}}r.l=w,r.p=_,r.b=b,r.f=g,w&&(g=1,r.m=C,r.d=z,r.n=U)}while(!g);return b!=i.length&&c?D(i,0,b):i.subarray(0,b)},F=function(t,n,r){var i=n/8|0;t[i]|=r<<=7&n,t[i+1]|=r>>8},E=function(t,n,r){var i=n/8|0;t[i]|=r<<=7&n,t[i+1]|=r>>8,t[i+2]|=r>>16},Z=function(t,i){for(var e=[],o=0;o<t.length;++o)t[o]&&e.push({s:o,f:t[o]});var s=e.length,a=e.slice();if(!s)return{t:j,l:0};if(1==s){var u=new n(e[0].s+1);return u[e[0].s]=1,{t:u,l:1}}e.sort(function(t,n){return t.f-n.f}),e.push({s:-1,f:25001});var h=e[0],f=e[1],c=0,l=1,p=2;for(e[0]={s:-1,f:h.f+f.f,l:h,r:f};l!=s-1;)h=e[e[c].f<e[p].f?c++:p++],f=e[c!=l&&e[c].f<e[p].f?c++:p++],e[l++]={s:-1,f:h.f+f.f,l:h,r:f};var v=a[0].s;for(o=1;o<s;++o)a[o].s>v&&(v=a[o].s);var d=new r(v+1),g=q(e[l-1],d,0);if(g>i){o=0;var y=0,m=g-i,b=1<<m;for(a.sort(function(t,n){return d[n.s]-d[t.s]||t.f-n.f});o<s;++o){var w=a[o].s;if(!(d[w]>i))break;y+=b-(1<<g-d[w]),d[w]=i}for(y>>=m;y>0;){var x=a[o].s;d[x]<i?y-=1<<i-d[x]++-1:++o}for(;o>=0&&y;--o){var z=a[o].s;d[z]==i&&(--d[z],++y)}g=i}return{t:new n(d),l:g}},q=function(t,n,r){return-1==t.s?Math.max(q(t.l,n,r+1),q(t.r,n,r+1)):n[t.s]=r},O=function(t){for(var n=t.length;n&&!t[--n];);for(var i=new r(++n),e=0,o=t[0],s=1,a=function(t){i[e++]=t},u=1;u<=n;++u)if(t[u]==o&&u!=n)++s;else{if(!o&&s>2){for(;s>138;s-=138)a(32754);s>2&&(a(s>10?s-11<<5|28690:s-3<<5|12305),s=0)}else if(s>3){for(a(o),--s;s>6;s-=6)a(8304);s>2&&(a(s-3<<5|8208),s=0)}for(;s--;)a(o);s=1,o=t[u]}return{c:i.subarray(0,e),n:n}},G=function(t,n){for(var r=0,i=0;i<n.length;++i)r+=t[i]*n[i];return r},L=function(t,n,r){var i=r.length,e=T(n+2);t[e]=255&i,t[e+1]=i>>8,t[e+2]=255^t[e],t[e+3]=255^t[e+1];for(var o=0;o<i;++o)t[e+o+4]=r[o];return 8*(e+4+i)},B=function(t,n,i,a,u,h,f,c,l,p,v){F(n,v++,i),++u[256];for(var d=Z(u,15),g=d.t,x=d.l,k=Z(h,15),M=k.t,S=k.l,A=O(g),T=A.c,D=A.n,C=O(M),I=C.c,U=C.n,q=new r(19),B=0;B<T.length;++B)++q[31&T[B]];for(B=0;B<I.length;++B)++q[31&I[B]];for(var H=Z(q,7),j=H.t,N=H.l,P=19;P>4&&!j[s[P-1]];--P);var V,Y,J,K,Q=p+5<<3,R=G(u,m)+G(h,b)+f,W=G(u,g)+G(h,M)+f+14+3*P+G(q,j)+2*q[16]+3*q[17]+7*q[18];if(l>=0&&Q<=R&&Q<=W)return L(n,v,t.subarray(l,l+p));if(F(n,v,1+(W<R)),v+=2,W<R){V=y(g,x,0),Y=g,J=y(M,S,0),K=M;var X=y(j,N,0);for(F(n,v,D-257),F(n,v+5,U-1),F(n,v+10,P-4),v+=14,B=0;B<P;++B)F(n,v+3*B,j[s[B]]);v+=3*P;for(var $=[T,I],_=0;_<2;++_){var tt=$[_];for(B=0;B<tt.length;++B)F(n,v,X[rt=31&tt[B]]),v+=j[rt],rt>15&&(F(n,v,tt[B]>>5&127),v+=tt[B]>>12)}}else V=w,Y=m,J=z,K=b;for(B=0;B<c;++B){var nt=a[B];if(nt>255){var rt;E(n,v,V[257+(rt=nt>>18&31)]),v+=Y[rt+257],rt>7&&(F(n,v,nt>>23&31),v+=e[rt]);var it=31&nt;E(n,v,J[it]),v+=K[it],it>3&&(E(n,v,nt>>5&8191),v+=o[it])}else E(n,v,V[nt]),v+=Y[nt]}return E(n,v,V[256]),v+Y[256]},H=new i([65540,131080,131088,131104,262176,1048704,1048832,2114560,2117632]),j=new n(0),N=function(t,s,a,u,h,c){var l=c.z||t.length,v=new n(u+l+5*(1+Math.ceil(l/7e3))+h),d=v.subarray(u,v.length-h),g=c.l,y=7&(c.r||0);if(s){y&&(d[0]=c.r>>3);for(var m=H[s-1],b=m>>13,w=8191&m,x=(1<<a)-1,z=c.p||new r(32768),k=c.h||new r(x+1),M=Math.ceil(a/3),S=2*M,A=function(n){return(t[n]^t[n+1]<<M^t[n+2]<<S)&x},C=new i(25e3),I=new r(288),U=new r(32),F=0,E=0,Z=c.i||0,q=0,O=c.w||0,G=0;Z+2<l;++Z){var j=A(Z),N=32767&Z,P=k[j];if(z[N]=P,k[j]=N,O<=Z){var V=l-Z;if((F>7e3||q>24576)&&(V>423||!g)){y=B(t,d,0,C,I,U,E,q,G,Z-G,y),q=F=E=0,G=Z;for(var Y=0;Y<286;++Y)I[Y]=0;for(Y=0;Y<30;++Y)U[Y]=0}var J=2,K=0,Q=w,R=N-P&32767;if(V>2&&j==A(Z-R))for(var W=Math.min(b,V)-1,X=Math.min(32767,Z),$=Math.min(258,V);R<=X&&--Q&&N!=P;){if(t[Z+J]==t[Z+J-R]){for(var _=0;_<$&&t[Z+_]==t[Z+_-R];++_);if(_>J){if(J=_,K=R,_>W)break;var tt=Math.min(R,_-2),nt=0;for(Y=0;Y<tt;++Y){var rt=Z-R+Y&32767,it=rt-z[rt]&32767;it>nt&&(nt=it,P=rt)}}}R+=(N=P)-(P=z[N])&32767}if(K){C[q++]=268435456|f[J]<<18|p[K];var et=31&f[J],ot=31&p[K];E+=e[et]+o[ot],++I[257+et],++U[ot],O=Z+J,++F}else C[q++]=t[Z],++I[t[Z]]}}for(Z=Math.max(Z,O);Z<l;++Z)C[q++]=t[Z],++I[t[Z]];y=B(t,d,g,C,I,U,E,q,G,Z-G,y),g||(c.r=7&y|d[y/8|0]<<3,y-=7,c.h=k,c.p=z,c.i=Z,c.w=O)}else{for(Z=c.w||0;Z<l+g;Z+=65535){var st=Z+65535;st>=l&&(d[y/8|0]=g,st=l),y=L(d,y+1,t.subarray(Z,st))}c.i=l}return D(v,0,u+T(y)+h)},P=function(){for(var t=new Int32Array(256),n=0;n<256;++n){for(var r=n,i=9;--i;)r=(1&r&&-306674912)^r>>>1;t[n]=r}return t}(),V=function(){var t=-1;return{p:function(n){for(var r=t,i=0;i<n.length;++i)r=P[255&r^n[i]]^r>>>8;t=r},d:function(){return~t}}},Y=function(){var t=1,n=0;return{p:function(r){for(var i=t,e=n,o=0|r.length,s=0;s!=o;){for(var a=Math.min(s+2655,o);s<a;++s)e+=i+=r[s];i=(65535&i)+15*(i>>16),e=(65535&e)+15*(e>>16)}t=i,n=e},d:function(){return(255&(t%=65521))<<24|(65280&t)<<8|(255&(n%=65521))<<8|n>>8}}},J=function(t,r,i,e,o){if(!o&&(o={l:1},r.dictionary)){var s=r.dictionary.subarray(-32768),a=new n(s.length+t.length);a.set(s),a.set(t,s.length),t=a,o.w=s.length}return N(t,null==r.level?6:r.level,null==r.mem?o.l?Math.ceil(1.5*Math.max(8,Math.min(13,Math.log(t.length)))):20:12+r.mem,i,e,o)},K=function(t,n){var r={};for(var i in t)r[i]=t[i];for(var i in n)r[i]=n[i];return r},Q=function(t,n,r){for(var i=t(),e=""+t,o=e.slice(e.indexOf("[")+1,e.lastIndexOf("]")).replace(/\s+/g,"").split(","),s=0;s<i.length;++s){var a=i[s],u=o[s];if("function"==typeof a){n+=";"+u+"=";var h=""+a;if(a.prototype)if(-1!=h.indexOf("[native code]")){var f=h.indexOf(" ",8)+1;n+=h.slice(f,h.indexOf("(",f))}else for(var c in n+=h,a.prototype)n+=";"+u+".prototype."+c+"="+a.prototype[c];else n+=h}else r[u]=a}return n},R=[],W=function(t){var n=[];for(var r in t)t[r].buffer&&n.push((t[r]=new t[r].constructor(t[r])).buffer);return n},X=function(n,r,i,e){if(!R[i]){for(var o="",s={},a=n.length-1,u=0;u<a;++u)o=Q(n[u],o,s);R[i]={c:Q(n[a],o,s),e:s}}var h=K({},R[i].e);return(0,t.default)(R[i].c+";onmessage=function(e){for(var k in e.data)self[k]=e.data[k];onmessage="+r+"}",i,h,W(h),e)},$=function(){return[n,r,i,e,o,s,h,l,x,k,v,C,y,M,S,A,T,D,I,U,Tt,et,ot]},_=function(){return[n,r,i,e,o,s,f,p,w,m,z,b,v,H,j,y,F,E,Z,q,O,G,L,B,T,D,N,J,kt,et]},tt=function(){return[pt,gt,lt,V,P]},nt=function(){return[vt,dt]},rt=function(){return[yt,lt,Y]},it=function(){return[mt]},et=function(t){return postMessage(t,[t.buffer])},ot=function(t){return t&&{out:t.size&&new n(t.size),dictionary:t.dictionary}},st=function(t,n,r,i,e,o){var s=X(r,i,e,function(t,n){s.terminate(),o(t,n)});return s.postMessage([t,n],n.consume?[t.buffer]:[]),function(){s.terminate()}},at=function(t){return t.ondata=function(t,n){return postMessage([t,n],[t.buffer])},function(n){n.data[0]?(t.push(n.data[0],n.data[1]),postMessage([n.data[0].length])):t.flush(n.data[1])}},ut=function(t,n,r,i,e,o,s){var a,u=X(t,i,e,function(t,r){t?(u.terminate(),n.ondata.call(n,t)):Array.isArray(r)?1==r.length?(n.queuedSize-=r[0],n.ondrain&&n.ondrain(r[0])):(r[1]&&u.terminate(),n.ondata.call(n,t,r[0],r[1])):s(r)});u.postMessage(r),n.queuedSize=0,n.push=function(t,r){n.ondata||I(5),a&&n.ondata(I(4,0,1),null,!!r),n.queuedSize+=t.length,u.postMessage([t,a=r],t.buffer instanceof ArrayBuffer?[t.buffer]:[])},n.terminate=function(){u.terminate()},o&&(n.flush=function(t){u.postMessage([0,t])})},ht=function(t,n){return t[n]|t[n+1]<<8},ft=function(t,n){return(t[n]|t[n+1]<<8|t[n+2]<<16|t[n+3]<<24)>>>0},ct=function(t,n){return ft(t,n)+4294967296*ft(t,n+4)},lt=function(t,n,r){for(;r;++n)t[n]=r,r>>>=8},pt=function(t,n){var r=n.filename;if(t[0]=31,t[1]=139,t[2]=8,t[8]=n.level<2?4:9==n.level?2:0,t[9]=3,0!=n.mtime&&lt(t,4,Math.floor(new Date(n.mtime||Date.now())/1e3)),r){t[3]=8;for(var i=0;i<=r.length;++i)t[i+10]=r.charCodeAt(i)}},vt=function(t){31==t[0]&&139==t[1]&&8==t[2]||I(6,"invalid gzip data");var n=t[3],r=10;4&n&&(r+=2+(t[10]|t[11]<<8));for(var i=(n>>3&1)+(n>>4&1);i>0;i-=!t[r++]);return r+(2&n)},dt=function(t){var n=t.length;return(t[n-4]|t[n-3]<<8|t[n-2]<<16|t[n-1]<<24)>>>0},gt=function(t){return 10+(t.filename?t.filename.length+1:0)},yt=function(t,n){var r=n.level,i=0==r?0:r<6?1:9==r?3:2;if(t[0]=120,t[1]=i<<6|(n.dictionary&&32),t[1]|=31-(t[0]<<8|t[1])%31,n.dictionary){var e=Y();e.p(n.dictionary),lt(t,2,e.d())}},mt=function(t,n){return(8!=(15&t[0])||t[0]>>4>7||(t[0]<<8|t[1])%31)&&I(6,"invalid zlib data"),(t[1]>>5&1)==+!n&&I(6,"invalid zlib data: "+(32&t[1]?"need":"unexpected")+" dictionary"),2+(t[1]>>3&4)};function bt(t,n){return"function"==typeof t&&(n=t,t={}),this.ondata=n,t}var wt=function(){function t(t,r){if("function"==typeof t&&(r=t,t={}),this.ondata=r,this.o=t||{},this.s={l:0,i:32768,w:32768,z:32768},this.b=new n(98304),this.o.dictionary){var i=this.o.dictionary.subarray(-32768);this.b.set(i,32768-i.length),this.s.i=32768-i.length}}return t.prototype.p=function(t,n){this.ondata(J(t,this.o,0,0,this.s),n)},t.prototype.push=function(t,r){this.ondata||I(5),this.s.l&&I(4);var i=t.length+this.s.z;if(i>this.b.length){if(i>2*this.b.length-32768){var e=new n(-32768&i);e.set(this.b.subarray(0,this.s.z)),this.b=e}var o=this.b.length-this.s.z;this.b.set(t.subarray(0,o),this.s.z),this.s.z=this.b.length,this.p(this.b,!1),this.b.set(this.b.subarray(-32768)),this.b.set(t.subarray(o),32768),this.s.z=t.length-o+32768,this.s.i=32766,this.s.w=32768}else this.b.set(t,this.s.z),this.s.z+=t.length;this.s.l=1&r,(this.s.z>this.s.w+8191||r)&&(this.p(this.b,r||!1),this.s.w=this.s.i,this.s.i-=2),r&&(this.s=this.o={},this.b=j)},t.prototype.flush=function(t){if(this.ondata||I(5),this.s.l&&I(4),this.p(this.b,!1),this.s.w=this.s.i,this.s.i-=2,t){var r=new n(6);r[0]=this.s.r>>3;var i=L(r,this.s.r,j);this.s.r=0,this.ondata(r.subarray(0,i>>3),!1)}},t}();_e.Deflate=wt;var xt=function(){return function(t,n){ut([_,function(){return[at,wt]}],this,bt.call(this,t,n),function(t){var n=new wt(t.data);onmessage=at(n)},6,1)}}();function zt(t,n,r){return r||(r=n,n={}),"function"!=typeof r&&I(7),st(t,n,[_],function(t){return et(kt(t.data[0],t.data[1]))},0,r)}function kt(t,n){return J(t,n||{},0,0)}_e.AsyncDeflate=xt;var Mt=function(){function t(t,r){"function"==typeof t&&(r=t,t={}),this.ondata=r;var i=t&&t.dictionary&&t.dictionary.subarray(-32768);this.s={i:0,b:i?i.length:0},this.o=new n(32768),this.p=new n(0),i&&this.o.set(i)}return t.prototype.e=function(t){if(this.ondata||I(5),this.d&&I(4),this.p.length){if(t.length){var r=new n(this.p.length+t.length);r.set(this.p),r.set(t,this.p.length),this.p=r}}else this.p=t},t.prototype.c=function(t){this.s.i=+(this.d=t||!1);var n=this.s.b,r=U(this.p,this.s,this.o);this.ondata(D(r,n,this.s.b),this.d),this.o=D(r,this.s.b-32768),this.s.b=this.o.length,this.p=D(this.p,this.s.p/8|0),this.s.p&=7},t.prototype.push=function(t,n){this.e(t),this.c(n)},t}();_e.Inflate=Mt;var St=function(){return function(t,n){ut([$,function(){return[at,Mt]}],this,bt.call(this,t,n),function(t){var n=new Mt(t.data);onmessage=at(n)},7,0)}}();function At(t,n,r){return r||(r=n,n={}),"function"!=typeof r&&I(7),st(t,n,[$],function(t){return et(Tt(t.data[0],ot(t.data[1])))},1,r)}function Tt(t,n){return U(t,{i:2},n&&n.out,n&&n.dictionary)}_e.AsyncInflate=St;var Dt=function(){function t(t,n){this.c=V(),this.l=0,this.v=1,wt.call(this,t,n)}return t.prototype.push=function(t,n){this.c.p(t),this.l+=t.length,wt.prototype.push.call(this,t,n)},t.prototype.p=function(t,n){var r=J(t,this.o,this.v&&gt(this.o),n&&8,this.s);this.v&&(pt(r,this.o),this.v=0),n&&(lt(r,r.length-8,this.c.d()),lt(r,r.length-4,this.l)),this.ondata(r,n)},t.prototype.flush=function(t){wt.prototype.flush.call(this,t)},t}();_e.Gzip=Dt,_e.Compress=Dt;var Ct=function(){return function(t,n){ut([_,tt,function(){return[at,wt,Dt]}],this,bt.call(this,t,n),function(t){var n=new Dt(t.data);onmessage=at(n)},8,1)}}();function It(t,n,r){return r||(r=n,n={}),"function"!=typeof r&&I(7),st(t,n,[_,tt,function(){return[Ut]}],function(t){return et(Ut(t.data[0],t.data[1]))},2,r)}function Ut(t,n){n||(n={});var r=V(),i=t.length;r.p(t);var e=J(t,n,gt(n),8),o=e.length;return pt(e,n),lt(e,o-8,r.d()),lt(e,o-4,i),e}_e.AsyncGzip=Ct,_e.AsyncCompress=Ct;var Ft=function(){function t(t,n){this.v=1,this.r=0,Mt.call(this,t,n)}return t.prototype.push=function(t,r){if(Mt.prototype.e.call(this,t),this.r+=t.length,this.v){var i=this.p.subarray(this.v-1),e=i.length>3?vt(i):4;if(e>i.length){if(!r)return}else this.v>1&&this.onmember&&this.onmember(this.r-i.length);this.p=i.subarray(e),this.v=0}Mt.prototype.c.call(this,0),this.s.f&&!this.s.l?(this.v=T(this.s.p)+9,this.s={i:0},this.o=new n(0),this.push(new n(0),r)):r&&Mt.prototype.c.call(this,r)},t}();_e.Gunzip=Ft;var Et=function(){return function(t,n){var r=this;ut([$,nt,function(){return[at,Mt,Ft]}],this,bt.call(this,t,n),function(t){var n=new Ft(t.data);n.onmember=function(t){return postMessage(t)},onmessage=at(n)},9,0,function(t){return r.onmember&&r.onmember(t)})}}();function Zt(t,n,r){return r||(r=n,n={}),"function"!=typeof r&&I(7),st(t,n,[$,nt,function(){return[qt]}],function(t){return et(qt(t.data[0],t.data[1]))},3,r)}function qt(t,r){var i=vt(t);return i+8>t.length&&I(6,"invalid gzip data"),U(t.subarray(i,-8),{i:2},r&&r.out||new n(dt(t)),r&&r.dictionary)}_e.AsyncGunzip=Et;var Ot=function(){function t(t,n){this.c=Y(),this.v=1,wt.call(this,t,n)}return t.prototype.push=function(t,n){this.c.p(t),wt.prototype.push.call(this,t,n)},t.prototype.p=function(t,n){var r=J(t,this.o,this.v&&(this.o.dictionary?6:2),n&&4,this.s);this.v&&(yt(r,this.o),this.v=0),n&&lt(r,r.length-4,this.c.d()),this.ondata(r,n)},t.prototype.flush=function(t){wt.prototype.flush.call(this,t)},t}();_e.Zlib=Ot;var Gt=function(){return function(t,n){ut([_,rt,function(){return[at,wt,Ot]}],this,bt.call(this,t,n),function(t){var n=new Ot(t.data);onmessage=at(n)},10,1)}}();function Lt(t,n,r){return r||(r=n,n={}),"function"!=typeof r&&I(7),st(t,n,[_,rt,function(){return[Bt]}],function(t){return et(Bt(t.data[0],t.data[1]))},4,r)}function Bt(t,n){n||(n={});var r=Y();r.p(t);var i=J(t,n,n.dictionary?6:2,4);return yt(i,n),lt(i,i.length-4,r.d()),i}_e.AsyncZlib=Gt;var Ht=function(){function t(t,n){Mt.call(this,t,n),this.v=t&&t.dictionary?2:1}return t.prototype.push=function(t,n){if(Mt.prototype.e.call(this,t),this.v){if(this.p.length<6&&!n)return;this.p=this.p.subarray(mt(this.p,this.v-1)),this.v=0}n&&(this.p.length<4&&I(6,"invalid zlib data"),this.p=this.p.subarray(0,-4)),Mt.prototype.c.call(this,n)},t}();_e.Unzlib=Ht;var jt=function(){return function(t,n){ut([$,it,function(){return[at,Mt,Ht]}],this,bt.call(this,t,n),function(t){var n=new Ht(t.data);onmessage=at(n)},11,0)}}();function Nt(t,n,r){return r||(r=n,n={}),"function"!=typeof r&&I(7),st(t,n,[$,it,function(){return[Pt]}],function(t){return et(Pt(t.data[0],ot(t.data[1])))},5,r)}function Pt(t,n){return U(t.subarray(mt(t,n&&n.dictionary),-4),{i:2},n&&n.out,n&&n.dictionary)}_e.AsyncUnzlib=jt;var Vt=function(){function t(t,n){this.o=bt.call(this,t,n)||{},this.G=Ft,this.I=Mt,this.Z=Ht}return t.prototype.i=function(){var t=this;this.s.ondata=function(n,r){t.ondata(n,r)}},t.prototype.push=function(t,r){if(this.ondata||I(5),this.s)this.s.push(t,r);else{if(this.p&&this.p.length){var i=new n(this.p.length+t.length);i.set(this.p),i.set(t,this.p.length)}else this.p=t;this.p.length>2&&(this.s=31==this.p[0]&&139==this.p[1]&&8==this.p[2]?new this.G(this.o):8!=(15&this.p[0])||this.p[0]>>4>7||(this.p[0]<<8|this.p[1])%31?new this.I(this.o):new this.Z(this.o),this.i(),this.s.push(this.p,r),this.p=null)}},t}();_e.Decompress=Vt;var Yt=function(){function t(t,n){Vt.call(this,t,n),this.queuedSize=0,this.G=Et,this.I=St,this.Z=jt}return t.prototype.i=function(){var t=this;this.s.ondata=function(n,r,i){t.ondata(n,r,i)},this.s.ondrain=function(n){t.queuedSize-=n,t.ondrain&&t.ondrain(n)}},t.prototype.push=function(t,n){this.queuedSize+=t.length,Vt.prototype.push.call(this,t,n)},t}();function Jt(t,n,r){return r||(r=n,n={}),"function"!=typeof r&&I(7),31==t[0]&&139==t[1]&&8==t[2]?Zt(t,n,r):8!=(15&t[0])||t[0]>>4>7||(t[0]<<8|t[1])%31?At(t,n,r):Nt(t,n,r)}function Kt(t,n){return 31==t[0]&&139==t[1]&&8==t[2]?qt(t,n):8!=(15&t[0])||t[0]>>4>7||(t[0]<<8|t[1])%31?Tt(t,n):Pt(t,n)}_e.AsyncDecompress=Yt;var Qt=function(t,r,i,e){for(var o in t){var s=t[o],a=r+o,u=e;Array.isArray(s)&&(u=K(e,s[1]),s=s[0]),ArrayBuffer.isView(s)?i[a]=[s,u]:(i[a+="/"]=[new n(0),u],Qt(s,a,i,e))}},Rt="undefined"!=typeof TextEncoder&&new TextEncoder,Wt="undefined"!=typeof TextDecoder&&new TextDecoder,Xt=0;try{Wt.decode(j,{stream:!0}),Xt=1}catch(t){}var $t=function(t){for(var n="",r=0;;){var i=t[r++],e=(i>127)+(i>223)+(i>239);if(r+e>t.length)return{s:n,r:D(t,r-1)};e?3==e?(i=((15&i)<<18|(63&t[r++])<<12|(63&t[r++])<<6|63&t[r++])-65536,n+=String.fromCharCode(55296|i>>10,56320|1023&i)):n+=String.fromCharCode(1&e?(31&i)<<6|63&t[r++]:(15&i)<<12|(63&t[r++])<<6|63&t[r++]):n+=String.fromCharCode(i)}},_t=function(){function t(t){this.ondata=t,Xt?this.t=new TextDecoder:this.p=j}return t.prototype.push=function(t,r){if(this.ondata||I(5),r=!!r,this.t)return this.ondata(this.t.decode(t,{stream:!0}),r),void(r&&(this.t.decode().length&&I(8),this.t=null));this.p||I(4);var i=new n(this.p.length+t.length);i.set(this.p),i.set(t,this.p.length);var e=$t(i),o=e.s,s=e.r;r?(s.length&&I(8),this.p=null):this.p=s,this.ondata(o,r)},t}();_e.DecodeUTF8=_t;var tn=function(){function t(t){this.ondata=t}return t.prototype.push=function(t,n){this.ondata||I(5),this.d&&I(4),this.ondata(nn(t),this.d=n||!1)},t}();function nn(t,r){if(r){for(var i=new n(t.length),e=0;e<t.length;++e)i[e]=t.charCodeAt(e);return i}if(Rt)return Rt.encode(t);var o=t.length,s=new n(t.length+(t.length>>1)),a=0,u=function(t){s[a++]=t};for(e=0;e<o;++e){if(a+5>s.length){var h=new n(a+8+(o-e<<1));h.set(s),s=h}var f=t.charCodeAt(e);f<128||r?u(f):f<2048?(u(192|f>>6),u(128|63&f)):f>55295&&f<57344?(u(240|(f=65536+(1047552&f)|1023&t.charCodeAt(++e))>>18),u(128|f>>12&63),u(128|f>>6&63),u(128|63&f)):(u(224|f>>12),u(128|f>>6&63),u(128|63&f))}return D(s,0,a)}function rn(t,n){if(n){for(var r="",i=0;i<t.length;i+=16384)r+=String.fromCharCode.apply(null,t.subarray(i,i+16384));return r}if(Wt)return Wt.decode(t);var e=$t(t),o=e.s;return(r=e.r).length&&I(8),o}_e.EncodeUTF8=tn;var en=function(t){return 1==t?3:t<6?2:9==t?1:0},on=function(t,n){return n+30+ht(t,n+26)+ht(t,n+28)},sn=function(t,n,r){var i=ht(t,n+28),e=ht(t,n+30),o=rn(t.subarray(n+46,n+46+i),!(2048&ht(t,n+8))),s=n+46+i,a=an(t,s,e,r,ft(t,n+20),ft(t,n+24),ft(t,n+42)),u=a[0],h=a[1],f=a[2];return[ht(t,n+10),u,h,o,s+e+ht(t,n+32),f]},an=function(t,n,r,i,e,o,s){var a=4294967295==e,u=4294967295==o,h=4294967295==s,f=n+r;if(i&&a+u+h){for(;n+4<f;n+=4+ht(t,n+2))if(1==ht(t,n))return[a?ct(t,n+4+8*u):e,u?ct(t,n+4):o,h?ct(t,n+4+8*(u+a)):s,1];i<2&&I(13)}return[e,o,s,0]},un=function(t){var n=0;if(t)for(var r in t){var i=t[r].length;i>65535&&I(9),n+=i+4}return n},hn=function(t,n,r,i,e,o,s,a){var u=i.length,h=r.extra,f=a&&a.length,c=un(h);lt(t,n,null!=s?33639248:67324752),n+=4,null!=s&&(t[n++]=20,t[n++]=r.os),t[n]=20,n+=2,t[n++]=r.flag<<1|(o<0&&8),t[n++]=e&&8,t[n++]=255&r.compression,t[n++]=r.compression>>8;var l=new Date(null==r.mtime?Date.now():r.mtime),p=l.getFullYear()-1980;if((p<0||p>119)&&I(10),lt(t,n,p<<25|l.getMonth()+1<<21|l.getDate()<<16|l.getHours()<<11|l.getMinutes()<<5|l.getSeconds()>>1),n+=4,-1!=o&&(lt(t,n,r.crc),lt(t,n+4,o<0?-o-2:o),lt(t,n+8,r.size)),lt(t,n+12,u),lt(t,n+14,c),n+=16,null!=s&&(lt(t,n,f),lt(t,n+6,r.attrs),lt(t,n+10,s),n+=14),t.set(i,n),n+=u,c)for(var v in h){var d=h[v],g=d.length;lt(t,n,+v),lt(t,n+2,g),t.set(d,n+4),n+=4+g}return f&&(t.set(a,n),n+=f),n},fn=function(t,n,r,i,e){lt(t,n,101010256),lt(t,n+8,r),lt(t,n+10,r),lt(t,n+12,i),lt(t,n+16,e)},cn=function(){function t(t){this.filename=t,this.c=V(),this.size=0,this.compression=0}return t.prototype.process=function(t,n){this.ondata(null,t,n)},t.prototype.push=function(t,n){this.ondata||I(5),this.c.p(t),this.size+=t.length,n&&(this.crc=this.c.d()),this.process(t,n||!1)},t}();_e.ZipPassThrough=cn;var ln=function(){function t(t,n){var r=this;n||(n={}),cn.call(this,t),this.d=new wt(n,function(t,n){r.ondata(null,t,n)}),this.compression=8,this.flag=en(n.level)}return t.prototype.process=function(t,n){try{this.d.push(t,n)}catch(t){this.ondata(t,null,n)}},t.prototype.push=function(t,n){cn.prototype.push.call(this,t,n)},t}();_e.ZipDeflate=ln;var pn=function(){function t(t,n){var r=this;n||(n={}),cn.call(this,t),this.d=new xt(n,function(t,n,i){r.ondata(t,n,i)}),this.compression=8,this.flag=en(n.level),this.terminate=this.d.terminate}return t.prototype.process=function(t,n){this.d.push(t,n)},t.prototype.push=function(t,n){cn.prototype.push.call(this,t,n)},t}();_e.AsyncZipDeflate=pn;var vn=function(){function t(t){this.ondata=t,this.u=[],this.d=1}return t.prototype.add=function(t){var r=this;if(this.ondata||I(5),2&this.d)this.ondata(I(4+8*(1&this.d),0,1),null,!1);else{var i=nn(t.filename),e=i.length,o=t.comment,s=o&&nn(o),a=e!=t.filename.length||s&&o.length!=s.length,u=e+un(t.extra)+30;e>65535&&this.ondata(I(11,0,1),null,!1);var h=new n(u);hn(h,0,t,i,a,-1);var f=[h],c=function(){for(var t=0,n=f;t<n.length;t++)r.ondata(null,n[t],!1);f=[]},l=this.d;this.d=0;var p=this.u.length,v=K(t,{f:i,u:a,o:s,t:function(){t.terminate&&t.terminate()},r:function(){if(c(),l){var t=r.u[p+1];t?t.r():r.d=1}l=1}}),d=0;t.ondata=function(i,e,o){if(i)r.ondata(i,e,o),r.terminate();else if(d+=e.length,f.push(e),o){var s=new n(16);lt(s,0,134695760),lt(s,4,t.crc),lt(s,8,d),lt(s,12,t.size),f.push(s),v.c=d,v.b=u+d+16,v.crc=t.crc,v.size=t.size,l&&v.r(),l=1}else l&&c()},this.u.push(v)}},t.prototype.end=function(){var t=this;2&this.d?this.ondata(I(4+8*(1&this.d),0,1),null,!0):(this.d?this.e():this.u.push({r:function(){1&t.d&&(t.u.splice(-1,1),t.e())},t:function(){}}),this.d=3)},t.prototype.e=function(){for(var t=0,r=0,i=0,e=0,o=this.u;e<o.length;e++)i+=46+(h=o[e]).f.length+un(h.extra)+(h.o?h.o.length:0);for(var s=new n(i+22),a=0,u=this.u;a<u.length;a++){var h;hn(s,t,h=u[a],h.f,h.u,-h.c-2,r,h.o),t+=46+h.f.length+un(h.extra)+(h.o?h.o.length:0),r+=h.b}fn(s,t,this.u.length,i,r),this.ondata(null,s,!0),this.d=2},t.prototype.terminate=function(){for(var t=0,n=this.u;t<n.length;t++)n[t].t();this.d=2},t}();function dn(t,r,i){i||(i=r,r={}),"function"!=typeof i&&I(7);var e={};Qt(t,"",e,r);var o=Object.keys(e),s=o.length,a=0,u=0,h=s,f=Array(s),c=[],l=function(){for(var t=0;t<c.length;++t)c[t]()},p=function(t,n){xn(function(){i(t,n)})};xn(function(){p=i});var v=function(){var t=new n(u+22),r=a,i=u-a;u=0;for(var e=0;e<h;++e){var o=f[e];try{var s=o.c.length;hn(t,u,o,o.f,o.u,s);var c=30+o.f.length+un(o.extra),l=u+c;t.set(o.c,l),hn(t,a,o,o.f,o.u,s,u,o.m),a+=16+c+(o.m?o.m.length:0),u=l+s}catch(t){return p(t,null)}}fn(t,a,f.length,i,r),p(null,t)};s||v();for(var d=function(t){var n=o[t],r=e[n],i=r[0],h=r[1],d=V(),g=i.length;d.p(i);var y=nn(n),m=y.length,b=h.comment,w=b&&nn(b),x=w&&w.length,z=un(h.extra),k=0==h.level?0:8,M=function(r,i){if(r)l(),p(r,null);else{var e=i.length;f[t]=K(h,{size:g,crc:d.d(),c:i,f:y,m:w,u:m!=n.length||w&&b.length!=x,compression:k}),a+=30+m+z+e,u+=76+2*(m+z)+(x||0)+e,--s||v()}};if(m>65535&&M(I(11,0,1),null),k)if(g<16e4)try{M(null,kt(i,h))}catch(t){M(t,null)}else c.push(zt(i,h,M));else M(null,i)},g=0;g<h;++g)d(g);return l}function gn(t,r){r||(r={});var i={},e=[];Qt(t,"",i,r);var o=0,s=0;for(var a in i){var u=i[a],h=u[0],f=u[1],c=0==f.level?0:8,l=(M=nn(a)).length,p=f.comment,v=p&&nn(p),d=v&&v.length,g=un(f.extra);l>65535&&I(11);var y=c?kt(h,f):h,m=y.length,b=V();b.p(h),e.push(K(f,{size:h.length,crc:b.d(),c:y,f:M,m:v,u:l!=a.length||v&&p.length!=d,o:o,compression:c})),o+=30+l+g+m,s+=76+2*(l+g)+(d||0)+m}for(var w=new n(s+22),x=o,z=s-o,k=0;k<e.length;++k){var M;hn(w,(M=e[k]).o,M,M.f,M.u,M.c.length);var S=30+M.f.length+un(M.extra);w.set(M.c,M.o+S),hn(w,o,M,M.f,M.u,M.c.length,M.o,M.m),o+=16+S+(M.m?M.m.length:0)}return fn(w,o,e.length,z,x),w}_e.Zip=vn;var yn=function(){function t(){}return t.prototype.push=function(t,n){this.ondata(null,t,n)},t.compression=0,t}();_e.UnzipPassThrough=yn;var mn=function(){function t(){var t=this;this.i=new Mt(function(n,r){t.ondata(null,n,r)})}return t.prototype.push=function(t,n){try{this.i.push(t,n)}catch(t){this.ondata(t,null,n)}},t.compression=8,t}();_e.UnzipInflate=mn;var bn=function(){function t(t,n){var r=this;n<32e4?this.i=new Mt(function(t,n){r.ondata(null,t,n)}):(this.i=new St(function(t,n,i){r.ondata(t,n,i)}),this.terminate=this.i.terminate)}return t.prototype.push=function(t,n){this.i.terminate&&(t=D(t,0)),this.i.push(t,n)},t.compression=8,t}();_e.AsyncUnzipInflate=bn;var wn=function(){function t(t){this.onfile=t,this.k=[],this.o={0:yn},this.p=j}return t.prototype.push=function(t,r){var i=this;if(this.onfile||I(5),this.p||I(4),this.c>0){var e=Math.min(this.c,t.length),o=t.subarray(0,e);if(this.c-=e,this.d?this.d.push(o,!this.c):this.k[0].push(o),(t=t.subarray(e)).length)return this.push(t,r)}else{var s=0,a=0,u=void 0,h=void 0;this.p.length?t.length?((h=new n(this.p.length+t.length)).set(this.p),h.set(t,this.p.length)):h=this.p:h=t;for(var f=h.length,c=this.c,l=c&&this.d,p=function(){var t=ft(h,a);if(67324752==t){s=1,u=a,v.d=null,v.c=0;var n=ht(h,a+6),r=ht(h,a+8),e=2048&n,o=8&n,l=ht(h,a+26),p=ht(h,a+28);if(f>a+30+l+p){var d=[];v.k.unshift(d),s=2;var g,y=ft(h,a+18),m=ft(h,a+22),b=rn(h.subarray(a+30,a+=30+l),!e),w=an(h,a,p,2,y,m,0),x=w[0],z=w[1];o&&(x=-1-w[3]),a+=p,v.c=x;var k={name:b,compression:r,start:function(){if(k.ondata||I(5),x){var t=i.o[r];t||k.ondata(I(14,"unknown compression type "+r,1),null,!1),(g=x<0?new t(b):new t(b,x,z)).ondata=function(t,n,r){k.ondata(t,n,r)};for(var n=0,e=d;n<e.length;n++)g.push(e[n],!1);i.k[0]==d&&i.c?i.d=g:g.push(j,!0)}else k.ondata(null,j,!0)},terminate:function(){g&&g.terminate&&g.terminate()}};x>=0&&(k.size=x,k.originalSize=z),v.onfile(k)}return"break"}if(c){if(134695760==t)return u=a+=12+(-2==c&&8),s=3,v.c=0,"break";if(33639248==t)return u=a-=4,s=3,v.c=0,"break"}},v=this;a<f-4&&"break"!==p();++a);if(this.p=j,c<0){var d=h.subarray(0,s?u-12-(-2==c&&8)-(134695760==ft(h,u-16)&&4):a);l?l.push(d,!!s):this.k[+(2==s)].push(d)}if(2&s)return this.push(h.subarray(a),r);this.p=h.subarray(a)}r&&(this.c&&I(13),this.p=null)},t.prototype.register=function(t){this.o[t.compression]=t},t}();_e.Unzip=wn;var xn="function"==typeof queueMicrotask?queueMicrotask:"function"==typeof setTimeout?setTimeout:function(t){t()};function zn(t,r,i){i||(i=r,r={}),"function"!=typeof i&&I(7);var e=[],o=function(){for(var t=0;t<e.length;++t)e[t]()},s={},a=function(t,n){xn(function(){i(t,n)})};xn(function(){a=i});for(var u=t.length-22;101010256!=ft(t,u);--u)if(!u||t.length-u>65558)return a(I(13,0,1),null),o;var h=ht(t,u+8);if(h){var f=h,c=ft(t,u+16),l=117853008==ft(t,u-20);if(l){var p=ft(t,u-12);(l=101075792==ft(t,p))&&(f=h=ft(t,p+32),c=ft(t,p+48))}for(var v=r&&r.filter,d=function(r){var i=sn(t,c,l),u=i[0],f=i[1],p=i[2],d=i[3],g=i[4],y=on(t,i[5]);c=g;var m=function(t,n){t?(o(),a(t,null)):(n&&(s[d]=n),--h||a(null,s))};if(!v||v({name:d,size:f,originalSize:p,compression:u}))if(u)if(8==u){var b=t.subarray(y,y+f);if(p<524288||f>.8*p)try{m(null,Tt(b,{out:new n(p)}))}catch(t){m(t,null)}else e.push(At(b,{size:p},m))}else m(I(14,"unknown compression type "+u,1),null);else m(null,D(t,y,y+f));else m(null,null)},g=0;g<f;++g)d()}else a(null,{});return o}function kn(t,r){for(var i={},e=t.length-22;101010256!=ft(t,e);--e)(!e||t.length-e>65558)&&I(13);var o=ht(t,e+8);if(!o)return{};var s=ft(t,e+16),a=117853008==ft(t,e-20);if(a){var u=ft(t,e-12);(a=101075792==ft(t,u))&&(o=ft(t,u+32),s=ft(t,u+48))}for(var h=r&&r.filter,f=0;f<o;++f){var c=sn(t,s,a),l=c[0],p=c[1],v=c[2],d=c[3],g=c[4],y=on(t,c[5]);s=g,h&&!h({name:d,size:p,originalSize:v,compression:l})||(l?8==l?i[d]=Tt(t.subarray(y,y+p),{out:new n(v)}):I(14,"unknown compression type "+l):i[d]=D(t,y,y+p))}return i}return _e});</script>
+<style>
+  :root{
+    --bg:#f5f5f7; --card:#ffffff; --text:#1d1d1f; --muted:#86868b; --border:#d2d2d7;
+    --accent:#0066cc; --accent-dark:#0044aa; --accent-light:#eef4fb;
+    --danger:#ff3b30; --danger-light:#ffebee; --warn:#ff9500; --warn-light:#fff5e6;
+    --ok:#1b5e20; --ok-light:#e8f5e9; --line:#e8e8ed;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",system-ui,sans-serif;
+    background:var(--bg);color:var(--text);line-height:1.47;-webkit-font-smoothing:antialiased}
+  header{background:var(--card);padding:40px 24px 28px;border-bottom:1px solid var(--line)}
+  .head-inner{max-width:1040px;margin:0 auto;display:flex;align-items:center;gap:20px}
+  .logo{width:48px;height:48px;border-radius:12px;flex-shrink:0;background:#1d1d1f;display:flex;align-items:center;justify-content:center;color:#fff}
+  .logo svg{width:26px;height:26px}
+  header h1{font-size:23px;font-weight:700;letter-spacing:-.03em}
+  header p{font-size:13.5px;color:var(--muted);margin-top:3px;font-weight:400}
+  .cap{margin-left:auto;flex-shrink:0}
+  .pill{font-size:12px;font-weight:600;padding:7px 13px;border-radius:30px;display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+  .pill.ok{background:var(--ok-light);color:var(--ok)}
+  .pill.warn{background:var(--warn-light);color:#b25e00}
+  .pill .d{width:7px;height:7px;border-radius:50%;background:currentColor}
+
+  .container{max-width:1040px;margin:28px auto 60px;padding:0 24px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:30px;margin-bottom:22px;box-shadow:0 4px 20px rgba(0,0,0,.02)}
+  .card.off{opacity:.45;pointer-events:none}
+  .card-head{display:flex;align-items:center;gap:12px;margin-bottom:22px;flex-wrap:wrap}
+  .step-num{width:24px;height:24px;border-radius:50%;background:#1d1d1f;color:#fff;font-weight:600;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .card-head h2{font-size:18px;font-weight:600;letter-spacing:-.02em}
+  .card-head .sub{font-size:12px;color:var(--muted);font-weight:400;margin-left:auto;text-align:right;max-width:560px}
+
+  .drop{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;
+    border:1px solid var(--border);border-radius:16px;padding:44px 24px;min-height:180px;cursor:pointer;
+    transition:border-color .2s,background .2s,transform .2s cubic-bezier(.25,1,.5,1);background:#fafafa}
+  .drop:hover{border-color:var(--text);background:var(--card)}
+  .drop.drag{border-color:var(--accent);background:var(--accent-light);transform:scale(1.005)}
+  .drop svg{width:36px;height:36px;color:var(--text);margin-bottom:12px}
+  .drop .t1{font-size:15px;font-weight:600;letter-spacing:-.01em}
+  .drop .t2{font-size:13px;color:var(--muted);margin-top:4px}
+  input[type=file]{display:none}
+
+  .or{display:flex;align-items:center;gap:16px;color:var(--muted);font-size:13px;margin:18px 0;font-weight:400}
+  .or::before,.or::after{content:"";flex:1;height:1px;background:var(--line)}
+
+  .btn-row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  button{font-family:inherit;cursor:pointer;border:none;transition:all .15s ease}
+  .btn{padding:10px 20px;border-radius:30px;font-size:13.5px;font-weight:500;display:inline-flex;align-items:center;gap:8px;letter-spacing:-.01em}
+  .btn svg{width:16px;height:16px}
+  .btn-primary{background:#1d1d1f;color:#fff}.btn-primary:hover{background:#3a3a3c}
+  .btn-primary:disabled{background:#e8e8ed;color:#a1a1a6;cursor:not-allowed}
+  .btn-accent{background:var(--accent);color:#fff}.btn-accent:hover{background:var(--accent-dark)}
+  .btn-ghost{background:#e8e8ed;color:var(--text)}.btn-ghost:hover{background:#d2d2d7}
+  .btn-lg{padding:15px 28px;font-size:16px;font-weight:600;width:100%;justify-content:center;border-radius:30px}
+
+  .file-line{display:flex;align-items:center;gap:14px;padding:14px 16px;border:1px solid var(--line);border-radius:14px;background:#fafafa;margin-top:18px}
+  .file-line .fi{width:38px;height:38px;border-radius:10px;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .file-line .nm{font-weight:600;font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .file-line .meta{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .file-line button{margin-left:auto;flex-shrink:0}
+
+  .field-row{display:flex;gap:22px;flex-wrap:wrap}
+  .field{flex:1;min-width:200px}
+  .field label{display:block;font-size:13.5px;font-weight:600;margin-bottom:7px;letter-spacing:-.01em}
+  .field label .auto{font-size:10px;font-weight:700;color:var(--accent);background:var(--accent-light);padding:2px 6px;border-radius:5px;margin-left:6px;vertical-align:1px;letter-spacing:.02em}
+  input.big,select.big{font-family:inherit;font-size:14px;padding:11px 14px;border:1px solid var(--border);border-radius:12px;background:var(--card);color:var(--text);width:100%;max-width:100%;outline:none;-webkit-appearance:none}
+  input.big[type=number]{font-variant-numeric:tabular-nums}
+  select.big{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2386868b' stroke-width='3'><polyline points='6 9 12 15 18 9'/></svg>");background-repeat:no-repeat;background-position:right 14px center;padding-right:34px}
+  input:focus,select:focus{border-color:var(--text)}
+  .hint{font-size:13px;color:var(--muted);margin-top:14px;line-height:1.6}
+
+  /* guide */
+  .guide .card-head .step-num{background:var(--accent)}
+  .gsteps{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}
+  .gstep{display:flex;gap:13px;align-items:flex-start;padding:16px;border:1px solid var(--line);border-radius:14px;background:#fafafa}
+  .gstep .gn{flex-shrink:0;width:28px;height:28px;border-radius:9px;background:var(--accent-light);color:var(--accent);font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center}
+  .gstep .gt{font-size:14px;font-weight:600;letter-spacing:-.01em;margin-bottom:3px}
+  .gstep .gd{font-size:12.5px;color:var(--muted);line-height:1.55}
+  .gtips{margin-top:16px;border:1px solid #c8e6c9;background:var(--ok-light);border-radius:14px;padding:15px 17px}
+  .gtips .th{font-size:13px;font-weight:700;color:var(--ok);margin-bottom:8px;display:flex;align-items:center;gap:7px}
+  .gtips ul{margin:0;padding-left:18px}
+  .gtips li{font-size:13px;color:#2d6a32;line-height:1.7;margin-bottom:2px}
+  .gtips li b{color:var(--ok)}
+
+  .banner{border-radius:14px;padding:15px 16px;font-size:13.5px;margin-bottom:0;line-height:1.55}
+  .banner.err{background:var(--danger-light);border:1px solid #ffccd0;color:var(--danger);margin-bottom:20px}
+  .banner.warn{background:var(--warn-light);border:1px solid #ffe0b2;color:#b25e00}
+  .banner.ok{background:var(--ok-light);border:1px solid #c8e6c9;color:var(--ok)}
+  .banner b{font-weight:700}
+
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:0}
+  .stat{background:#fafafa;border:1px solid var(--line);border-radius:16px;padding:16px 18px}
+  .stat .lbl{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.03em;margin-bottom:7px}
+  .stat .val{font-size:19px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+
+  .tbl-wrap{border:1px solid var(--line);border-radius:14px;background:var(--card);overflow:auto;max-height:420px;width:100%;margin-top:18px}
+  table.preview{border-collapse:collapse;width:100%;min-width:max-content;font-size:12.5px}
+  table.preview th{background:#fafafa;color:var(--text);padding:8px 12px;text-align:left;font-weight:600;border-bottom:1.5px solid #1d1d1f;position:sticky;top:0;z-index:10;white-space:nowrap;font-size:11.5px}
+  table.preview td{padding:7px 12px;border-bottom:1px solid #f3f3f5;color:#555;white-space:nowrap;max-width:280px;overflow:hidden;text-overflow:ellipsis}
+  table.preview td.rn{color:#b0b0b5;text-align:right;font-variant-numeric:tabular-nums;background:#fafafa;position:sticky;left:0}
+  table.preview tr:hover td{background:#f8f9fb}
+
+  /* progress */
+  .prog-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px}
+  .prog-pct{font-size:30px;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+  .prog-pct small{font-size:15px;font-weight:600;color:var(--muted);margin-left:4px}
+  .prog-phase{font-size:13.5px;color:var(--muted);font-weight:500}
+  .track{height:10px;border-radius:30px;background:#ececf0;overflow:hidden}
+  .track .fill{height:100%;width:0;border-radius:30px;background:linear-gradient(90deg,var(--accent),#3a9bff);transition:width .25s ease}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+  .chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:6px 11px;border-radius:30px;background:var(--ok-light);color:var(--ok);font-variant-numeric:tabular-nums}
+  .chip.cur{background:var(--accent-light);color:var(--accent)}
+  .chip svg{width:12px;height:12px}
+  .log{margin-top:18px;font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:12px;line-height:1.6;color:var(--muted);background:#fafafa;border:1px solid var(--line);border-radius:12px;padding:13px 15px;max-height:140px;overflow:auto;white-space:pre-wrap}
+  .log .e{color:var(--danger)}.log .s{color:var(--ok)}.log .w{color:#b25e00}
+
+  .dest{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .dest .status{flex:1;min-width:200px;font-size:13.5px;color:var(--muted);display:flex;align-items:center;gap:8px;padding:12px 15px;background:#fafafa;border:1px solid var(--line);border-radius:12px}
+  .dest .status.set{color:var(--accent);border-color:#bcd6f5;background:var(--accent-light)}
+  .dest .status .d{width:8px;height:8px;border-radius:50%;background:#c7c7cc}
+  .dest .status.set .d{background:var(--accent)}
+
+  .hidden{display:none}
+  footer{text-align:center;font-size:12.5px;color:var(--muted);padding:24px 24px 48px;line-height:1.8;font-weight:400}
+  #toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(20px);background:rgba(29,29,31,.96);
+    backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);color:#fff;padding:13px 22px;border-radius:30px;font-size:13.5px;
+    opacity:0;transition:all .3s cubic-bezier(.25,1,.5,1);pointer-events:none;z-index:99;font-weight:500;box-shadow:0 8px 30px rgba(0,0,0,.15);max-width:90vw;text-align:center}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .spinner{display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,.35);border-radius:50%;border-top-color:#fff;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  @media (max-width:720px){
+    .card{padding:22px}.head-inner{flex-wrap:wrap}.cap{margin-left:0;width:100%}
+    .card-head .sub{margin-left:0;text-align:left}.btn-row .btn-lg{width:100%}.stats{grid-template-columns:1fr 1fr}
+  }
+</style>
 </head>
 <body>
 
@@ -540,761 +146,440 @@
   <div class="head-inner">
     <div class="logo">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-        <polyline points="14 2 14 8 20 8"/>
-        <line x1="8" y1="13" x2="16" y2="13"/>
-        <line x1="8" y1="17" x2="16" y2="17"/>
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/>
       </svg>
     </div>
     <div>
       <h1>CSV to Excel Converter</h1>
-      <p>Konversi CSV ke Excel dengan deteksi otomatis encoding &amp; delimiter &middot; Audit-grade handling &middot; Zero data upload</p>
+      <p>Streaming engine untuk CSV raksasa (100&nbsp;GB+) &middot; Auto-detect encoding &amp; delimiter &middot; Zero upload</p>
     </div>
+    <div class="cap"><span id="capPill" class="pill"><span class="d"></span><span id="capText">Memeriksa…</span></span></div>
   </div>
 </header>
 
 <div class="container">
   <div id="errBanner" class="banner err hidden"></div>
 
-  <!-- STEP 1: Input File -->
+  <!-- GUIDE -->
+  <div class="card guide">
+    <div class="card-head"><div class="step-num">i</div><h2>Panduan penggunaan</h2><span class="sub">Konversi CSV apa pun — termasuk berukuran puluhan/ratusan GB — jadi file Excel, langsung di browser.</span></div>
+    <div class="gsteps">
+      <div class="gstep"><div class="gn">1</div><div><div class="gt">Pilih file CSV</div><div class="gd">Tarik file ke kotak unggah atau klik untuk memilih. File tetap di komputer Anda — tidak ada yang diunggah ke server.</div></div></div>
+      <div class="gstep"><div class="gn">2</div><div><div class="gt">Periksa format</div><div class="gd">Delimiter, encoding, dan header dideteksi otomatis. Ubah manual bila perlu, lalu cek tabel pratinjau.</div></div></div>
+      <div class="gstep"><div class="gn">3</div><div><div class="gt">Pilih folder hasil</div><div class="gd">Tempat file Excel ditulis. Di Chrome/Edge ditulis langsung ke folder; di Safari/Firefox diunduh otomatis.</div></div></div>
+      <div class="gstep"><div class="gn">4</div><div><div class="gt">Mulai konversi</div><div class="gd">Data melebihi 1.048.576 baris otomatis dipecah jadi <b style="color:var(--accent)">part001.xlsx</b>, <b style="color:var(--accent)">part002</b>, dst.</div></div></div>
+    </div>
+    <div class="gtips">
+      <div class="th"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1h6c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2z"/></svg>Tips penting</div>
+      <ul>
+        <li><b>File raksasa aman.</b> File dibaca per potongan secara streaming, jadi pemakaian memori tetap kecil (±15–20&nbsp;MB) berapa pun ukuran CSV.</li>
+        <li><b>Aman untuk audit.</b> Secara default angka disimpan sebagai teks, sehingga kode akun, NIK, dan angka berawalan 0 tidak rusak.</li>
+        <li><b>Untuk CSV puluhan GB &amp; banyak file</b>, gunakan <b>Chrome</b> atau <b>Edge</b> (Mac/Windows) agar bisa menulis langsung ke folder.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- STEP 1 -->
   <div class="card" id="step1">
     <div class="card-head">
-      <div class="step-num">1</div>
-      <h2>Sumber Data CSV</h2>
-      <span class="sub">Pilih file CSV, TXT, atau TSV. Mesin auto-detect encoding (UTF-8, ISO-8859-1, Windows-1252) dan delimiter (,;|Tab). Data tetap di perangkat Anda.</span>
+      <div class="step-num">1</div><h2>Sumber Data CSV</h2>
+      <span class="sub">Pilih file CSV, TXT, atau TSV. Mesin membaca file secara streaming — file sebesar apa pun tidak dimuat penuh ke memori. Data tetap di perangkat Anda.</span>
     </div>
-    
-    <div class="drop" id="drop">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
-      </svg>
+    <label class="drop" id="drop">
+      <input type="file" id="fileInput" accept=".csv,.txt,.tsv,.dat,text/csv,text/plain">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
       <div class="t1">Pilih atau jatuhkan file CSV di sini</div>
       <div class="t2">Format: CSV, TXT, TSV. Tidak ada data yang dikirim ke server.</div>
+    </label>
+    <div id="fileLine" class="file-line hidden">
+      <div class="fi"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 3v5h5"/><path d="M6 3h8l5 5v13H6z"/></svg></div>
+      <div style="min-width:0"><div class="nm" id="fName">—</div><div class="meta" id="fMeta">—</div></div>
+      <button class="btn btn-ghost" id="clearFile">Ganti</button>
     </div>
-    
-    <input type="file" id="fileInput" accept=".csv,.txt,.tsv,.xls,.xlsx">
-    
-    <div class="or">atau</div>
-    
-    <div class="btn-row">
-      <button class="btn btn-ghost" id="sampleBtn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-        </svg>
-        Muat Contoh Data
-      </button>
-      <button class="btn btn-ghost" id="downloadSampleBtn">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-        </svg>
-        Unduh Contoh (100 baris)
-      </button>
-    </div>
-    
-    <div id="srcStatus" class="hidden">
-      <div id="detectionBanner" class="banner ok" style="margin-top: 22px;"></div>
-    </div>
+    <div id="detectWrap" class="hidden"><div id="detectBanner" class="banner ok" style="margin-top:18px"></div></div>
   </div>
 
-  <!-- STEP 2: Configuration -->
-  <div class="card" id="step2" class="hidden">
-    <div class="card-head">
-      <div class="step-num">2</div>
-      <h2>Konfigurasi Konversi</h2>
-    </div>
-    
+  <!-- STEP 2 -->
+  <div class="card off" id="step2">
+    <div class="card-head"><div class="step-num">2</div><h2>Konfigurasi Konversi</h2><span class="sub">Nilai bertanda <span style="color:var(--accent);font-weight:600">auto</span> terdeteksi otomatis — boleh diubah manual.</span></div>
     <div class="field-row">
-      <div class="field">
-        <label for="delimiter">Delimiter</label>
-        <select class="big" id="delimiter">
-          <option value="auto">Auto Detect</option>
-          <option value=",">Comma (,)</option>
-          <option value=";">Semicolon (;)</option>
-          <option value="&#9;">Tab</option>
-          <option value="|">Pipe (|)</option>
-        </select>
-      </div>
-      
-      <div class="field">
-        <label for="headerRow">Baris Header</label>
-        <input type="text" class="big" id="headerRow" value="1" placeholder="1">
-      </div>
-      
-      <div class="field">
-        <label for="skipRows">Skip Baris (dari awal)</label>
-        <input type="text" class="big" id="skipRows" value="0" placeholder="0">
-      </div>
-      
-      <div class="field">
-        <label for="outputName">Nama File Output</label>
-        <input type="text" class="big" id="outputName" placeholder="data">
-      </div>
+      <div class="field"><label>Delimiter <span class="auto" id="aDelim">auto</span></label>
+        <select class="big" id="delim"><option value=",">Comma  ,</option><option value=";">Semicolon  ;</option><option value="\t">Tab</option><option value="|">Pipe  |</option><option value=":">Colon  :</option></select></div>
+      <div class="field"><label>Encoding <span class="auto" id="aEnc">auto</span></label>
+        <select class="big" id="enc"><option value="utf-8">UTF-8</option><option value="utf-16le">UTF-16 LE</option><option value="utf-16be">UTF-16 BE</option><option value="windows-1252">Windows-1252</option><option value="iso-8859-1">ISO-8859-1</option></select></div>
+      <div class="field"><label>Pembungkus teks <span class="auto" id="aQuote">auto</span></label>
+        <select class="big" id="quote"><option value='"'>Kutip ganda  "</option><option value="'">Kutip tunggal  '</option><option value="">Tidak ada</option></select></div>
     </div>
-    
-    <div class="hint">Delimiter akan auto-detect dari file. Header row akan di-freeze di Excel. Skip rows mengabaikan baris dari awal file sebelum proses.</div>
+    <div class="field-row" style="margin-top:18px">
+      <div class="field"><label>Baris pertama = header</label>
+        <select class="big" id="optHeader"><option value="1">Ya — ulangi header tiap file</option><option value="0">Tidak</option></select></div>
+      <div class="field"><label>Lewati baris awal</label>
+        <input class="big" type="number" id="optSkip" value="0" min="0" step="1"></div>
+      <div class="field"><label>Baris data per file Excel</label>
+        <input class="big" type="number" id="optRows" value="1048575" min="1000" max="1048576" step="1"></div>
+    </div>
+    <div class="field-row" style="margin-top:18px">
+      <div class="field"><label>Kenali angka sebagai angka</label>
+        <select class="big" id="optNum"><option value="0">Tidak — jaga kode/0 di depan utuh</option><option value="1">Ya — konversi ke angka</option></select></div>
+      <div class="field"><label>Kompresi Excel</label>
+        <select class="big" id="optComp"><option value="1">Ya — file lebih kecil</option><option value="0">Tidak — sedikit lebih cepat</option></select></div>
+      <div class="field"><label>Nama dasar file output</label>
+        <input class="big" type="text" id="optBase" placeholder="data"></div>
+    </div>
+    <div class="hint">Batas Excel adalah 1.048.576 baris/sheet. Data yang melebihi batas otomatis dipecah menjadi <b>nama_part001.xlsx</b>, <b>part002</b>, dst. Header diulang di tiap file agar setiap workbook bisa dibaca sendiri.</div>
   </div>
 
-  <!-- Preview -->
-  <div class="card" id="previewCard" class="hidden">
-    <div class="card-head">
-      <h2>Preview Data (10 baris pertama)</h2>
-      <button class="btn btn-ghost btn-sm" id="downloadPreviewBtn" style="margin-left: auto;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-        </svg>
-        Download 10 Baris
-      </button>
-    </div>
-    <div class="stats" id="previewStats"></div>
-    <div class="tbl-wrap">
-      <table class="preview" id="previewTable"></table>
-    </div>
+  <!-- PREVIEW -->
+  <div class="card off" id="previewCard">
+    <div class="card-head"><h2>Pratinjau Data</h2><span class="sub" id="pvSub">100 baris pertama</span></div>
+    <div class="stats" id="pvStats"></div>
+    <div class="tbl-wrap"><table class="preview" id="pvTable"></table></div>
   </div>
 
-  <!-- Action Buttons -->
-  <div class="btn-row" style="margin-bottom: 22px;">
-    <button class="btn btn-primary btn-lg" id="convertBtn" disabled>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-      </svg>
-      <span id="convertBtnText">Konversi & Download Excel</span>
-    </button>
-    <button class="btn btn-ghost" id="resetBtn" style="display: none; padding: 15px 28px; font-size: 16px; margin-left: 12px; font-weight: 600; border-radius: 30px;">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-      </svg>
-      Reset
-    </button>
-  </div>
+  <!-- STEP 3 -->
+  <div class="card off" id="step3">
+    <div class="card-head"><div class="step-num">3</div><h2>Tujuan &amp; Konversi</h2></div>
+    <div id="destRow" class="dest">
+      <button class="btn btn-accent" id="pickFolder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h6l2 2h10v10H3z"/></svg>Pilih folder hasil</button>
+      <div class="status" id="folderStatus"><span class="d"></span>Belum dipilih</div>
+    </div>
+    <div id="fallbackBanner" class="banner warn hidden" style="margin-top:18px"></div>
 
-  <!-- Results -->
-  <div id="results" class="hidden">
-    <div class="card">
-      <div class="card-head">
-        <div class="step-num" style="background: #1b5e20;">✓</div>
-        <h2>Konversi Selesai</h2>
+    <button class="btn btn-primary btn-lg" id="convertBtn" disabled style="margin-top:22px"><span id="convertText">Mulai konversi</span></button>
+
+    <div id="runArea" class="hidden" style="margin-top:8px">
+      <div class="prog-top"><div class="prog-pct"><span id="pctVal">0</span><small>%</small></div><div class="prog-phase" id="phase">Menunggu…</div></div>
+      <div class="track"><div class="fill" id="fill"></div></div>
+      <div class="chips" id="chips"></div>
+      <div class="stats" style="margin-top:18px">
+        <div class="stat"><div class="lbl">Diproses</div><div class="val" id="sBytes">0 B</div></div>
+        <div class="stat"><div class="lbl">Baris</div><div class="val" id="sRows">0</div></div>
+        <div class="stat"><div class="lbl">File dibuat</div><div class="val" id="sFiles">0</div></div>
+        <div class="stat"><div class="lbl">Kecepatan</div><div class="val" id="sSpeed">—</div></div>
+        <div class="stat"><div class="lbl">Sisa waktu</div><div class="val" id="sEta">—</div></div>
+        <div class="stat"><div class="lbl">Berjalan</div><div class="val" id="sElapsed">0s</div></div>
       </div>
-      <div class="stats" id="resultStats"></div>
+      <div class="log" id="log"></div>
+      <div class="btn-row" style="margin-top:18px"><button class="btn btn-ghost" id="cancelBtn">Batalkan</button></div>
     </div>
   </div>
 </div>
 
 <footer>
-  CSV to Excel Converter &middot; Mesin deteksi encoding &amp; delimiter (client-side)<br>
-  Seluruh perhitungan berjalan di peramban Anda. Tidak ada data yang dikirim ke server.
+  Streaming engine client-side &middot; fflate (zip) tertanam, tanpa CDN &middot; berjalan penuh di peramban Anda.<br>
+  Untuk menulis banyak file dari CSV raksasa, gunakan <b>Chrome</b> atau <b>Edge</b> (Mac/Windows).
 </footer>
 
 <div id="toast"></div>
 
 <script>
-  let csvData = null;
-  const MAX_ROWS = 1000000; // 1 juta baris
-  const SIZE_WARNING = 100 * 1024 * 1024; // 100MB warning threshold
+/* ===== constants & helpers ===== */
+const EXCEL_MAX_ROWS=1048576, EXCEL_MAX_COLS=16384;
+const READ=8*1024*1024;   // 8MB read window from disk
+const SUB =1*1024*1024;   // 1MB decode+parse sub-batch (keeps working set small)
+const enc=new TextEncoder();
+const COL=new Array(EXCEL_MAX_COLS);
+(function(){for(let n=1;n<=EXCEL_MAX_COLS;n++){let s='',x=n;while(x>0){const m=(x-1)%26;s=String.fromCharCode(65+m)+s;x=(x-m-1)/26;}COL[n-1]=s;}})();
+const $=id=>document.getElementById(id);
+function fmtBytes(b){if(b<1024)return b+' B';const u=['KB','MB','GB','TB'];let i=-1;do{b/=1024;i++;}while(b>=1024&&i<u.length-1);return b.toFixed(b<10?1:0)+' '+u[i];}
+function fmtInt(n){return n.toLocaleString('id-ID');}
+function fmtTime(s){if(!isFinite(s)||s<0)return '—';s=Math.round(s);if(s<60)return s+'s';const m=Math.floor(s/60),ss=s%60;if(m<60)return m+'m '+ss+'s';const h=Math.floor(m/60);return h+'h '+(m%60)+'m';}
+function xmlEsc(s){let o='';for(let i=0;i<s.length;i++){const c=s.charCodeAt(i);if(c===38)o+='&amp;';else if(c===60)o+='&lt;';else if(c===62)o+='&gt;';else if(c===9||c===10||c===13)o+=s[i];else if(c<32)o+=' ';else o+=s[i];}return o;}
+function escHtml(s){s=String(s);return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+const NUMRE=/^-?(?:0|[1-9]\d{0,14})(?:\.\d+)?$/;
 
-  const drop = document.getElementById('drop');
-  const fileInput = document.getElementById('fileInput');
-  const sampleBtn = document.getElementById('sampleBtn');
-  const downloadSampleBtn = document.getElementById('downloadSampleBtn');
-  const downloadPreviewBtn = document.getElementById('downloadPreviewBtn');
-  const convertBtn = document.getElementById('convertBtn');
-  const resetBtn = document.getElementById('resetBtn');
-  const step1 = document.getElementById('step1');
-  const step2 = document.getElementById('step2');
-  const previewCard = document.getElementById('previewCard');
-  const results = document.getElementById('results');
+let toastTimer=null;
+function toast(msg,kind){const t=$('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),kind==='err'?5200:3200);}
 
-  // ===== Event Listeners =====
-  drop.addEventListener('click', () => fileInput.click());
-
-  drop.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    drop.classList.add('drag');
-  });
-
-  drop.addEventListener('dragleave', () => {
-    drop.classList.remove('drag');
-  });
-
-  drop.addEventListener('drop', (e) => {
-    e.preventDefault();
-    drop.classList.remove('drag');
-    if (e.dataTransfer.files.length) {
-      handleFile(e.dataTransfer.files[0]);
-    }
-  });
-
-  fileInput.addEventListener('change', (e) => {
-    if (e.target.files.length) {
-      handleFile(e.target.files[0]);
-    }
-  });
-
-  sampleBtn.addEventListener('click', loadSampleData);
-  downloadSampleBtn.addEventListener('click', downloadSample100);
-  downloadPreviewBtn.addEventListener('click', downloadPreviewData);
-  convertBtn.addEventListener('click', convertFile);
-  resetBtn.addEventListener('click', resetApp);
-
-  // ===== Encoding Detection =====
-  function detectEncoding(uint8Array) {
-    // BOM detection
-    if (uint8Array.length >= 3) {
-      if (uint8Array[0] === 0xEF && uint8Array[1] === 0xBB && uint8Array[2] === 0xBF) {
-        return 'UTF-8';
-      }
-    }
-    if (uint8Array.length >= 2) {
-      if (uint8Array[0] === 0xFF && uint8Array[1] === 0xFE) return 'UTF-16LE';
-      if (uint8Array[0] === 0xFE && uint8Array[1] === 0xFF) return 'UTF-16BE';
-    }
-
-    // Try decoding
-    const encodings = ['UTF-8', 'ISO-8859-1', 'Windows-1252'];
-    for (const enc of encodings) {
-      try {
-        const decoder = new TextDecoder(enc, { fatal: true });
-        decoder.decode(uint8Array);
-        return enc;
-      } catch (e) {}
-    }
-    return 'UTF-8';
-  }
-
-  function safeDecodeText(uint8Array, encoding) {
-    try {
-      const decoder = new TextDecoder(encoding, { fatal: false });
-      return decoder.decode(uint8Array);
-    } catch (err) {
-      try {
-        return new TextDecoder('UTF-8', { fatal: false }).decode(uint8Array);
-      } catch (err2) {
-        return new TextDecoder('ISO-8859-1', { fatal: false }).decode(uint8Array);
+/* ===== CSV parser (validated state machine) ===== */
+function makeParser(delim,quote){
+  const D=delim.charCodeAt(0),hasQ=quote.length>0,Q=hasQ?quote.charCodeAt(0):-1;
+  let field='',row=[],inQ=false,afterQ=false,started=false;
+  function feed(s,emit){
+    for(let i=0;i<s.length;i++){const c=s.charCodeAt(i);
+      if(inQ){
+        if(hasQ&&c===Q){if(i+1<s.length){if(s.charCodeAt(i+1)===Q){field+=quote;i++;}else inQ=false;}else{inQ=false;afterQ=true;}}
+        else field+=s[i];
+      }else{
+        if(afterQ){afterQ=false;if(hasQ&&c===Q){field+=quote;inQ=true;continue;}}
+        if(hasQ&&c===Q&&field===''){inQ=true;started=true;}
+        else if(c===D){row.push(field);field='';started=true;}
+        else if(c===10){row.push(field);field='';emit(row);row=[];started=false;}
+        else if(c===13){row.push(field);field='';emit(row);row=[];started=false;if(i+1<s.length&&s.charCodeAt(i+1)===10)i++;}
+        else{field+=s[i];started=true;}
       }
     }
   }
+  function flush(emit){if(started||field!==''||row.length){row.push(field);emit(row);field='';row=[];started=false;}}
+  return{feed,flush};
+}
 
-  // ===== Delimiter Detection =====
-  function autoDetectDelimiter(csvText) {
-    const delimiters = [',', ';', '\t', '|'];
-    const lines = csvText.split('\n').slice(0, 10).filter(line => line.trim());
+/* ===== xlsx static parts ===== */
+const CT='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/></Types>';
+const RELS='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>';
+const WBRELS='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/></Relationships>';
+const SHEET_HEAD='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetData>';
+const SHEET_TAIL='</sheetData></worksheet>';
+function workbookXml(name){return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="'+xmlEsc(name)+'" sheetId="1" r:id="rId1"/></sheets></workbook>';}
 
-    if (lines.length === 0) return ',';
+/* ===== sinks ===== */
+function fsSink(w){return{write:c=>w.write(c),close:()=>w.close(),abort:()=>{try{w.abort&&w.abort();}catch(e){}}};}
+function downloadSink(filename){const parts=[];return{
+  write:c=>{parts.push(c.slice?c.slice():c);return Promise.resolve();},
+  close:()=>{const blob=new Blob(parts,{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);parts.length=0;return Promise.resolve();},
+  abort:()=>{parts.length=0;}};}
 
-    let bestDelimiter = ',';
-    let bestScore = -1;
+/* ===== streaming xlsx writer (one file) ===== */
+class XlsxWriter{
+  constructor(sink,sheetName,compress,numbers){
+    this.sink=sink;this.numbers=numbers;this.pending=[];this.rowCount=0;this.buf='';
+    const lvl=compress?6:0;
+    this.zip=new fflate.Zip((err,data,final)=>{if(err){this.err=err;return;}this.pending.push(data);if(final)this._final=true;});
+    const addPart=(name,str)=>{const f=new fflate.ZipDeflate(name,{level:6});this.zip.add(f);f.push(enc.encode(str),true);};
+    addPart('[Content_Types].xml',CT);addPart('_rels/.rels',RELS);addPart('xl/workbook.xml',workbookXml(sheetName));addPart('xl/_rels/workbook.xml.rels',WBRELS);
+    this.sheet=new fflate.ZipDeflate('xl/worksheets/sheet1.xml',{level:lvl});this.zip.add(this.sheet);this.sheet.push(enc.encode(SHEET_HEAD),false);
+  }
+  writeRow(r){
+    const n=++this.rowCount;let cells='';const lim=Math.min(r.length,EXCEL_MAX_COLS);
+    for(let c=0;c<lim;c++){const v=r[c];if(v===''||v==null)continue;const ref=COL[c]+n;
+      if(this.numbers&&NUMRE.test(v))cells+='<c r="'+ref+'"><v>'+v+'</v></c>';
+      else cells+='<c r="'+ref+'" t="inlineStr"><is><t xml:space="preserve">'+xmlEsc(v)+'</t></is></c>';}
+    this.buf+='<row r="'+n+'">'+cells+'</row>';
+    if(this.buf.length>262144){this.sheet.push(enc.encode(this.buf),false);this.buf='';}
+  }
+  async drain(){if(this.pending.length){const cs=this.pending;this.pending=[];for(const c of cs)await this.sink.write(c);}}
+  async finish(){if(this.buf){this.sheet.push(enc.encode(this.buf),false);this.buf='';}this.sheet.push(enc.encode(SHEET_TAIL),true);this.zip.end();await this.drain();return await this.sink.close();}
+  async abort(){await this.sink.abort();}
+}
 
-    for (const delim of delimiters) {
-      let totalCols = 0;
-      let consistentRows = 0;
+/* ===== state ===== */
+const state={file:null,dir:null,fsMode:false,detected:null,running:false,cancel:false};
 
-      const firstLineColCount = (lines[0].split(delim) || []).length;
-      
-      for (const line of lines) {
-        if (!line.trim()) continue;
-        const colCount = (line.split(delim) || []).length;
-        totalCols += colCount;
-        if (colCount === firstLineColCount) {
-          consistentRows++;
+/* ===== detection ===== */
+async function detectFormat(file){
+  const sampleSize=Math.min(file.size,262144);
+  const bytes=new Uint8Array(await file.slice(0,sampleSize).arrayBuffer());
+  let encoding='utf-8',bomLen=0;
+  if(bytes[0]===0xEF&&bytes[1]===0xBB&&bytes[2]===0xBF){encoding='utf-8';bomLen=3;}
+  else if(bytes[0]===0xFF&&bytes[1]===0xFE){encoding='utf-16le';bomLen=2;}
+  else if(bytes[0]===0xFE&&bytes[1]===0xFF){encoding='utf-16be';bomLen=2;}
+  else{try{new TextDecoder('utf-8',{fatal:true}).decode(bytes);encoding='utf-8';}catch(e){encoding='windows-1252';}}
+  let text=new TextDecoder(encoding).decode(bytes.subarray(bomLen));
+  if(text.charCodeAt(0)===0xFEFF)text=text.slice(1);
+  const lastNl=text.lastIndexOf('\n');const sample=lastNl>0?text.slice(0,lastNl):text;
+  const quote=sample.indexOf('"')>=0?'"':(sample.indexOf("'")>=0?"'":'"');
+  const cands=[',',';','\t','|',':'];let best=cands[0],bestScore=-1;
+  for(const d of cands){const p=makeParser(d,quote);const rows=[];p.feed(sample,r=>{if(rows.length<60)rows.push(r);});p.flush(r=>{if(rows.length<60)rows.push(r);});
+    if(rows.length<2)continue;const counts={};for(const r of rows)counts[r.length]=(counts[r.length]||0)+1;
+    let mode=1,modeN=0;for(const k in counts)if(counts[k]>modeN){modeN=counts[k];mode=+k;}
+    if(mode<2)continue;const score=(modeN/rows.length)*100+mode;if(score>bestScore){bestScore=score;best=d;}}
+  let eol='LF';if(sample.indexOf('\r\n')>=0)eol='CRLF';else if(sample.indexOf('\r')>=0)eol='CR';
+  const p2=makeParser(best,quote);const rows=[];p2.feed(sample,r=>{if(rows.length<200)rows.push(r);});p2.flush(r=>{if(rows.length<200)rows.push(r);});
+  const counts={};for(const r of rows)counts[r.length]=(counts[r.length]||0)+1;
+  let cols=1,cn=0;for(const k in counts)if(counts[k]>cn){cn=counts[k];cols=+k;}
+  const avgRowBytes=rows.length>0?bytes.length/rows.length:100;
+  const estRows=Math.max(1,Math.round(file.size/avgRowBytes));
+  return{encoding,delim:best,quote,eol,cols,rows,estRows};
+}
+
+/* ===== UI: capability ===== */
+function detectCapability(){
+  state.fsMode=typeof window.showDirectoryPicker==='function';
+  const p=$('capPill');
+  if(state.fsMode){p.className='pill ok';$('capText').textContent='Mode penuh · tulis ke folder';}
+  else{p.className='pill warn';$('capText').textContent='Mode unduh · browser terbatas';}
+}
+
+/* ===== file select ===== */
+function setFile(file){
+  state.file=file;
+  $('fName').textContent=file.name;
+  $('fMeta').textContent=fmtBytes(file.size)+'  ·  '+(file.type||'text/csv');
+  $('fileLine').classList.remove('hidden');$('drop').classList.add('hidden');
+  $('optBase').value=(file.name.replace(/\.[^.]+$/,'')||'data');
+  ['step2','previewCard','step3'].forEach(id=>$(id).classList.remove('off'));
+  if(state.fsMode && file.size>2*1024*1024*1024 && !state.dir) toast('File besar — pilih folder hasil di langkah 3 sebelum konversi.','warn');
+  detectFormat(file).then(d=>{state.detected=d;applyDetection(d);renderPreview();refreshConvert();
+    toast('Format terdeteksi otomatis ✓','ok');
+  }).catch(e=>{showErr('Gagal mendeteksi format: '+e.message);});
+}
+function clearFile(){state.file=null;state.detected=null;$('fileLine').classList.add('hidden');$('drop').classList.remove('hidden');$('fileInput').value='';
+  ['step2','previewCard','step3'].forEach(id=>$(id).classList.add('off'));$('runArea').classList.add('hidden');$('detectWrap').classList.add('hidden');hideErr();}
+
+function applyDetection(d){
+  $('delim').value=d.delim;$('enc').value=d.encoding;$('quote').value=d.quote;
+  $('aDelim').textContent=d.delim==='\t'?'tab':'auto';
+  $('detectWrap').classList.remove('hidden');
+  $('detectBanner').innerHTML='<b>Terdeteksi:</b> delimiter "'+(d.delim==='\t'?'Tab':d.delim)+'", encoding '+d.encoding.toUpperCase()+', '+fmtInt(d.cols)+' kolom, akhir baris '+d.eol+'. Estimasi <b>'+fmtInt(d.estRows)+'</b> baris.';
+}
+
+/* ===== preview ===== */
+function curOpts(){return{delim:$('delim').value.replace('\\t','\t'),enc:$('enc').value,quote:$('quote').value,
+  hasHeader:$('optHeader').value==='1',skip:parseInt($('optSkip').value)||0,numbers:$('optNum').value==='1',
+  compress:$('optComp').value==='1',base:($('optBase').value||'data').replace(/[\\/:*?"<>|]+/g,'_'),
+  perFile:Math.min(parseInt($('optRows').value)||EXCEL_MAX_ROWS, ($('optHeader').value==='1')?EXCEL_MAX_ROWS-1:EXCEL_MAX_ROWS)};}
+
+function renderPreview(){
+  const d=state.detected;if(!d)return;const o=curOpts();
+  const all=d.rows;const start=Math.min(o.skip,all.length);
+  const hasHeader=o.hasHeader;
+  const head=hasHeader&&all[start]?all[start]:null;
+  const dataStart=start+(hasHeader?1:0);
+  const ncol=Math.min(d.cols,16);
+  let html='<thead><tr><th class="rn">#</th>';
+  for(let c=0;c<ncol;c++)html+='<th>'+(head?escHtml(head[c]||''):('Kolom '+COL[c]))+'</th>';
+  if(d.cols>ncol)html+='<th>+'+(d.cols-ncol)+' lagi…</th>';
+  html+='</tr></thead><tbody>';
+  let shown=0;
+  for(let i=dataStart;i<all.length&&shown<100;i++,shown++){
+    html+='<tr><td class="rn">'+(i+1)+'</td>';
+    for(let c=0;c<ncol;c++)html+='<td>'+escHtml(all[i][c]??'')+'</td>';
+    if(d.cols>ncol)html+='<td>…</td>';
+    html+='</tr>';
+  }
+  html+='</tbody>';
+  $('pvTable').innerHTML=html;
+  // plan
+  const dataRows=Math.max(0,d.estRows-start-(hasHeader?1:0));
+  const files=Math.max(1,Math.ceil(dataRows/o.perFile));
+  $('pvSub').textContent=fmtInt(Math.min(100,Math.max(0,shown)))+' baris pertama · '+fmtInt(d.cols)+' kolom';
+  $('pvStats').innerHTML=
+    '<div class="stat"><div class="lbl">Kolom</div><div class="val">'+fmtInt(d.cols)+'</div></div>'+
+    '<div class="stat"><div class="lbl">Estimasi baris</div><div class="val">~'+fmtInt(d.estRows)+'</div></div>'+
+    '<div class="stat"><div class="lbl">Encoding</div><div class="val" style="font-size:15px">'+d.encoding.toUpperCase()+'</div></div>'+
+    '<div class="stat"><div class="lbl">Perkiraan file Excel</div><div class="val">~'+fmtInt(files)+'</div></div>';
+  $('convertText').textContent='Mulai konversi · ~'+fmtInt(files)+' file Excel';
+}
+
+/* ===== folder / fallback ===== */
+async function pickFolder(){
+  try{state.dir=await window.showDirectoryPicker({mode:'readwrite'});
+    const s=$('folderStatus');s.classList.add('set');s.innerHTML='<span class="d"></span>'+escHtml(state.dir.name)+' /';
+    refreshConvert();
+  }catch(e){if(e.name!=='AbortError')toast('Folder tidak dipilih.','warn');}
+}
+function setupFallback(){
+  $('destRow').classList.add('hidden');
+  const b=$('fallbackBanner');b.classList.remove('hidden');
+  b.innerHTML='<b>Mode unduh.</b> Browser ini tidak mendukung penulisan langsung ke folder, jadi tiap file Excel diunduh otomatis. Cocok untuk file kecil–sedang. Untuk CSV puluhan GB &amp; banyak file, buka aplikasi ini di <b>Chrome</b> atau <b>Edge</b>.';
+}
+
+function refreshConvert(){
+  const ready=state.file&&(state.fsMode?state.dir!=null:true);
+  $('convertBtn').disabled=!ready||state.running;
+}
+function showErr(m){const e=$('errBanner');e.textContent=m;e.classList.remove('hidden');}
+function hideErr(){$('errBanner').classList.add('hidden');}
+function log(m,c){const l=$('log');const s=document.createElement('span');if(c)s.className=c;s.textContent=m+'\n';l.appendChild(s);l.scrollTop=l.scrollHeight;}
+
+/* ===== chips ===== */
+function chipId(n){return 'chip_'+n.replace(/[^a-z0-9]/gi,'');}
+function addChip(n){const c=document.createElement('span');c.className='chip cur';c.id=chipId(n);
+  c.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M14 3v5h5"/><path d="M6 3h8l5 5v13H6z"/></svg>'+escHtml(n);$('chips').appendChild(c);}
+function chipDone(n){const c=$(chipId(n));if(c){c.classList.remove('cur');c.insertAdjacentText('beforeend',' ✓');}}
+
+/* ===== main conversion (low-memory streaming) ===== */
+async function run(){
+  if(state.running)return;hideErr();
+  state.running=true;state.cancel=false;
+  $('convertBtn').disabled=true;$('convertText').innerHTML='<span class="spinner"></span> Mengonversi…';
+  $('runArea').classList.remove('hidden');$('chips').innerHTML='';$('log').innerHTML='';$('fill').style.width='0';$('pctVal').textContent='0';
+  ['delim','enc','quote','optHeader','optSkip','optRows','optNum','optComp','optBase','pickFolder','clearFile'].forEach(id=>{const e=$(id);if(e)e.disabled=true;});
+
+  const file=state.file,o=curOpts();
+  const sheetLimit=o.perFile+(o.hasHeader?1:0);
+  const decoder=new TextDecoder(o.enc);
+  const parser=makeParser(o.delim,o.quote);
+
+  let bomLen=0;
+  {const h=new Uint8Array(await file.slice(0,3).arrayBuffer());
+   if(h[0]===0xEF&&h[1]===0xBB&&h[2]===0xBF)bomLen=3;else if((h[0]===0xFF&&h[1]===0xFE)||(h[0]===0xFE&&h[1]===0xFF))bomLen=2;}
+  let pos=bomLen;
+  let skipLeft=o.skip, headerRow=null, headerCaptured=!o.hasHeader, writer=null, fileIndex=0, totalDataRows=0;
+  const t0=performance.now();let lastUi=0;
+
+  const digits=n=>String(n).padStart(3,'0');
+  async function openWriter(){
+    fileIndex++;const fname=o.base+'_part'+digits(fileIndex)+'.xlsx';let sink;
+    if(state.fsMode){const fh=await state.dir.getFileHandle(fname,{create:true});sink=fsSink(await fh.createWritable());}
+    else sink=downloadSink(fname);
+    writer=new XlsxWriter(sink,o.base+'_'+fileIndex,o.compress,o.numbers);writer._name=fname;
+    addChip(fname);log('Menulis '+fname+' …');
+    if(o.hasHeader&&headerRow)writer.writeRow(headerRow);
+  }
+  async function closeWriter(){if(!writer)return;const nm=writer._name;await writer.finish();chipDone(nm);writer=null;}
+
+  function setProgress(){
+    const done=pos-bomLen,total=file.size-bomLen,pct=total>0?Math.min(100,done/total*100):0;
+    $('fill').style.width=pct+'%';$('pctVal').textContent=pct.toFixed(pct<100?1:0);
+    $('sBytes').textContent=fmtBytes(done);$('sRows').textContent=fmtInt(totalDataRows);$('sFiles').textContent=fmtInt(fileIndex);
+    const el=(performance.now()-t0)/1000,sp=done/el;
+    $('sSpeed').textContent=(sp/1048576).toFixed(1)+' MB/s';$('sElapsed').textContent=fmtTime(el);
+    $('sEta').textContent=sp>0?fmtTime((total-done)/sp):'—';
+  }
+
+  try{
+    $('phase').textContent='Membaca & menulis…';
+    while(pos<file.size&&!state.cancel){
+      const end=Math.min(pos+READ,file.size);
+      const buf=new Uint8Array(await file.slice(pos,end).arrayBuffer());
+      pos=end;const lastRead=pos>=file.size;
+      for(let b=0;b<buf.length&&!state.cancel;b+=SUB){
+        const subEnd=Math.min(b+SUB,buf.length);const lastSub=lastRead&&subEnd>=buf.length;
+        const text=decoder.decode(buf.subarray(b,subEnd),{stream:!lastSub});
+        const rows=[];parser.feed(text,r=>rows.push(r));if(lastSub)parser.flush(r=>rows.push(r));
+        let i=0;
+        while(i<rows.length){
+          if(skipLeft>0){const take=Math.min(skipLeft,rows.length-i);i+=take;skipLeft-=take;continue;}
+          if(o.hasHeader&&!headerCaptured){headerRow=rows[i];headerCaptured=true;i++;continue;}
+          if(!writer)await openWriter();
+          while(i<rows.length&&writer.rowCount<sheetLimit){writer.writeRow(rows[i]);i++;totalDataRows++;}
+          if(writer.rowCount>=sheetLimit&&i<rows.length)await closeWriter();
         }
+        rows.length=0;
+        if(writer)await writer.drain();
       }
-
-      const score = (consistentRows / lines.length) * (totalCols / lines.length);
-      
-      if (score > bestScore && totalCols / lines.length > 1) {
-        bestScore = score;
-        bestDelimiter = delim;
-      }
+      const now=performance.now();
+      if(now-lastUi>140){setProgress();lastUi=now;}
+      await new Promise(r=>setTimeout(r,0)); // yield to UI
     }
 
-    return bestDelimiter;
+    if(state.cancel){
+      if(writer)await writer.abort();
+      $('phase').textContent='Dibatalkan';log('Konversi dibatalkan.','w');toast('Konversi dibatalkan','warn');
+    }else{
+      if(writer)await closeWriter();
+      setProgress();$('fill').style.width='100%';$('pctVal').textContent='100';
+      $('phase').textContent='Selesai ✓';
+      log('Selesai. '+fmtInt(totalDataRows)+' baris data → '+fmtInt(fileIndex)+' file Excel.','s');
+      toast('Konversi selesai · '+fmtInt(fileIndex)+' file ✓','ok');
+    }
+  }catch(e){
+    $('phase').textContent='Error';showErr('Konversi gagal: '+(e&&e.message?e.message:e));log('Gagal: '+(e&&e.message?e.message:e),'e');
+    if(writer)try{await writer.abort();}catch(_){}
+    console.error(e);
+  }finally{
+    state.running=false;
+    ['delim','enc','quote','optHeader','optSkip','optRows','optNum','optComp','optBase','pickFolder','clearFile'].forEach(id=>{const e=$(id);if(e)e.disabled=false;});
+    $('convertText').textContent='Konversi lagi';$('cancelBtn').textContent='Tutup';refreshConvert();
   }
+}
 
-  // ===== File Handling =====
-  function handleFile(file) {
-    // Warning untuk file besar
-    if (file.size > SIZE_WARNING) {
-      showToast(`⚠️ File besar (${(file.size / 1024 / 1024).toFixed(1)}MB). Processing mungkin akan lambat atau crash.`, 'warn');
-    }
-
-    const validExtensions = ['.csv', '.txt', '.tsv', '.xls', '.xlsx'];
-    const hasValidExt = validExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
-    
-    if (!hasValidExt) {
-      showToast('Format file tidak didukung. Gunakan CSV, TXT, atau TSV.', 'err');
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        processFile(e.target.result, file);
-      } catch (err) {
-        showToast(`Error: ${err.message}`, 'err');
-      }
-    };
-    reader.onerror = () => {
-      showToast('Gagal membaca file', 'err');
-    };
-    reader.readAsArrayBuffer(file);
-  }
-
-  // ===== Sample Data =====
-  function loadSampleData() {
-    const sampleCsv = `Product,Region,Q1,Q2,Q3,Q4
-Widget A,Jakarta,1000,1200,1100,1300
-Widget B,Surabaya,800,900,950,1050
-Widget C,Bandung,600,700,750,800
-Widget A,Jakarta,1050,1250,1150,1350
-Widget B,Surabaya,850,950,1000,1100`;
-    
-    const blob = new Blob([sampleCsv], { type: 'text/csv' });
-    const file = new File([blob], 'sample.csv', { type: 'text/csv' });
-    handleFile(file);
-  }
-
-  // ===== Download Sample 100 Rows =====
-  function downloadSample100() {
-    // Generate 100 rows of sample data
-    let csvContent = 'Product,Region,Q1,Q2,Q3,Q4,Total,Status,Notes,Category\n';
-    
-    const products = ['Widget A', 'Widget B', 'Widget C', 'Gadget X', 'Gadget Y'];
-    const regions = ['Jakarta', 'Surabaya', 'Bandung', 'Medan', 'Semarang'];
-    const categories = ['Electronics', 'Hardware', 'Software', 'Accessories', 'Services'];
-    const statuses = ['Active', 'Pending', 'Inactive', 'Review', 'Approved'];
-    
-    for (let i = 1; i <= 100; i++) {
-      const product = products[Math.floor(Math.random() * products.length)];
-      const region = regions[Math.floor(Math.random() * regions.length)];
-      const q1 = Math.floor(Math.random() * 2000) + 500;
-      const q2 = Math.floor(Math.random() * 2000) + 500;
-      const q3 = Math.floor(Math.random() * 2000) + 500;
-      const q4 = Math.floor(Math.random() * 2000) + 500;
-      const total = q1 + q2 + q3 + q4;
-      const status = statuses[Math.floor(Math.random() * statuses.length)];
-      const category = categories[Math.floor(Math.random() * categories.length)];
-      const notes = `Row ${i} data sample - testing purposes`;
-      
-      csvContent += `${product},${region},${q1},${q2},${q3},${q4},${total},${status},${notes},${category}\n`;
-    }
-    
-    // Download file
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    
-    link.setAttribute('href', url);
-    link.setAttribute('download', 'sample-100-rows.csv');
-    link.style.visibility = 'hidden';
-    
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    showToast('✓ File sample 100 baris berhasil diunduh', 'ok');
-  }
-
-  // ===== Download Preview Data (First 10 Rows) =====
-  function downloadPreviewData() {
-    if (!csvData) {
-      showToast('Tidak ada data untuk didownload', 'err');
-      return;
-    }
-
-    // Check XLSX availability
-    if (typeof XLSX === 'undefined') {
-      showToast('⏳ Library Excel masih loading... Coba lagi dalam 2 detik.', 'warn');
-      setTimeout(downloadPreviewData, 2000);
-      return;
-    }
-
-    // Parse all data to get first 10 rows
-    Papa.parse(csvData.text, {
-      delimiter: csvData.delimiter,
-      header: false,
-      skipEmptyLines: true,
-      complete: (results) => {
-        if (!results.data || results.data.length === 0) {
-          showToast('Tidak ada data untuk didownload', 'err');
-          return;
-        }
-
-        try {
-          // Take first 10 rows (plus header = 11 total)
-          const dataToDownload = results.data.slice(0, 10);
-          
-          // Normalize columns
-          const maxCols = Math.max(...dataToDownload.map(row => row.length || 0));
-          const normalizedData = dataToDownload.map(row => {
-            const normalized = [...(row || [])];
-            while (normalized.length < maxCols) {
-              normalized.push('');
-            }
-            return normalized;
-          });
-
-          // Create Excel workbook
-          const ws = XLSX.utils.aoa_to_sheet(normalizedData);
-          
-          // Set column widths
-          const colWidths = [];
-          for (let i = 0; i < maxCols; i++) {
-            let maxWidth = 10;
-            for (let j = 0; j < Math.min(normalizedData.length, 50); j++) {
-              const cellLength = String(normalizedData[j][i] || '').length;
-              maxWidth = Math.max(maxWidth, Math.min(cellLength, 50));
-            }
-            colWidths.push({ wch: Math.max(maxWidth, 8) });
-          }
-          ws['!cols'] = colWidths;
-
-          // Freeze first row (header)
-          ws['!freeze'] = { xSplit: 0, ySplit: 1 };
-
-          // Create workbook
-          const wb = XLSX.utils.book_new();
-          XLSX.utils.book_append_sheet(wb, ws, 'Data');
-          
-          // Download
-          const fileName = csvData.fileName || 'preview';
-          XLSX.writeFile(wb, `${fileName}-preview-10.xlsx`);
-          
-          showToast(`✓ ${dataToDownload.length} baris berhasil diunduh sebagai Excel`, 'ok');
-        } catch (err) {
-          showToast(`Error: ${err.message}`, 'err');
-        }
-      },
-      error: (error) => {
-        showToast(`Error: ${error.message}`, 'err');
-      }
-    });
-  }
-  function processFile(arrayBuffer, file) {
-    const uint8Array = new Uint8Array(arrayBuffer);
-    
-    if (uint8Array.length === 0) {
-      showToast('File kosong', 'err');
-      return;
-    }
-
-    const encoding = detectEncoding(uint8Array);
-    const csvText = safeDecodeText(uint8Array, encoding);
-
-    if (!csvText || csvText.trim().length === 0) {
-      showToast('File tidak dapat dibaca', 'err');
-      return;
-    }
-
-    const detectedDelimiter = autoDetectDelimiter(csvText);
-    const rowCount = csvText.split('\n').filter(line => line.trim()).length;
-
-    if (rowCount === 0) {
-      showToast('File tidak mengandung data', 'err');
-      return;
-    }
-
-    if (rowCount > MAX_ROWS) {
-      showToast(`Baris terlalu banyak (${rowCount}). Preview akan terbatas.`, 'warn');
-    }
-
-    Papa.parse(csvText, {
-      delimiter: detectedDelimiter,
-      header: false,
-      preview: 10,
-      skipEmptyLines: true,
-      complete: (results) => {
-        if (!results.data || results.data.length === 0) {
-          showToast('Tidak dapat parse CSV', 'err');
-          return;
-        }
-
-        csvData = {
-          text: csvText,
-          delimiter: detectedDelimiter,
-          encoding: encoding,
-          rowCount: rowCount,
-          fileSize: file.size,
-          fileName: file.name.replace(/\.[^/.]+$/, '')
-        };
-
-        // Update UI
-        document.getElementById('outputName').value = csvData.fileName;
-        showDetectionStatus();
-        showPreviewData(results.data);
-        
-        step1.style.display = 'none';
-        step2.classList.remove('hidden');
-        previewCard.classList.remove('hidden');
-        convertBtn.disabled = false;
-        resetBtn.style.display = 'inline-flex';
-
-        showToast('File berhasil dimuat', 'ok');
-      },
-      error: (error) => {
-        showToast(`Parse error: ${error.message}`, 'err');
-      }
-    });
-  }
-
-  // ===== UI Updates =====
-  function showDetectionStatus() {
-    const delim = {
-      ',': 'Comma',
-      ';': 'Semicolon',
-      '\t': 'Tab',
-      '|': 'Pipe'
-    }[csvData.delimiter] || 'Custom';
-
-    const banner = document.getElementById('detectionBanner');
-    banner.innerHTML = `
-      ✓ <b>${csvData.fileName}</b> terdeteksi<br>
-      <small>
-        Size: ${(csvData.fileSize / 1024).toFixed(1)} KB &nbsp;|&nbsp;
-        Baris: ${csvData.rowCount} &nbsp;|&nbsp;
-        Delimiter: <b>${delim}</b> &nbsp;|&nbsp;
-        Encoding: <b>${csvData.encoding}</b>
-      </small>
-    `;
-
-    document.getElementById('srcStatus').classList.remove('hidden');
-  }
-
-  function showPreviewData(data) {
-    const stats = document.getElementById('previewStats');
-    const maxCols = Math.max(...data.map(row => row.length || 0));
-    
-    stats.innerHTML = `
-      <div class="stat">
-        <div class="lbl">Total Baris</div>
-        <div class="val">${csvData.rowCount}</div>
-      </div>
-      <div class="stat">
-        <div class="lbl">Total Kolom</div>
-        <div class="val">${maxCols}</div>
-      </div>
-      <div class="stat">
-        <div class="lbl">Encoding</div>
-        <div class="val" style="font-size: 15px;">${csvData.encoding}</div>
-      </div>
-    `;
-
-    const table = document.getElementById('previewTable');
-    let html = '<thead><tr>';
-    
-    // Use first row as headers
-    const headerRow = data[0] || [];
-    for (let i = 0; i < headerRow.length; i++) {
-      const headerText = String(headerRow[i] || `Col ${i + 1}`).substring(0, 100);
-      html += `<th>${escapeHtml(headerText)}</th>`;
-    }
-    html += '</tr></thead><tbody>';
-
-    // Show up to 10 rows (skip header row at index 0)
-    const startRow = 1;  // Skip header row
-    const endRow = Math.min(11, data.length);  // 10 data rows + header
-    
-    for (let i = startRow; i < endRow; i++) {
-      const row = data[i];
-      html += '<tr>';
-      for (let j = 0; j < headerRow.length; j++) {
-        const cell = row[j] || '';
-        const text = String(cell).substring(0, 100) + (String(cell).length > 100 ? '...' : '');
-        html += `<td>${escapeHtml(text)}</td>`;
-      }
-      html += '</tr>';
-    }
-
-    html += '</tbody>';
-    table.innerHTML = html;
-  }
-
-  // ===== Conversion =====
-  function convertFile() {
-    if (!csvData) return;
-
-    // Check library
-    if (typeof XLSX === 'undefined') {
-      showToast('⏳ Library Excel masih loading... Coba lagi dalam 2 detik.', 'warn');
-      setTimeout(convertFile, 2000);
-      return;
-    }
-
-    const delimiter = document.getElementById('delimiter').value;
-    const skipRows = parseInt(document.getElementById('skipRows').value) || 0;
-    const headerRow = parseInt(document.getElementById('headerRow').value) || 1;
-    const outputName = document.getElementById('outputName').value || 'data';
-
-    convertBtn.disabled = true;
-    convertBtn.innerHTML = '<span class="spinner"></span> Processing...';
-
-    setTimeout(() => {
-      try {
-        Papa.parse(csvData.text, {
-          delimiter: delimiter === 'auto' ? csvData.delimiter : delimiter,
-          header: false,
-          skipEmptyLines: true,
-          complete: (results) => {
-            if (!results.data || results.data.length === 0) {
-              showToast('Tidak ada data untuk dikonversi', 'err');
-              convertBtn.disabled = false;
-              convertBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Konversi & Download Excel';
-              resetBtn.style.display = 'inline-flex';
-              return;
-            }
-
-            processToExcel(results.data, skipRows, headerRow, outputName);
-          },
-          error: (error) => {
-            showToast(`Parse error: ${error.message}`, 'err');
-            convertBtn.disabled = false;
-            convertBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Konversi & Download Excel';
-            resetBtn.style.display = 'inline-flex';
-          }
-        });
-      } catch (err) {
-        showToast(`Error: ${err.message}`, 'err');
-        convertBtn.disabled = false;
-        convertBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Konversi & Download Excel';
-        resetBtn.style.display = 'inline-flex';
-      }
-    }, 100);
-  }
-
-  function processToExcel(data, skipRows, headerRow, fileName) {
-    try {
-      // Double-check XLSX availability
-      if (typeof XLSX === 'undefined') {
-        throw new Error('Library Excel (XLSX) tidak tersedia. Silakan refresh halaman dan coba lagi.');
-      }
-
-      let processedData = data.slice(skipRows);
-
-      if (processedData.length === 0) {
-        showToast('Tidak ada data setelah skip rows', 'err');
-        convertBtn.disabled = false;
-        convertBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Konversi & Download Excel';
-        resetBtn.style.display = 'inline-flex';
-        return;
-      }
-
-      // Normalize columns
-      const maxCols = Math.max(...processedData.map(row => row.length || 0));
-      processedData = processedData.map(row => {
-        const normalized = [...(row || [])];
-        while (normalized.length < maxCols) {
-          normalized.push('');
-        }
-        return normalized;
-      });
-
-      const ws = XLSX.utils.aoa_to_sheet(processedData);
-      
-      // Set column widths
-      const colWidths = [];
-      for (let i = 0; i < maxCols; i++) {
-        let maxWidth = 10;
-        for (let j = 0; j < Math.min(processedData.length, 100); j++) {
-          const cellLength = String(processedData[j][i] || '').length;
-          maxWidth = Math.max(maxWidth, Math.min(cellLength, 50));
-        }
-        colWidths.push({ wch: Math.max(maxWidth, 8) });
-      }
-      ws['!cols'] = colWidths;
-
-      // Freeze header
-      if (headerRow > 0) {
-        ws['!freeze'] = { xSplit: 0, ySplit: headerRow };
-      }
-
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'Data');
-      
-      const safeFileName = fileName.replace(/[^a-z0-9_-]/gi, '_');
-      XLSX.writeFile(wb, `${safeFileName}.xlsx`);
-
-      // Show results
-      const resultStats = document.getElementById('resultStats');
-      resultStats.innerHTML = `
-        <div class="stat">
-          <div class="lbl">Baris Diproses</div>
-          <div class="val">${processedData.length}</div>
-        </div>
-        <div class="stat">
-          <div class="lbl">Kolom</div>
-          <div class="val">${maxCols}</div>
-        </div>
-        <div class="stat">
-          <div class="lbl">Output File</div>
-          <div class="val" style="font-size: 14px;">${safeFileName}.xlsx</div>
-        </div>
-      `;
-
-      previewCard.classList.add('hidden');
-      results.classList.remove('hidden');
-      convertBtn.disabled = false;
-      convertBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Konversi & Download Excel';
-      resetBtn.style.display = 'inline-flex';
-
-      showToast('✓ File berhasil dikonversi dan didownload', 'ok');
-    } catch (err) {
-      showToast(`Error creating Excel: ${err.message}`, 'err');
-      convertBtn.disabled = false;
-      convertBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Konversi & Download Excel';
-      resetBtn.style.display = 'inline-flex';
-    }
-  }
-
-  // ===== Reset Function =====
-  function resetApp() {
-    csvData = null;
-    fileInput.value = '';
-    
-    // Reset form values
-    document.getElementById('delimiter').value = 'auto';
-    document.getElementById('headerRow').value = '1';
-    document.getElementById('skipRows').value = '0';
-    document.getElementById('outputName').value = '';
-    
-    // Hide step2, preview, results
-    step1.style.display = 'block';
-    step2.classList.add('hidden');
-    previewCard.classList.add('hidden');
-    results.classList.add('hidden');
-    document.getElementById('srcStatus').classList.add('hidden');
-    
-    // Reset buttons
-    convertBtn.disabled = true;
-    convertBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Konversi & Download Excel';
-    resetBtn.style.display = 'none';
-    
-    showToast('Reset ke awal. Siap input file baru.', 'ok');
-  }
-
-  // ===== Toast Notification =====
-  function showToast(message, type = 'info') {
-    const toast = document.getElementById('toast');
-    toast.textContent = message;
-    
-    // Update background color based on type
-    let bgColor = 'rgba(29, 29, 31, 0.96)'; // default dark
-    if (type === 'err') {
-      bgColor = 'rgba(255, 59, 48, 0.96)'; // red for errors
-    } else if (type === 'warn') {
-      bgColor = 'rgba(255, 149, 0, 0.96)'; // orange for warnings
-    } else if (type === 'ok') {
-      bgColor = 'rgba(27, 94, 32, 0.96)'; // green for success
-    }
-    
-    toast.style.background = bgColor;
-    toast.classList.add('show');
-    setTimeout(() => toast.classList.remove('show'), 4000);
-  }
-
-  // ===== Utils =====
-  function escapeHtml(text) {
-    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
-    return String(text).replace(/[&<>"']/g, m => map[m]);
-  }
+/* ===== events ===== */
+document.addEventListener('DOMContentLoaded',()=>{
+  detectCapability();if(!state.fsMode)setupFallback();
+  const drop=$('drop'),fi=$('fileInput');
+  fi.addEventListener('change',e=>{if(e.target.files[0])setFile(e.target.files[0]);});
+  ['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('drag');}));
+  ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('drag');}));
+  drop.addEventListener('drop',e=>{const f=e.dataTransfer.files[0];if(f)setFile(f);});
+  $('clearFile').addEventListener('click',clearFile);
+  ['delim','enc','quote'].forEach(id=>$(id).addEventListener('change',()=>{$('aDelim').textContent=$('delim').value==='\t'?'tab':'manual';$('aEnc').textContent='manual';$('aQuote').textContent='manual';renderPreview();}));
+  ['optHeader','optSkip','optRows','optNum','optComp'].forEach(id=>$(id).addEventListener('input',renderPreview));
+  $('pickFolder').addEventListener('click',pickFolder);
+  $('convertBtn').addEventListener('click',run);
+  $('cancelBtn').addEventListener('click',()=>{if(state.running){state.cancel=true;log('Membatalkan…','w');}else{$('runArea').classList.add('hidden');$('cancelBtn').textContent='Batalkan';}});
+});
 </script>
-
 </body>
 </html>
