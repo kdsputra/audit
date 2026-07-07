@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Perhitungan Lease (PSAK 73)</title><script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script><style>
+<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Perhitungan Lease (PSAK 73)</title><script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script><style>
   :root{
     --bg:#f5f5f7; --card:#ffffff; --text:#1d1d1f; --muted:#86868b;
     --border:#d2d2d7; --accent:#0066cc; --accent-dark:#0044aa; --accent-light:#f5f5f7;
@@ -279,10 +279,16 @@
       <div class="card-head">
         <div class="step-num" style="background:#1d1d1f;color:#fff">&#10003;</div>
         <h2>Ringkasan Eksekutif Portfolio (Summary)</h2>
-        <button class="btn btn-accent" id="dlBtn" style="margin-left:auto">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Unduh Excel
-        </button>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:16px;">
+          <div style="display:flex;gap:14px;font-size:12.5px;color:var(--muted)">
+            <label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="radio" name="dlMode" value="live" checked style="accent-color:#0066cc">Rumus Hidup</label>
+            <label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="radio" name="dlMode" value="static" style="accent-color:#0066cc">Rumus Mati</label>
+          </div>
+          <button class="btn btn-accent" id="dlBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Unduh Excel
+          </button>
+        </div>
       </div>
       <div class="tbl-wrap"><table id="sumTable"></table></div>
     </div>
@@ -1147,121 +1153,642 @@ function renderRecap(perLease,t){
   document.getElementById('recapTable').innerHTML=h;
 }
 
-/* ---------- export ---------- */
-function exportExcel(){
+/* ---------- export (live-formula / static, monochrome, audit-trail) ---------- */
+const XC={black:'FF1F1F1F',darkGray:'FF404040',midGray:'FFBFBFBF',lightGray:'FFD9D9D9',
+  inputGray:'FFF2F2F2',helperGray:'FFFAFAFA',white:'FFFFFFFF',border:'FFBDBDBD'};
+const X_CUR='#,##0;(#,##0);"-"', X_PCT3='0.000%', X_PCT2='0.00%', X_DATE='dd/mm/yyyy';
+function xFill(argb){return {type:'pattern',pattern:'solid',fgColor:{argb}};}
+const X_BORDER={top:{style:'thin',color:{argb:XC.border}},bottom:{style:'thin',color:{argb:XC.border}},
+  left:{style:'thin',color:{argb:XC.border}},right:{style:'thin',color:{argb:XC.border}}};
+function xfTitle(){return {name:'Calibri',size:13,bold:true,color:{argb:XC.white}};}
+function xfSection(){return {name:'Calibri',size:11,bold:true,color:{argb:XC.white}};}
+function xfHeader(){return {name:'Calibri',size:10,bold:true,color:{argb:'FF000000'}};}
+function xfLabel(b){return {name:'Calibri',size:10,bold:!!b,color:{argb:'FF000000'}};}
+function xfValue(b){return {name:'Calibri',size:10,bold:!!b,color:{argb:'FF000000'}};}
+function xfHelper(){return {name:'Calibri',size:9,italic:true,color:{argb:'FF808080'}};}
+function xfResult(){return {name:'Calibri',size:10,bold:true,color:{argb:'FF000000'}};}
+function xSetCell(ws,addr,value,opt){
+  opt=opt||{};
+  const c=ws.getCell(addr);
+  c.value=value;
+  if(opt.font)c.font=opt.font;
+  if(opt.fillColor)c.fill=xFill(opt.fillColor);
+  if(opt.numFmt)c.numFmt=opt.numFmt;
+  if(opt.align)c.alignment=opt.align;
+  if(opt.border!==false)c.border=X_BORDER;
+  return c;
+}
+function xMergeTitle(ws,row,lastCol,text,fillColor,font){
+  fillColor=fillColor||XC.black; font=font||xfTitle();
+  ws.mergeCells(row,1,row,lastCol);
+  const c=ws.getCell(row,1);
+  c.value=text; c.font=font;
+  c.alignment={horizontal:'left',vertical:'middle',indent:1};
+  ws.getRow(row).height=(fillColor===XC.black?22:18);
+  for(let col=1;col<=lastCol;col++)ws.getCell(row,col).fill=xFill(fillColor);
+}
+function xColLetter(n){let s='';while(n>0){const m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=Math.floor((n-1)/26);}return s;}
+function xStatusText(s){return s==='aktif'?'Aktif':s==='tempo'?'Selesai':'Belum Mulai';}
+
+async function exportExcel(live=true){
   if(!leases.length || !leases[0].rows){ toast('Hitung dulu sebelum mengunduh.'); return; }
-  const wb = XLSX.utils.book_new();
-  
-  /* Summary sheet */
-  const sumAoA = [['lease_id','nominal','upfront','start_date','end_date','interest','ll_cutoff','rou_cutoff','rou_exp_cutoff','ll_exp_cutoff','total_payment_cutoff','total_exp_com','dta','dtl','status']];
-  leases.forEach(l => {
-    const statusText = l.status==='aktif'?'Aktif':l.status==='tempo'?'Selesai':'Belum Mulai';
-    sumAoA.push([
-      l.lease_id, l.nominal, l.upfront, fmtDateFull(l.startDate), fmtDateFull(l.endDate),
-      l.interest, l.ll_at_cutoff, l.rou_at_cutoff, l.totalRouExp, l.totalLlExp,
-      l.totalPayment, l.totalExpCom, l.dta_at_cutoff, l.dtl_at_cutoff, statusText
-    ]);
-  });
-  sumAoA.push([]);
-  sumAoA.push(['Tanggal Cut-off:', fmtDateFull(currentCutoff)]);
-  sumAoA.push(['Tarif Pajak:', taxRate]);
-  const wsSummary = XLSX.utils.aoa_to_sheet(sumAoA);
-  XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
+  if(typeof ExcelJS==='undefined'){ toast('Gagal memuat library ExcelJS (perlu koneksi internet). Coba lagi.'); return; }
+  const dlBtn=document.getElementById('dlBtn');
+  const origLabel=dlBtn.innerHTML;
+  dlBtn.disabled=true; dlBtn.innerHTML='Menghasilkan file...';
+  const cv=(formula,staticVal)=>live?{formula}:staticVal;
+  try{
+    const wb=new ExcelJS.Workbook();
+    wb.creator='Perhitungan Lease (PSAK 73)'; wb.created=new Date();
 
-  /* ===== Sheet CALK ===== */
-  const perLeaseCALK = leases.map(computeLease);
-  const tC = aggregate(perLeaseCALK);
-  const yStart=longDate(pStart), yEnd=longDate(pEnd);
-  const neg=v=>v?-Math.abs(v):0;
+    const wsS=wb.addWorksheet('Ringkasan');
+    const wsP=wb.addWorksheet('Parameter');
+    const wsCR=wb.addWorksheet('CALK ROU');
+    const wsCL=wb.addWorksheet('CALK Liabilitas Sewa');
+    const wsCC=wb.addWorksheet('Ringkasan CALK');
 
-  /* CALK ROU */
-  const a=[];
-  a.push(['CATATAN ATAS LAPORAN KEUANGAN — ASET HAK-GUNA (ROU)']);
-  a.push(['Untuk periode '+yStart+' s.d. '+yEnd]);
-  a.push([]);
-  a.push(['Keterangan','Saldo Awal ('+yStart+')','Penambahan','Pengurangan','Saldo Akhir ('+yEnd+')']);
-  a.push(['Biaya Perolehan']);
-  perLeaseCALK.forEach(p=>a.push(['  '+p.lease_id,p.grossOpen,p.grossAdd,neg(p.grossDisp),p.grossClose]));
-  a.push(['Jumlah Biaya Perolehan',tC.grossOpen,tC.grossAdd,neg(tC.grossDisp),tC.grossClose]);
-  a.push([]);
-  a.push(['Akumulasi Penyusutan']);
-  perLeaseCALK.forEach(p=>a.push(['  '+p.lease_id,neg(p.accDepOpen),neg(p.depExp),p.accDepDisp,neg(p.accDepClose)]));
-  a.push(['Jumlah Akumulasi Penyusutan',neg(tC.accDepOpen),neg(tC.depExp),tC.accDepDisp,neg(tC.accDepClose)]);
-  a.push([]);
-  a.push(['Nilai Buku Neto',tC.netOpen,'','',tC.netClose]);
-  const wsA=XLSX.utils.aoa_to_sheet(a);
-  wsA['!cols']=[{wch:40},{wch:20},{wch:16},{wch:16},{wch:20}];
-  XLSX.utils.book_append_sheet(wb,wsA,'CALK ROU');
+    /* ---- Parameter sheet ---- */
+    wsP.views=[{showGridLines:false}];
+    wsP.columns=[{width:30},{width:22},{width:3},{width:30},{width:22}];
+    xMergeTitle(wsP,1,5,'PARAMETER GLOBAL');
+    xSetCell(wsP,'A3','Tanggal Cut-off Pelaporan',{font:xfLabel(true),border:false});
+    xSetCell(wsP,'B3',currentCutoff,{font:xfValue(true),fillColor:XC.inputGray,numFmt:X_DATE});
+    xSetCell(wsP,'A4','Tarif Pajak',{font:xfLabel(true),border:false});
+    xSetCell(wsP,'B4',taxRate,{font:xfValue(true),fillColor:XC.inputGray,numFmt:X_PCT2});
+    xSetCell(wsP,'A5','Awal Periode CALK (pStart)',{font:xfLabel(true),border:false});
+    xSetCell(wsP,'B5',cv('DATE(YEAR(B3),1,1)',pStart),{font:xfValue(),fillColor:XC.white,numFmt:X_DATE});
+    xSetCell(wsP,'A6','Akhir Periode CALK (pEnd)',{font:xfLabel(true),border:false});
+    xSetCell(wsP,'B6',cv('B3',pEnd),{font:xfValue(),fillColor:XC.white,numFmt:X_DATE});
+    xSetCell(wsP,'A8','Catatan:',{font:xfLabel(true),border:false});
+    wsP.mergeCells('A9:E13');
+    const noteCell=wsP.getCell('A9');
+    noteCell.value = live
+      ? "Sel abu-abu terang = input yang dapat diubah. Seluruh jadwal amortisasi, valuasi cut-off, dan angka CALK (rollforward ROU & Liabilitas Sewa) adalah formula Excel yang hidup dan otomatis re-kalkulasi jika input di atas diubah. Tidak ada nilai yang dihitung di luar Excel — PV pembayaran sewa dihitung langsung dari suku bunga bulanan."
+      : "Versi NILAI STATIS (rumus mati). Seluruh angka (jadwal amortisasi, valuasi cut-off, CALK) adalah hasil akhir yang sudah dihitung sebelumnya dan TIDAK akan otomatis berubah jika sel input di atas diedit.";
+    noteCell.alignment={wrapText:true,vertical:'top'};
+    noteCell.font={name:'Calibri',size:9,italic:true,color:{argb:'FF595959'}};
+    wsP.getRow(1).height=22;
 
-  /* CALK Liabilitas Sewa */
-  const b=[];
-  b.push(['CATATAN ATAS LAPORAN KEUANGAN — LIABILITAS SEWA']);
-  b.push(['Untuk periode '+yStart+' s.d. '+yEnd]);
-  b.push([]);
-  b.push(['Mutasi Liabilitas Sewa']);
-  b.push(['Keterangan','Saldo Awal ('+yStart+')','Penambahan','Beban Bunga','Pembayaran','Saldo Akhir ('+yEnd+')']);
-  perLeaseCALK.forEach(p=>b.push(['  '+p.lease_id,p.llOpen,p.llAdd,p.llInterest,neg(p.llPayment),p.llClose]));
-  b.push(['Jumlah Liabilitas Sewa',tC.llOpen,tC.llAdd,tC.llInterest,neg(tC.llPayment),tC.llClose]);
-  b.push([]);
-  b.push(['Klasifikasi Liabilitas Sewa per '+yEnd]);
-  b.push(['Bagian jangka pendek (<= 1 tahun)',tC.llCurrent]);
-  b.push(['Bagian jangka panjang (> 1 tahun)',tC.llNonCurrent]);
-  b.push(['Jumlah Liabilitas Sewa',tC.llClose]);
-  b.push([]);
-  b.push(['Analisis Jatuh Tempo Pembayaran Sewa (tidak terdiskonto) per '+yEnd]);
-  b.push(['Dalam 1 tahun',tC.mat1]);
-  b.push(['Lebih dari 1 tahun s.d. 5 tahun',tC.mat15]);
-  b.push(['Lebih dari 5 tahun',tC.mat5]);
-  b.push(['Jumlah pembayaran sewa masa depan (tidak terdiskonto)',tC.matTotal]);
-  b.push(['Dikurangi: beban keuangan masa depan',neg(tC.financeCharge)]);
-  b.push(['Nilai kini liabilitas sewa',tC.llClose]);
-  const wsB=XLSX.utils.aoa_to_sheet(b);
-  wsB['!cols']=[{wch:48},{wch:20},{wch:16},{wch:16},{wch:16},{wch:20}];
-  XLSX.utils.book_append_sheet(wb,wsB,'CALK Liabilitas Sewa');
+    const cCutoff='Parameter!B3', cTaxRate='Parameter!B4', cPStart='Parameter!B5', cPEnd='Parameter!B6';
 
-  /* Ringkasan CALK per kontrak */
-  const cc=[];
-  cc.push(['RINGKASAN CALK PER KONTRAK SEWA — '+yStart+' s.d. '+yEnd]);
-  cc.push([]);
-  cc.push(['lease_id','rou_nbv_awal','penyusutan','rou_nbv_akhir','ll_awal','bunga','pembayaran','ll_akhir','jk_pendek','jk_panjang','status']);
-  perLeaseCALK.forEach(p=>cc.push([p.lease_id,p.netOpen,p.depExp,p.netClose,p.llOpen,p.llInterest,p.llPayment,p.llClose,p.llCurrent,p.llNonCurrent,
-    (p.status==='aktif'?'Aktif':p.status==='tempo'?'Selesai':'Belum Mulai')]));
-  cc.push(['TOTAL',tC.netOpen,tC.depExp,tC.netClose,tC.llOpen,tC.llInterest,tC.llPayment,tC.llClose,tC.llCurrent,tC.llNonCurrent,'']);
-  const wsC=XLSX.utils.aoa_to_sheet(cc);
-  wsC['!cols']=[{wch:18},{wch:16},{wch:14},{wch:16},{wch:16},{wch:14},{wch:16},{wch:16},{wch:14},{wch:14},{wch:12}];
-  XLSX.utils.book_append_sheet(wb,wsC,'Ringkasan CALK');
-  
-  /* Detail per lease */
-  leases.forEach(l => {
-    const aoa = [];
-    aoa.push([String(l.lease_id).toUpperCase()]);
-    aoa.push([]);
-    aoa.push(['nominal', l.nominal, '', 'interest', l.interest]);
-    aoa.push(['upfront', l.upfront, '', 'jumlah periode', l.rows.length]);
-    aoa.push(['payment_option', l.payment_option, '', 'jumlah pembayaran', l.payments.length]);
-    aoa.push(['start_date', fmtDateFull(l.startDate), '', 'initial_ll', l.initialLL]);
-    aoa.push(['end_date', fmtDateFull(l.endDate), '', 'initial_rou', l.initialROU]);
-    aoa.push(['ll_cutoff', l.ll_at_cutoff, '', 'monthly_dep', l.monthlyDep]);
-    aoa.push(['rou_cutoff', l.rou_at_cutoff, '', 'dta', l.dta_at_cutoff]);
-    aoa.push(['status', l.status, '', 'dtl', l.dtl_at_cutoff]);
-    aoa.push([]);
-    aoa.push(['date','ll_begin','ll_payment','ll_exp','ll_end','rou_begin','rou_exp','rou_end','exp_com','exp_fiscal','tax_correction','dta','dtl']);
-    l.rows.forEach(r => {
-      aoa.push([
-        fmtDate(r.date), r.ll_begin, r.ll_payment, r.ll_exp, r.ll_end,
-        r.rou_begin, r.rou_exp, r.rou_end,
-        r.exp_com, r.exp_fiscal, r.tax_correction, r.dta, r.dtl
-      ]);
+    const leaseMeta=[];
+    const usedNames={};
+
+    leases.forEach((l)=>{
+      const sortedPayments=l.payments.slice().sort((a,b)=>a.date-b.date);
+      const P=sortedPayments.length, N=l.rows.length;
+
+      let base=String(l.lease_id).replace(/[\\\/\?\*\[\]:]/g,'').trim()||'LEASE';
+      usedNames[base]=(usedNames[base]||0)+1;
+      const sheetName=(base+(usedNames[base]>1?'_'+usedNames[base]:'')).substring(0,31);
+
+      const ws=wb.addWorksheet(sheetName);
+      ws.views=[{showGridLines:false}];
+      const cols=[{width:34}]; for(let i=0;i<13;i++)cols.push({width:16});
+      ws.columns=cols;
+
+      xMergeTitle(ws,1,14,l.lease_id.toUpperCase());
+
+      let r=3;
+      xMergeTitle(ws,r,14,'PARAMETER INPUT',XC.darkGray,xfSection());
+      r++;
+      const rowA=r; // Lease ID / Start Date
+      xSetCell(ws,'A'+r,'Lease ID',{font:xfLabel()});
+      xSetCell(ws,'B'+r,l.lease_id,{font:xfValue(true),fillColor:XC.inputGray});
+      xSetCell(ws,'D'+r,'Start Date',{font:xfLabel()});
+      xSetCell(ws,'E'+r,l.startDate,{font:xfValue(true),fillColor:XC.inputGray,numFmt:X_DATE});
+      const cStartDate='E'+r;
+      r++;
+      const rowB=r; // Nominal / End Date
+      xSetCell(ws,'A'+r,'Nominal',{font:xfLabel()});
+      xSetCell(ws,'B'+r,l.nominal,{font:xfValue(true),fillColor:XC.inputGray,numFmt:X_CUR});
+      xSetCell(ws,'D'+r,'End Date',{font:xfLabel()});
+      xSetCell(ws,'E'+r,l.endDate,{font:xfValue(true),fillColor:XC.inputGray,numFmt:X_DATE});
+      const cNominal='B'+r, cEndDate='E'+r;
+      r++;
+      const rowC=r; // Upfront / Interest
+      xSetCell(ws,'A'+r,'Upfront',{font:xfLabel()});
+      xSetCell(ws,'B'+r,l.upfront,{font:xfValue(true),fillColor:XC.inputGray,numFmt:X_CUR});
+      xSetCell(ws,'D'+r,'Interest (p.a.)',{font:xfLabel()});
+      xSetCell(ws,'E'+r,l.interest,{font:xfValue(true),fillColor:XC.inputGray,numFmt:X_PCT3});
+      const cUpfront='B'+r, cInterest='E'+r;
+      r++;
+      xSetCell(ws,'A'+r,'Payment Option',{font:xfLabel()});
+      xSetCell(ws,'B'+r,l.payment_option,{font:xfValue(true),fillColor:XC.inputGray});
+      r+=2;
+
+      xMergeTitle(ws,r,14,'PARAMETER KOMPUTASI',XC.darkGray,xfSection());
+      r++;
+      xSetCell(ws,'A'+r,'Monthly Rate',{font:xfLabel()});
+      xSetCell(ws,'B'+r,cv(cInterest+'/12',l.interest/12),{font:xfValue(),fillColor:XC.white,numFmt:'0.000000%'});
+      xSetCell(ws,'D'+r,'Total Dep Months',{font:xfLabel()});
+      xSetCell(ws,'E'+r,cv('(YEAR('+cEndDate+')-YEAR('+cStartDate+'))*12+(MONTH('+cEndDate+')-MONTH('+cStartDate+'))',l.totalDepMonths),{font:xfValue(),fillColor:XC.white,numFmt:'0'});
+      const cMonthlyRate='B'+r, cTotalDepMonths='E'+r;
+      r++;
+      const rowInitLL=r;
+      xSetCell(ws,'A'+r,'Initial LL (=Σ PV pembayaran)',{font:xfLabel()});
+      xSetCell(ws,'D'+r,'Monthly Dep',{font:xfLabel()});
+      const cInitialLL='B'+r, cMonthlyDep='E'+r;
+      r++;
+      const rowInitROU=r;
+      xSetCell(ws,'A'+r,'Initial ROU (=Initial LL + Upfront)',{font:xfLabel()});
+      xSetCell(ws,'B'+r,cv(cInitialLL+'+'+cUpfront,l.initialROU),{font:xfValue(true),fillColor:XC.midGray,numFmt:X_CUR});
+      xSetCell(ws,'D'+r,'Jumlah Pembayaran',{font:xfLabel()});
+      const cInitialROU='B'+r, cJmlPembayaran='E'+r;
+      r++;
+      xSetCell(ws,'A'+r,'Tanggal Cut-off (dari Parameter)',{font:xfLabel()});
+      xSetCell(ws,'B'+r,cv(cCutoff,currentCutoff),{font:xfValue(),fillColor:XC.white,numFmt:X_DATE});
+      xSetCell(ws,'D'+r,'Tarif Pajak (dari Parameter)',{font:xfLabel()});
+      xSetCell(ws,'E'+r,cv(cTaxRate,taxRate),{font:xfValue(),fillColor:XC.white,numFmt:X_PCT2});
+      const cCutoffRef='B'+r, cTaxRateRef='E'+r;
+      r+=2;
+
+      /* ---- Payment Schedule (helper table feeding Initial LL & monthly LL exp/payment) ---- */
+      xMergeTitle(ws,r,14,'JADWAL PEMBAYARAN (Payment Schedule)',XC.darkGray,xfSection());
+      r++;
+      const payHeaderRow=r;
+      ['No','Tanggal','Jumlah','t (bulan ke-)','PV'].forEach((h,j)=>{
+        const c=ws.getCell(payHeaderRow,j+1);
+        c.value=h; c.font=xfHeader(); c.fill=xFill(XC.lightGray); c.border=X_BORDER;
+        c.alignment={horizontal:'center'};
+      });
+      r++;
+      const payFirstRow=r;
+      sortedPayments.forEach((p,k)=>{
+        const prow=r;
+        const t=(p.date.getFullYear()-l.startDate.getFullYear())*12+(p.date.getMonth()-l.startDate.getMonth())+1;
+        const pv=p.amount/Math.pow(1+l.interest/12,t);
+        xSetCell(ws,'A'+prow,k+1,{font:xfValue(),fillColor:XC.white,align:{horizontal:'center'}});
+        xSetCell(ws,'B'+prow,p.date,{font:xfValue(),fillColor:XC.inputGray,numFmt:X_DATE});
+        xSetCell(ws,'C'+prow,p.amount,{font:xfValue(),fillColor:XC.inputGray,numFmt:X_CUR});
+        xSetCell(ws,'D'+prow,cv('(YEAR(B'+prow+')-YEAR('+cStartDate+'))*12+(MONTH(B'+prow+')-MONTH('+cStartDate+'))+1',t),{font:xfValue(),fillColor:XC.white,numFmt:'0'});
+        xSetCell(ws,'E'+prow,cv('C'+prow+'/POWER(1+'+cMonthlyRate+',D'+prow+')',pv),{font:xfValue(),fillColor:XC.white,numFmt:X_CUR});
+        r++;
+      });
+      const payLastRow=r-1;
+      const payDateRange='B'+payFirstRow+':B'+payLastRow;
+      const payAmountRange='C'+payFirstRow+':C'+payLastRow;
+      const payPVRange='E'+payFirstRow+':E'+payLastRow;
+
+      xSetCell(ws,cInitialLL,cv('SUM('+payPVRange+')',l.initialLL),{font:xfValue(true),fillColor:XC.midGray,numFmt:X_CUR});
+      xSetCell(ws,cJmlPembayaran,cv('COUNT(A'+payFirstRow+':A'+payLastRow+')',P),{font:xfValue(),fillColor:XC.white,numFmt:'0'});
+      xSetCell(ws,cMonthlyDep,cv(cInitialROU+'/'+cTotalDepMonths,l.monthlyDep),{font:xfValue(),fillColor:XC.white,numFmt:X_CUR});
+      r+=2;
+
+      /* ---- Main monthly amortization schedule ---- */
+      xMergeTitle(ws,r,14,'JADWAL AMORTISASI BULANAN (LL & ROU)',XC.darkGray,xfSection());
+      r++;
+      const schedHeaderRow=r;
+      ['No','Tanggal','LL Begin','LL Payment','LL Exp','LL End','ROU Begin','ROU Exp','ROU End','Exp Com','Exp Fiscal','Tax Correction','DTA','DTL'].forEach((h,j)=>{
+        const c=ws.getCell(schedHeaderRow,j+1);
+        c.value=h; c.font=xfHeader(); c.fill=xFill(XC.lightGray); c.border=X_BORDER;
+        c.alignment={horizontal:'center'};
+      });
+      r++;
+      const schedFirstRow=r;
+      for(let i=1;i<=N;i++){
+        const prow=r, prevRow=prow-1, last=(i===N);
+        const rr=l.rows[i-1];
+        xSetCell(ws,'A'+prow,i,{font:xfValue(),fillColor:XC.white,align:{horizontal:'center'}});
+        xSetCell(ws,'B'+prow,cv('EOMONTH('+cStartDate+','+(i-1)+')',rr.date),{font:xfValue(),fillColor:XC.white,numFmt:X_DATE});
+        xSetCell(ws,'C'+prow,cv(i===1?cInitialLL:'F'+prevRow,rr.ll_begin),{font:xfValue(),fillColor:XC.white,numFmt:X_CUR});
+        xSetCell(ws,'D'+prow,cv('SUMPRODUCT((YEAR('+payDateRange+')=YEAR(B'+prow+'))*(MONTH('+payDateRange+')=MONTH(B'+prow+'))*'+payAmountRange+')',rr.ll_payment),{font:xfValue(),fillColor:XC.white,numFmt:X_CUR});
+        xSetCell(ws,'E'+prow,cv('SUMPRODUCT((YEAR('+payDateRange+')=YEAR(B'+prow+'))*(MONTH('+payDateRange+')=MONTH(B'+prow+'))*('+payAmountRange+'-'+payPVRange+'))',rr.ll_exp),{font:xfValue(),fillColor:XC.white,numFmt:X_CUR});
+        const llEndFormula = last ? 'IF(ABS(C'+prow+'+E'+prow+'-D'+prow+')<0.01,0,C'+prow+'+E'+prow+'-D'+prow+')' : 'C'+prow+'+E'+prow+'-D'+prow;
+        xSetCell(ws,'F'+prow,cv(llEndFormula,rr.ll_end),{font:xfValue(true),fillColor:XC.white,numFmt:X_CUR});
+        xSetCell(ws,'G'+prow,cv(i===1?cInitialROU:'I'+prevRow,rr.rou_begin),{font:xfValue(),fillColor:XC.white,numFmt:X_CUR});
+        xSetCell(ws,'H'+prow,cv(cMonthlyDep,rr.rou_exp),{font:xfValue(),fillColor:XC.white,numFmt:X_CUR});
+        const rouEndFormula = last ? 'IF(ABS(G'+prow+'-H'+prow+')<0.01,0,G'+prow+'-H'+prow+')' : 'G'+prow+'-H'+prow;
+        xSetCell(ws,'I'+prow,cv(rouEndFormula,rr.rou_end),{font:xfValue(true),fillColor:XC.white,numFmt:X_CUR});
+        xSetCell(ws,'J'+prow,cv('E'+prow+'+H'+prow,rr.exp_com),{font:xfValue(),fillColor:XC.white,numFmt:X_CUR});
+        xSetCell(ws,'K'+prow,cv('D'+prow,rr.exp_fiscal),{font:xfValue(),fillColor:XC.white,numFmt:X_CUR});
+        xSetCell(ws,'L'+prow,cv('K'+prow+'-J'+prow,rr.tax_correction),{font:xfValue(),fillColor:XC.white,numFmt:X_CUR});
+        xSetCell(ws,'M'+prow,cv('I'+prow+'*'+cTaxRateRef,rr.dta),{font:xfValue(),fillColor:XC.white,numFmt:X_CUR});
+        xSetCell(ws,'N'+prow,cv('F'+prow+'*'+cTaxRateRef,rr.dtl),{font:xfValue(),fillColor:XC.white,numFmt:X_CUR});
+        r++;
+      }
+      const schedLastRow=r-1;
+      const dateRange='B'+schedFirstRow+':B'+schedLastRow;
+      const llEndRange='F'+schedFirstRow+':F'+schedLastRow;
+      const rouEndRange='I'+schedFirstRow+':I'+schedLastRow;
+      const llPaymentRange='D'+schedFirstRow+':D'+schedLastRow;
+      const llExpRange='E'+schedFirstRow+':E'+schedLastRow;
+      const rouExpRange='H'+schedFirstRow+':H'+schedLastRow;
+      const expComRange='J'+schedFirstRow+':J'+schedLastRow;
+      r+=2;
+
+      /* ---- Valuasi pada tanggal cut-off ---- */
+      xMergeTitle(ws,r,14,'VALUASI PADA TANGGAL CUT-OFF',XC.darkGray,xfSection());
+      r++;
+      function kv(row,label,formula,staticVal,numFmt,result){
+        xSetCell(ws,'A'+row,label,{font:xfLabel(!!result)});
+        xSetCell(ws,'B'+row,cv(formula,staticVal),{font:result?xfResult():xfValue(),fillColor:result?XC.midGray:XC.white,numFmt:numFmt});
+      }
+      const rowStatus=r;
+      kv(r,'Status Valuasi','IF('+cCutoffRef+'<'+cStartDate+',"Belum Mulai",IF('+cCutoffRef+'>='+cEndDate+',"Selesai","Aktif"))',xStatusText(l.status),null,true);
+      r++;
+      const rowLLCutoff=r;
+      kv(r,'LL @ Cut-off','IF('+cCutoffRef+'<'+cStartDate+',0,IFERROR(LOOKUP(MIN('+cCutoffRef+','+cEndDate+'),'+dateRange+','+llEndRange+'),'+cInitialLL+'))',l.ll_at_cutoff,X_CUR,true);
+      r++;
+      const rowROUCutoff=r;
+      kv(r,'ROU @ Cut-off','IF('+cCutoffRef+'<'+cStartDate+',0,IFERROR(LOOKUP(MIN('+cCutoffRef+','+cEndDate+'),'+dateRange+','+rouEndRange+'),'+cInitialROU+'))',l.rou_at_cutoff,X_CUR,true);
+      r++;
+      const rowTotalPayment=r;
+      kv(r,'Total Payment YTD','IF('+cCutoffRef+'<'+cStartDate+',0,SUMIFS('+llPaymentRange+','+dateRange+',">="&DATE(YEAR('+cCutoffRef+'),1,1),'+dateRange+',"<="&MIN('+cCutoffRef+','+cEndDate+')))',l.totalPayment,X_CUR,false);
+      r++;
+      const rowTotalRouExp=r;
+      kv(r,'Total ROU Exp YTD','IF('+cCutoffRef+'<'+cStartDate+',0,SUMIFS('+rouExpRange+','+dateRange+',">="&DATE(YEAR('+cCutoffRef+'),1,1),'+dateRange+',"<="&MIN('+cCutoffRef+','+cEndDate+')))',l.totalRouExp,X_CUR,false);
+      r++;
+      const rowTotalLlExp=r;
+      kv(r,'Total LL Exp YTD','IF('+cCutoffRef+'<'+cStartDate+',0,SUMIFS('+llExpRange+','+dateRange+',">="&DATE(YEAR('+cCutoffRef+'),1,1),'+dateRange+',"<="&MIN('+cCutoffRef+','+cEndDate+')))',l.totalLlExp,X_CUR,false);
+      r++;
+      const rowTotalExpCom=r;
+      kv(r,'Total Exp Com YTD','IF('+cCutoffRef+'<'+cStartDate+',0,SUMIFS('+expComRange+','+dateRange+',">="&DATE(YEAR('+cCutoffRef+'),1,1),'+dateRange+',"<="&MIN('+cCutoffRef+','+cEndDate+')))',l.totalExpCom,X_CUR,false);
+      r++;
+      const rowDTA=r;
+      kv(r,'DTA @ Cut-off','B'+rowROUCutoff+'*'+cTaxRateRef,l.dta_at_cutoff,X_CUR,true);
+      r++;
+      const rowDTL=r;
+      kv(r,'DTL @ Cut-off','B'+rowLLCutoff+'*'+cTaxRateRef,l.dtl_at_cutoff,X_CUR,true);
+      r+=2;
+
+      /* ---- CALK helper (rollforward periode pStart..pEnd) ---- */
+      xMergeTitle(ws,r,14,'CALK HELPER (Rollforward Periode Cut-off)',XC.darkGray,xfSection());
+      r++;
+      function hv(row,label,formula,staticVal,numFmt,result){
+        const fnt=result?xfResult():xfHelper();
+        const fillC=result?XC.midGray:XC.helperGray;
+        xSetCell(ws,'A'+row,label,{font:result?xfLabel(true):xfHelper()});
+        xSetCell(ws,'B'+row,cv(formula,staticVal),{font:fnt,fillColor:fillC,numFmt:numFmt});
+      }
+      const maturity = l.rows[l.rows.length-1].date;
+      const commencedBeforePeriod = l.startDate < pStart;
+      const maturedBeforePeriod = maturity < pStart;
+      const onBookAtOpen = commencedBeforePeriod && !maturedBeforePeriod;
+      const commencesInPeriod = l.startDate>=pStart && l.startDate<=pEnd;
+      const maturesInPeriod = maturity>=pStart && maturity<=pEnd;
+      const rowsBeforeStart=l.rows.filter(rr=>rr.date<pStart);
+      const lastBefore=rowsBeforeStart.length?rowsBeforeStart[rowsBeforeStart.length-1]:null;
+      const netOpenV=onBookAtOpen?(lastBefore?lastBefore.rou_end:l.initialROU):0;
+      const llOpenV=onBookAtOpen?(lastBefore?lastBefore.ll_end:l.initialLL):0;
+      const inPeriod=l.rows.filter(rr=>rr.date>=pStart&&rr.date<=pEnd);
+      const depExpV=inPeriod.reduce((s,rr)=>s+rr.rou_exp,0);
+      const llInterestV=inPeriod.reduce((s,rr)=>s+rr.ll_exp,0);
+      const llPaymentV=inPeriod.reduce((s,rr)=>s+rr.ll_payment,0);
+
+      const rowMaturityDate=r;
+      hv(r,'Maturity Date (baris terakhir jadwal)','B'+schedLastRow,maturity,X_DATE,false); r++;
+      const rowOnBookOpen=r;
+      hv(r,'On Book At Open (1/0)','IF(AND('+cStartDate+'<'+cPStart+',B'+rowMaturityDate+'>='+cPStart+'),1,0)',onBookAtOpen?1:0,'0',false); r++;
+      const rowCommences=r;
+      hv(r,'Commences In Period (1/0)','IF(AND('+cStartDate+'>='+cPStart+','+cStartDate+'<='+cPEnd+'),1,0)',commencesInPeriod?1:0,'0',false); r++;
+      const rowMatures=r;
+      hv(r,'Matures In Period (1/0)','IF(AND(B'+rowMaturityDate+'>='+cPStart+',B'+rowMaturityDate+'<='+cPEnd+'),1,0)',maturesInPeriod?1:0,'0',false); r++;
+      const rowNetOpen=r;
+      hv(r,'ROU Net Open','IF(B'+rowOnBookOpen+'=1,IFERROR(LOOKUP('+cPStart+'-1,'+dateRange+','+rouEndRange+'),'+cInitialROU+'),0)',netOpenV,X_CUR,false); r++;
+      const rowGrossOpen=r;
+      hv(r,'ROU Gross Open','IF(B'+rowOnBookOpen+'=1,'+cInitialROU+',0)',onBookAtOpen?l.initialROU:0,X_CUR,true); r++;
+      const rowAccDepOpen=r;
+      hv(r,'Akumulasi Penyusutan Open','B'+rowGrossOpen+'-B'+rowNetOpen,(onBookAtOpen?l.initialROU:0)-netOpenV,X_CUR,true); r++;
+      const rowGrossAdd=r;
+      hv(r,'ROU Gross Add (Penambahan)','IF(B'+rowCommences+'=1,'+cInitialROU+',0)',commencesInPeriod?l.initialROU:0,X_CUR,true); r++;
+      const rowDepExp=r;
+      hv(r,'Beban Penyusutan (Periode)','SUMIFS('+rouExpRange+','+dateRange+',">="&'+cPStart+','+dateRange+',"<="&'+cPEnd+')',depExpV,X_CUR,true); r++;
+      const rowGrossDisp=r;
+      hv(r,'ROU Gross Disposal (Pengurangan)','IF(B'+rowMatures+'=1,'+cInitialROU+',0)',maturesInPeriod?l.initialROU:0,X_CUR,true); r++;
+      const rowAccDepDisp=r;
+      hv(r,'Akumulasi Penyusutan Disposal','B'+rowGrossDisp,maturesInPeriod?l.initialROU:0,X_CUR,true); r++;
+      const rowGrossClose=r;
+      hv(r,'ROU Gross Close','B'+rowGrossOpen+'+B'+rowGrossAdd+'-B'+rowGrossDisp,(onBookAtOpen?l.initialROU:0)+(commencesInPeriod?l.initialROU:0)-(maturesInPeriod?l.initialROU:0),X_CUR,true); r++;
+      const rowAccDepClose=r;
+      hv(r,'Akumulasi Penyusutan Close','B'+rowAccDepOpen+'+B'+rowDepExp+'-B'+rowAccDepDisp,0,X_CUR,true); r++;
+      const rowNetClose=r;
+      hv(r,'ROU Net Close','B'+rowGrossClose+'-B'+rowAccDepClose,0,X_CUR,true); r++;
+      const rowLLOpen=r;
+      hv(r,'LL Open','IF(B'+rowOnBookOpen+'=1,IFERROR(LOOKUP('+cPStart+'-1,'+dateRange+','+llEndRange+'),'+cInitialLL+'),0)',llOpenV,X_CUR,true); r++;
+      const rowLLAdd=r;
+      hv(r,'LL Add (Penambahan)','IF(B'+rowCommences+'=1,'+cInitialLL+',0)',commencesInPeriod?l.initialLL:0,X_CUR,true); r++;
+      const rowLLInterest=r;
+      hv(r,'LL Interest (Beban Bunga Periode)','SUMIFS('+llExpRange+','+dateRange+',">="&'+cPStart+','+dateRange+',"<="&'+cPEnd+')',llInterestV,X_CUR,true); r++;
+      const rowLLPayment=r;
+      hv(r,'LL Payment (Periode)','SUMIFS('+llPaymentRange+','+dateRange+',">="&'+cPStart+','+dateRange+',"<="&'+cPEnd+')',llPaymentV,X_CUR,true); r++;
+      const rowLLClose=r;
+      hv(r,'LL Close','B'+rowLLOpen+'+B'+rowLLAdd+'+B'+rowLLInterest+'-B'+rowLLPayment,0,X_CUR,true); r++;
+      const rowOneYear=r;
+      hv(r,'One Year Forward (helper)','EDATE('+cPEnd+',12)',0,X_DATE,false); r++;
+      const rowLLAtOneYear=r;
+      hv(r,'LL @ One Year Forward (helper)','IF(AND('+cStartDate+'<=B'+rowOneYear+',B'+rowMaturityDate+'>='+cPStart+'),IFERROR(LOOKUP(B'+rowOneYear+','+dateRange+','+llEndRange+'),'+cInitialLL+'),0)',0,X_CUR,false); r++;
+      const rowLLNonCurrent=r;
+      hv(r,'LL Non-Current','MAX(0,MIN(B'+rowLLAtOneYear+',B'+rowLLClose+'))',0,X_CUR,true); r++;
+      const rowLLCurrent=r;
+      hv(r,'LL Current','MAX(0,B'+rowLLClose+'-B'+rowLLNonCurrent+')',0,X_CUR,true); r++;
+      const rowY5=r;
+      hv(r,'Five Year Forward (helper)','EDATE('+cPEnd+',60)',0,X_DATE,false); r++;
+      const rowMat1=r;
+      hv(r,'Jatuh Tempo <= 1 Tahun','SUMIFS('+payAmountRange+','+payDateRange+',">"&'+cPEnd+','+payDateRange+',"<="&B'+rowOneYear+')',0,X_CUR,true); r++;
+      const rowMat15=r;
+      hv(r,'Jatuh Tempo 1-5 Tahun','SUMIFS('+payAmountRange+','+payDateRange+',">"&B'+rowOneYear+','+payDateRange+',"<="&B'+rowY5+')',0,X_CUR,true); r++;
+      const rowMat5=r;
+      hv(r,'Jatuh Tempo > 5 Tahun','SUMIFS('+payAmountRange+','+payDateRange+',">"&B'+rowY5+')',0,X_CUR,true); r++;
+
+      ws.views=[{state:'frozen',ySplit:schedHeaderRow,showGridLines:false}];
+
+      leaseMeta.push({sheet:sheetName,lease:l,
+        cStartDate,cEndDate,cNominal,cUpfront,cInterest,cInitialLL,cInitialROU,cMonthlyDep,cCutoffRef,cTaxRateRef,
+        rowStatus,rowLLCutoff,rowROUCutoff,rowTotalPayment,rowTotalRouExp,rowTotalLlExp,rowTotalExpCom,rowDTA,rowDTL,
+        rowNetOpen,rowGrossOpen,rowAccDepOpen,rowGrossAdd,rowDepExp,rowGrossDisp,rowAccDepDisp,rowGrossClose,rowAccDepClose,rowNetClose,
+        rowLLOpen,rowLLAdd,rowLLInterest,rowLLPayment,rowLLClose,rowLLCurrent,rowLLNonCurrent,rowMat1,rowMat15,rowMat5});
     });
-    const ws = XLSX.utils.aoa_to_sheet(aoa);
-    let sName = String(l.lease_id).replace(/[\\\/\?\*\[\]]/g,'').substring(0,31);
-    if(!sName) sName = 'Lease';
-    let c = 1, fName = sName;
-    while(wb.SheetNames.includes(fName)){ fName = sName.substring(0,28)+'_'+c; c++; }
-    XLSX.utils.book_append_sheet(wb, ws, fName);
-  });
-  XLSX.writeFile(wb, 'perhitungan_lease.xlsx');
-  toast('File Excel berhasil diunduh.');
+
+    /* ================= Ringkasan (Summary) ================= */
+    const widths=[24,18,14,14,14,10,16,16,16,16,16,16,16,16,12];
+    wsS.columns=widths.map(w=>({width:w}));
+    xMergeTitle(wsS,1,widths.length,'RINGKASAN PORTOFOLIO LEASE');
+    xSetCell(wsS,'A3','Tanggal Cut-off:',{font:xfLabel(true),border:false});
+    xSetCell(wsS,'B3',cv('Parameter!B3',currentCutoff),{font:xfValue(true),fillColor:XC.white,numFmt:X_DATE});
+    xSetCell(wsS,'D3','Tarif Pajak:',{font:xfLabel(true),border:false});
+    xSetCell(wsS,'E3',cv('Parameter!B4',taxRate),{font:xfValue(true),fillColor:XC.white,numFmt:X_PCT2});
+
+    const headerRow=5;
+    const headers=['Lease ID','Nominal','Upfront','Start Date','End Date','Interest','LL @ Cutoff','ROU @ Cutoff',
+      'ROU Exp @ Cutoff','LL Exp @ Cutoff','Total Payment @ Cutoff','Total Exp Com','DTA','DTL','Status'];
+    headers.forEach((h,j)=>{
+      const c=wsS.getCell(headerRow,j+1);
+      c.value=h; c.font=xfHeader(); c.fill=xFill(XC.lightGray); c.border=X_BORDER;
+      c.alignment={horizontal:'center',wrapText:true,vertical:'middle'};
+    });
+    wsS.getRow(headerRow).height=30;
+
+    let row=headerRow+1; const firstDataRow=row;
+    leaseMeta.forEach(m=>{
+      const s=m.sheet, l=m.lease;
+      const c1=wsS.getCell(row,1);
+      c1.value=cv("'"+s+"'!B4",l.lease_id); c1.font=xfValue(true); c1.border=X_BORDER; c1.fill=xFill(XC.white);
+      const vals=live?[
+        [2,{formula:"'"+s+"'!"+m.cNominal},X_CUR],[3,{formula:"'"+s+"'!"+m.cUpfront},X_CUR],
+        [4,{formula:"'"+s+"'!"+m.cStartDate},X_DATE],[5,{formula:"'"+s+"'!"+m.cEndDate},X_DATE],
+        [6,{formula:"'"+s+"'!"+m.cInterest},X_PCT3],
+        [7,{formula:"'"+s+"'!B"+m.rowLLCutoff},X_CUR],[8,{formula:"'"+s+"'!B"+m.rowROUCutoff},X_CUR],
+        [9,{formula:"'"+s+"'!B"+m.rowTotalRouExp},X_CUR],[10,{formula:"'"+s+"'!B"+m.rowTotalLlExp},X_CUR],
+        [11,{formula:"'"+s+"'!B"+m.rowTotalPayment},X_CUR],[12,{formula:"'"+s+"'!B"+m.rowTotalExpCom},X_CUR],
+        [13,{formula:"'"+s+"'!B"+m.rowDTA},X_CUR],[14,{formula:"'"+s+"'!B"+m.rowDTL},X_CUR],
+        [15,{formula:"'"+s+"'!B"+m.rowStatus},null],
+      ]:[
+        [2,l.nominal,X_CUR],[3,l.upfront,X_CUR],[4,l.startDate,X_DATE],[5,l.endDate,X_DATE],[6,l.interest,X_PCT3],
+        [7,l.ll_at_cutoff,X_CUR],[8,l.rou_at_cutoff,X_CUR],[9,l.totalRouExp,X_CUR],[10,l.totalLlExp,X_CUR],
+        [11,l.totalPayment,X_CUR],[12,l.totalExpCom,X_CUR],[13,l.dta_at_cutoff,X_CUR],[14,l.dtl_at_cutoff,X_CUR],
+        [15,xStatusText(l.status),null],
+      ];
+      vals.forEach(([col,val,fmt])=>{
+        const c=wsS.getCell(row,col);
+        c.value=val; c.font=xfValue(); c.border=X_BORDER; c.fill=xFill(XC.white);
+        if(fmt)c.numFmt=fmt;
+        if([4,5].includes(col))c.alignment={horizontal:'center'};
+      });
+      row++;
+    });
+    const lastDataRow=row-1;
+    const totalRow=row;
+    wsS.getCell(totalRow,1).value='TOTAL'; wsS.getCell(totalRow,1).font=xfResult();
+    if(live){
+      [2,3,7,8,9,10,11,12,13,14].forEach(col=>{
+        const L=xColLetter(col);
+        const c=wsS.getCell(totalRow,col);
+        c.value={formula:'SUM('+L+firstDataRow+':'+L+lastDataRow+')'};
+        c.font=xfResult(); c.numFmt=X_CUR;
+      });
+    }else{
+      const sums={}; [2,3,7,8,9,10,11,12,13,14].forEach(c=>sums[c]=0);
+      const fieldByCol={2:'nominal',3:'upfront',7:'ll_at_cutoff',8:'rou_at_cutoff',9:'totalRouExp',10:'totalLlExp',
+        11:'totalPayment',12:'totalExpCom',13:'dta_at_cutoff',14:'dtl_at_cutoff'};
+      leaseMeta.forEach(m=>{Object.keys(fieldByCol).forEach(col=>{sums[col]+=Number(m.lease[fieldByCol[col]])||0;});});
+      Object.keys(sums).forEach(col=>{
+        const c=wsS.getCell(totalRow,+col);
+        c.value=sums[col]; c.font=xfResult(); c.numFmt=X_CUR;
+      });
+    }
+    for(let col=1;col<=headers.length;col++){
+      wsS.getCell(totalRow,col).fill=xFill(XC.midGray);
+      wsS.getCell(totalRow,col).border=X_BORDER;
+    }
+    wsS.views=[{state:'frozen',ySplit:headerRow,showGridLines:false}];
+
+    /* ================= CALK ROU sheet ================= */
+    wsCR.views=[{showGridLines:false}];
+    wsCR.columns=[{width:38},{width:20},{width:16},{width:16},{width:20}];
+    xMergeTitle(wsCR,1,5,'CATATAN ATAS LAPORAN KEUANGAN — ASET HAK-GUNA (ROU)');
+    xSetCell(wsCR,'A2',live?'=  "Untuk periode " & TEXT('+cPStart+',"dd/mm/yyyy") & " s.d. " & TEXT('+cPEnd+',"dd/mm/yyyy")':'Untuk periode '+fmtDateFull(pStart)+' s.d. '+fmtDateFull(pEnd),{font:xfHelper(),border:false});
+    if(live)wsCR.getCell('A2').value={formula:'"Untuk periode "&TEXT('+cPStart+',"dd/mm/yyyy")&" s.d. "&TEXT('+cPEnd+',"dd/mm/yyyy")'};
+    let rr=4;
+    const calkHeaders=['Keterangan','Saldo Awal','Penambahan','Pengurangan','Saldo Akhir'];
+    calkHeaders.forEach((h,j)=>{const c=wsCR.getCell(rr,j+1); c.value=h; c.font=xfHeader(); c.fill=xFill(XC.lightGray); c.border=X_BORDER; c.alignment={horizontal:j===0?'left':'center'};});
+    rr++;
+    xMergeTitle(wsCR,rr,5,'Biaya Perolehan',XC.darkGray,xfSection()); rr++;
+    const costRowFirst=rr;
+    leaseMeta.forEach(m=>{
+      const s=m.sheet;
+      xSetCell(wsCR,'A'+rr,m.lease.lease_id,{font:xfValue()});
+      xSetCell(wsCR,'B'+rr,cv("'"+s+"'!B"+m.rowGrossOpen,0),{font:xfValue(),fillColor:XC.white,numFmt:X_CUR});
+      xSetCell(wsCR,'C'+rr,cv("'"+s+"'!B"+m.rowGrossAdd,0),{font:xfValue(),fillColor:XC.white,numFmt:X_CUR});
+      xSetCell(wsCR,'D'+rr,cv("-'"+s+"'!B"+m.rowGrossDisp,0),{font:xfValue(),fillColor:XC.white,numFmt:X_CUR});
+      xSetCell(wsCR,'E'+rr,cv("'"+s+"'!B"+m.rowGrossClose,0),{font:xfValue(),fillColor:XC.white,numFmt:X_CUR});
+      rr++;
+    });
+    const costRowLast=rr-1;
+    xSetCell(wsCR,'A'+rr,'Jumlah Biaya Perolehan',{font:xfResult()});
+    ['B','C','D','E'].forEach(col=>{
+      xSetCell(wsCR,col+rr,{formula:'SUM('+col+costRowFirst+':'+col+costRowLast+')'},{font:xfResult(),fillColor:XC.midGray,numFmt:X_CUR});
+    });
+    const rowCostTotal=rr; rr+=2;
+
+    xMergeTitle(wsCR,rr,5,'Akumulasi Penyusutan',XC.darkGray,xfSection()); rr++;
+    const depRowFirst=rr;
+    leaseMeta.forEach(m=>{
+      const s=m.sheet;
+      xSetCell(wsCR,'A'+rr,m.lease.lease_id,{font:xfValue()});
+      xSetCell(wsCR,'B'+rr,{formula:"-'"+s+"'!B"+m.rowAccDepOpen},{font:xfValue(),fillColor:XC.white,numFmt:X_CUR});
+      xSetCell(wsCR,'C'+rr,{formula:"-'"+s+"'!B"+m.rowDepExp},{font:xfValue(),fillColor:XC.white,numFmt:X_CUR});
+      xSetCell(wsCR,'D'+rr,{formula:"'"+s+"'!B"+m.rowAccDepDisp},{font:xfValue(),fillColor:XC.white,numFmt:X_CUR});
+      xSetCell(wsCR,'E'+rr,{formula:"-'"+s+"'!B"+m.rowAccDepClose},{font:xfValue(),fillColor:XC.white,numFmt:X_CUR});
+      rr++;
+    });
+    const depRowLast=rr-1;
+    xSetCell(wsCR,'A'+rr,'Jumlah Akumulasi Penyusutan',{font:xfResult()});
+    ['B','C','D','E'].forEach(col=>{
+      xSetCell(wsCR,col+rr,{formula:'SUM('+col+depRowFirst+':'+col+depRowLast+')'},{font:xfResult(),fillColor:XC.midGray,numFmt:X_CUR});
+    });
+    const rowDepTotal=rr; rr+=2;
+
+    xSetCell(wsCR,'A'+rr,'Nilai Buku Neto',{font:xfResult()});
+    xSetCell(wsCR,'B'+rr,{formula:'B'+rowCostTotal+'+B'+rowDepTotal},{font:xfResult(),fillColor:XC.midGray,numFmt:X_CUR});
+    xSetCell(wsCR,'E'+rr,{formula:'E'+rowCostTotal+'+E'+rowDepTotal},{font:xfResult(),fillColor:XC.midGray,numFmt:X_CUR});
+
+    /* ================= CALK Liabilitas Sewa sheet ================= */
+    wsCL.views=[{showGridLines:false}];
+    wsCL.columns=[{width:38},{width:18},{width:16},{width:16},{width:16},{width:18}];
+    xMergeTitle(wsCL,1,6,'CATATAN ATAS LAPORAN KEUANGAN — LIABILITAS SEWA');
+    let rl=3;
+    xMergeTitle(wsCL,rl,6,'Mutasi Liabilitas Sewa',XC.darkGray,xfSection()); rl++;
+    ['Keterangan','Saldo Awal','Penambahan','Beban Bunga','Pembayaran','Saldo Akhir'].forEach((h,j)=>{
+      const c=wsCL.getCell(rl,j+1); c.value=h; c.font=xfHeader(); c.fill=xFill(XC.lightGray); c.border=X_BORDER; c.alignment={horizontal:j===0?'left':'center'};
+    });
+    rl++;
+    const llRowFirst=rl;
+    leaseMeta.forEach(m=>{
+      const s=m.sheet;
+      xSetCell(wsCL,'A'+rl,m.lease.lease_id,{font:xfValue()});
+      xSetCell(wsCL,'B'+rl,{formula:"'"+s+"'!B"+m.rowLLOpen},{font:xfValue(),fillColor:XC.white,numFmt:X_CUR});
+      xSetCell(wsCL,'C'+rl,{formula:"'"+s+"'!B"+m.rowLLAdd},{font:xfValue(),fillColor:XC.white,numFmt:X_CUR});
+      xSetCell(wsCL,'D'+rl,{formula:"'"+s+"'!B"+m.rowLLInterest},{font:xfValue(),fillColor:XC.white,numFmt:X_CUR});
+      xSetCell(wsCL,'E'+rl,{formula:"-'"+s+"'!B"+m.rowLLPayment},{font:xfValue(),fillColor:XC.white,numFmt:X_CUR});
+      xSetCell(wsCL,'F'+rl,{formula:"'"+s+"'!B"+m.rowLLClose},{font:xfValue(),fillColor:XC.white,numFmt:X_CUR});
+      rl++;
+    });
+    const llRowLast=rl-1;
+    xSetCell(wsCL,'A'+rl,'Jumlah Liabilitas Sewa',{font:xfResult()});
+    ['B','C','D','E','F'].forEach(col=>{
+      xSetCell(wsCL,col+rl,{formula:'SUM('+col+llRowFirst+':'+col+llRowLast+')'},{font:xfResult(),fillColor:XC.midGray,numFmt:X_CUR});
+    });
+    const rowLLTotal=rl; rl+=2;
+
+    xMergeTitle(wsCL,rl,6,'Klasifikasi Liabilitas Sewa',XC.darkGray,xfSection()); rl++;
+    xSetCell(wsCL,'A'+rl,'Bagian jangka pendek (<= 1 tahun)',{font:xfLabel()});
+    xSetCell(wsCL,'B'+rl,{formula:'SUM('+leaseMeta.map(m=>"'"+m.sheet+"'!B"+m.rowLLCurrent).join(',')+')'},{font:xfValue(),fillColor:XC.white,numFmt:X_CUR});
+    rl++;
+    xSetCell(wsCL,'A'+rl,'Bagian jangka panjang (> 1 tahun)',{font:xfLabel()});
+    xSetCell(wsCL,'B'+rl,{formula:'SUM('+leaseMeta.map(m=>"'"+m.sheet+"'!B"+m.rowLLNonCurrent).join(',')+')'},{font:xfValue(),fillColor:XC.white,numFmt:X_CUR});
+    rl++;
+    xSetCell(wsCL,'A'+rl,'Jumlah Liabilitas Sewa',{font:xfResult()});
+    xSetCell(wsCL,'B'+rl,{formula:'F'+rowLLTotal},{font:xfResult(),fillColor:XC.midGray,numFmt:X_CUR});
+    rl+=2;
+
+    xMergeTitle(wsCL,rl,6,'Analisis Jatuh Tempo Pembayaran Sewa (Tidak Terdiskonto)',XC.darkGray,xfSection()); rl++;
+    xSetCell(wsCL,'A'+rl,'Dalam 1 tahun',{font:xfLabel()});
+    const mat1Formula='SUM('+leaseMeta.map(m=>"'"+m.sheet+"'!B"+m.rowMat1).join(',')+')';
+    xSetCell(wsCL,'B'+rl,{formula:mat1Formula},{font:xfValue(),fillColor:XC.white,numFmt:X_CUR});
+    const rowMat1T=rl; rl++;
+    xSetCell(wsCL,'A'+rl,'Lebih dari 1 tahun s.d. 5 tahun',{font:xfLabel()});
+    const mat15Formula='SUM('+leaseMeta.map(m=>"'"+m.sheet+"'!B"+m.rowMat15).join(',')+')';
+    xSetCell(wsCL,'B'+rl,{formula:mat15Formula},{font:xfValue(),fillColor:XC.white,numFmt:X_CUR});
+    const rowMat15T=rl; rl++;
+    xSetCell(wsCL,'A'+rl,'Lebih dari 5 tahun',{font:xfLabel()});
+    const mat5Formula='SUM('+leaseMeta.map(m=>"'"+m.sheet+"'!B"+m.rowMat5).join(',')+')';
+    xSetCell(wsCL,'B'+rl,{formula:mat5Formula},{font:xfValue(),fillColor:XC.white,numFmt:X_CUR});
+    const rowMat5T=rl; rl++;
+    xSetCell(wsCL,'A'+rl,'Jumlah pembayaran sewa masa depan (tidak terdiskonto)',{font:xfResult()});
+    xSetCell(wsCL,'B'+rl,{formula:'B'+rowMat1T+'+B'+rowMat15T+'+B'+rowMat5T},{font:xfResult(),fillColor:XC.midGray,numFmt:X_CUR});
+    const rowMatTotal=rl; rl++;
+    xSetCell(wsCL,'A'+rl,'Dikurangi: beban keuangan masa depan',{font:xfLabel()});
+    xSetCell(wsCL,'B'+rl,{formula:'-(B'+rowMatTotal+'-F'+rowLLTotal+')'},{font:xfValue(),fillColor:XC.white,numFmt:X_CUR});
+    rl++;
+    xSetCell(wsCL,'A'+rl,'Nilai kini liabilitas sewa',{font:xfResult()});
+    xSetCell(wsCL,'B'+rl,{formula:'F'+rowLLTotal},{font:xfResult(),fillColor:XC.midGray,numFmt:X_CUR});
+
+    /* Static-mode fallback: recompute CALK sheets from precomputed JS values instead of formulas */
+    if(!live){
+      const perLeaseCALK = leases.map(computeLease);
+      const tC = aggregate(perLeaseCALK);
+      const negv=v=>v?-Math.abs(v):0;
+      let rowIdx=costRowFirst;
+      perLeaseCALK.forEach(p=>{
+        wsCR.getCell(rowIdx,2).value=p.grossOpen; wsCR.getCell(rowIdx,3).value=p.grossAdd;
+        wsCR.getCell(rowIdx,4).value=negv(p.grossDisp); wsCR.getCell(rowIdx,5).value=p.grossClose;
+        rowIdx++;
+      });
+      wsCR.getCell(rowCostTotal,2).value=tC.grossOpen; wsCR.getCell(rowCostTotal,3).value=tC.grossAdd;
+      wsCR.getCell(rowCostTotal,4).value=negv(tC.grossDisp); wsCR.getCell(rowCostTotal,5).value=tC.grossClose;
+      rowIdx=depRowFirst;
+      perLeaseCALK.forEach(p=>{
+        wsCR.getCell(rowIdx,2).value=negv(p.accDepOpen); wsCR.getCell(rowIdx,3).value=negv(p.depExp);
+        wsCR.getCell(rowIdx,4).value=p.accDepDisp; wsCR.getCell(rowIdx,5).value=negv(p.accDepClose);
+        rowIdx++;
+      });
+      wsCR.getCell(rowDepTotal,2).value=negv(tC.accDepOpen); wsCR.getCell(rowDepTotal,3).value=negv(tC.depExp);
+      wsCR.getCell(rowDepTotal,4).value=tC.accDepDisp; wsCR.getCell(rowDepTotal,5).value=negv(tC.accDepClose);
+      wsCR.getCell(rowDepTotal+2,2).value=tC.netOpen; wsCR.getCell(rowDepTotal+2,5).value=tC.netClose;
+
+      rowIdx=llRowFirst;
+      perLeaseCALK.forEach(p=>{
+        wsCL.getCell(rowIdx,2).value=p.llOpen; wsCL.getCell(rowIdx,3).value=p.llAdd;
+        wsCL.getCell(rowIdx,4).value=p.llInterest; wsCL.getCell(rowIdx,5).value=negv(p.llPayment);
+        wsCL.getCell(rowIdx,6).value=p.llClose;
+        rowIdx++;
+      });
+      wsCL.getCell(rowLLTotal,2).value=tC.llOpen; wsCL.getCell(rowLLTotal,3).value=tC.llAdd;
+      wsCL.getCell(rowLLTotal,4).value=tC.llInterest; wsCL.getCell(rowLLTotal,5).value=negv(tC.llPayment);
+      wsCL.getCell(rowLLTotal,6).value=tC.llClose;
+      wsCL.getCell(rowLLTotal+3,2).value=tC.llCurrent;
+      wsCL.getCell(rowLLTotal+4,2).value=tC.llNonCurrent;
+      wsCL.getCell(rowLLTotal+5,2).value=tC.llClose;
+      wsCL.getCell(rowMat1T,2).value=tC.mat1;
+      wsCL.getCell(rowMat15T,2).value=tC.mat15;
+      wsCL.getCell(rowMat5T,2).value=tC.mat5;
+      wsCL.getCell(rowMatTotal,2).value=tC.matTotal;
+      wsCL.getCell(rowMatTotal+1,2).value=-tC.financeCharge;
+      wsCL.getCell(rowMatTotal+2,2).value=tC.llClose;
+    }
+
+    /* ================= Ringkasan CALK per kontrak ================= */
+    wsCC.views=[{showGridLines:false}];
+    const ccWidths=[24,16,14,16,16,14,16,16,14,14,12];
+    wsCC.columns=ccWidths.map(w=>({width:w}));
+    xMergeTitle(wsCC,1,ccWidths.length,'RINGKASAN CALK PER KONTRAK SEWA');
+    let rc=3;
+    const ccHeaders=['Lease ID','ROU NBV Awal','Penyusutan','ROU NBV Akhir','LL Awal','Bunga','Pembayaran','LL Akhir','Jk. Pendek','Jk. Panjang','Status'];
+    ccHeaders.forEach((h,j)=>{const c=wsCC.getCell(rc,j+1); c.value=h; c.font=xfHeader(); c.fill=xFill(XC.lightGray); c.border=X_BORDER; c.alignment={horizontal:'center',wrapText:true};});
+    wsCC.getRow(rc).height=28;
+    rc++;
+    const ccFirst=rc;
+    leaseMeta.forEach(m=>{
+      const s=m.sheet;
+      xSetCell(wsCC,'A'+rc,cv("'"+s+"'!B4",m.lease.lease_id),{font:xfValue(true)});
+      xSetCell(wsCC,'B'+rc,cv("'"+s+"'!B"+m.rowNetOpen,0),{font:xfValue(),numFmt:X_CUR});
+      xSetCell(wsCC,'C'+rc,cv("'"+s+"'!B"+m.rowDepExp,0),{font:xfValue(),numFmt:X_CUR});
+      xSetCell(wsCC,'D'+rc,cv("'"+s+"'!B"+m.rowNetClose,0),{font:xfValue(),numFmt:X_CUR});
+      xSetCell(wsCC,'E'+rc,cv("'"+s+"'!B"+m.rowLLOpen,0),{font:xfValue(),numFmt:X_CUR});
+      xSetCell(wsCC,'F'+rc,cv("'"+s+"'!B"+m.rowLLInterest,0),{font:xfValue(),numFmt:X_CUR});
+      xSetCell(wsCC,'G'+rc,cv("'"+s+"'!B"+m.rowLLPayment,0),{font:xfValue(),numFmt:X_CUR});
+      xSetCell(wsCC,'H'+rc,cv("'"+s+"'!B"+m.rowLLClose,0),{font:xfValue(),numFmt:X_CUR});
+      xSetCell(wsCC,'I'+rc,cv("'"+s+"'!B"+m.rowLLCurrent,0),{font:xfValue(),numFmt:X_CUR});
+      xSetCell(wsCC,'J'+rc,cv("'"+s+"'!B"+m.rowLLNonCurrent,0),{font:xfValue(),numFmt:X_CUR});
+      xSetCell(wsCC,'K'+rc,cv("'"+s+"'!B"+m.rowStatus,xStatusText(m.lease.status)),{font:xfValue()});
+      rc++;
+    });
+    const ccLast=rc-1;
+    xSetCell(wsCC,'A'+rc,'TOTAL',{font:xfResult()});
+    ['B','C','D','E','F','G','H','I','J'].forEach(col=>{
+      xSetCell(wsCC,col+rc,{formula:'SUM('+col+ccFirst+':'+col+ccLast+')'},{font:xfResult(),fillColor:XC.midGray,numFmt:X_CUR});
+    });
+    for(let col=1;col<=ccHeaders.length;col++){wsCC.getCell(rc,col).fill=xFill(XC.midGray);wsCC.getCell(rc,col).border=X_BORDER;}
+    if(!live){
+      const perLeaseCALK2 = leases.map(computeLease);
+      const tC2=aggregate(perLeaseCALK2);
+      let idx=ccFirst;
+      perLeaseCALK2.forEach(p=>{
+        wsCC.getCell(idx,2).value=p.netOpen; wsCC.getCell(idx,3).value=p.depExp; wsCC.getCell(idx,4).value=p.netClose;
+        wsCC.getCell(idx,5).value=p.llOpen; wsCC.getCell(idx,6).value=p.llInterest; wsCC.getCell(idx,7).value=p.llPayment;
+        wsCC.getCell(idx,8).value=p.llClose; wsCC.getCell(idx,9).value=p.llCurrent; wsCC.getCell(idx,10).value=p.llNonCurrent;
+        idx++;
+      });
+      wsCC.getCell(rc,2).value=tC2.netOpen; wsCC.getCell(rc,3).value=tC2.depExp; wsCC.getCell(rc,4).value=tC2.netClose;
+      wsCC.getCell(rc,5).value=tC2.llOpen; wsCC.getCell(rc,6).value=tC2.llInterest; wsCC.getCell(rc,7).value=tC2.llPayment;
+      wsCC.getCell(rc,8).value=tC2.llClose; wsCC.getCell(rc,9).value=tC2.llCurrent; wsCC.getCell(rc,10).value=tC2.llNonCurrent;
+    }
+
+    const buf=await wb.xlsx.writeBuffer();
+    const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download=live?'perhitungan_lease_live.xlsx':'perhitungan_lease_static.xlsx';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast(live?'File Excel (rumus hidup, audit trail) berhasil diunduh.':'File Excel (nilai statis) berhasil diunduh.');
+  }catch(err){
+    console.error(err);
+    toast('Gagal membuat file Excel: '+err.message);
+  }finally{
+    dlBtn.disabled=false; dlBtn.innerHTML=origLabel;
+  }
 }
 
 function downloadTemplate(){
@@ -1333,7 +1860,10 @@ document.getElementById('tplBtn').addEventListener('click', downloadTemplate);
 document.getElementById('sampleBtn').addEventListener('click', loadSample);
 document.getElementById('cutoff').addEventListener('change', updateCalcBtn);
 document.getElementById('calcBtn').addEventListener('click', calculate);
-document.getElementById('dlBtn').addEventListener('click', exportExcel);
+document.getElementById('dlBtn').addEventListener('click', ()=>{
+  const mode=document.querySelector('input[name="dlMode"]:checked').value;
+  exportExcel(mode==='live');
+});
 document.getElementById('leaseSelect').addEventListener('change', e => renderSchedule(+e.target.value));
 
 const guideModal = document.getElementById('guideModal');
