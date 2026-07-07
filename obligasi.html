@@ -1,4 +1,4 @@
-<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Kalkulator Amortisasi Obligasi</title><script src="xlsx.full.min.js"></script><style>
+<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Kalkulator Amortisasi Obligasi</title><script src="xlsx.full.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script><style>
   :root{
     --bg:#f5f5f7; --card:#ffffff; --text:#1d1d1f; --muted:#86868b;
     --border:#d2d2d7; --accent:#0066cc; --accent-dark:#0044aa; --accent-light:#f5f5f7;
@@ -261,10 +261,16 @@
       <div class="card-head">
         <div class="step-num" style="background:#1d1d1f;color:#fff">&#10003;</div>
         <h2>Ringkasan Eksekutif Portfolio (Summary)</h2>
-        <button class="btn btn-accent" id="dlBtn" style="margin-left:auto">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Unduh Excel
-        </button>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:16px;">
+          <div style="display:flex;gap:14px;font-size:12.5px;color:var(--muted)">
+            <label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="radio" name="dlMode" value="live" checked style="accent-color:#0066cc">Rumus Hidup</label>
+            <label style="display:flex;align-items:center;gap:5px;cursor:pointer;"><input type="radio" name="dlMode" value="static" style="accent-color:#0066cc">Rumus Mati</label>
+          </div>
+          <button class="btn btn-accent" id="dlBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Unduh Excel
+          </button>
+        </div>
       </div>
       <div class="tbl-wrap"><table id="sumTable"></table></div>
     </div>
@@ -356,7 +362,7 @@ function toast(msg){
   clearTimeout(t._tm);t._tm=setTimeout(()=>t.classList.remove('show'),3200);
 }
 function endOfMonth(d){return new Date(d.getFullYear(),d.getMonth()+1,0);}
-function addMonths(d,n){return new Date(d.getFullYear(),d.getMonth()+n,d.getDate());}
+function addMonths(d,n){return new Date(d.getFullYear(),d.getMonth()+n,1);}
 function daysBetween(a,b){return Math.round((b-a)/86400000);}
 function fmt(n,dec){
   if(n===null||n===undefined||n==='-'||n==='')return '-';
@@ -724,54 +730,378 @@ function renderSchedule(idx){
   document.getElementById('schedTable').innerHTML=h;
 }
 
-/* ---------- export ---------- */
-function exportExcel(){
+/* ---------- export (live-formula, monochrome, audit-trail) ---------- */
+const XC={black:'FF1F1F1F',darkGray:'FF404040',midGray:'FFBFBFBF',lightGray:'FFD9D9D9',
+  inputGray:'FFF2F2F2',helperGray:'FFFAFAFA',white:'FFFFFFFF',border:'FFBDBDBD'};
+const X_CUR='#,##0;(#,##0);"-"', X_PCT3='0.000%', X_PCT6='0.000000%', X_DATE='dd/mm/yyyy';
+function xFill(argb){return {type:'pattern',pattern:'solid',fgColor:{argb}};}
+const X_BORDER={top:{style:'thin',color:{argb:XC.border}},bottom:{style:'thin',color:{argb:XC.border}},
+  left:{style:'thin',color:{argb:XC.border}},right:{style:'thin',color:{argb:XC.border}}};
+function xfTitle(){return {name:'Calibri',size:13,bold:true,color:{argb:XC.white}};}
+function xfSection(){return {name:'Calibri',size:11,bold:true,color:{argb:XC.white}};}
+function xfHeader(){return {name:'Calibri',size:10,bold:true,color:{argb:'FF000000'}};}
+function xfLabel(b){return {name:'Calibri',size:10,bold:!!b,color:{argb:'FF000000'}};}
+function xfValue(b){return {name:'Calibri',size:10,bold:!!b,color:{argb:'FF000000'}};}
+function xfHelper(){return {name:'Calibri',size:9,italic:true,color:{argb:'FF808080'}};}
+function xfResult(){return {name:'Calibri',size:10,bold:true,color:{argb:'FF000000'}};}
+function xSetCell(ws,addr,value,opt){
+  opt=opt||{};
+  const c=ws.getCell(addr);
+  c.value=value;
+  if(opt.font)c.font=opt.font;
+  if(opt.fillColor)c.fill=xFill(opt.fillColor);
+  if(opt.numFmt)c.numFmt=opt.numFmt;
+  if(opt.align)c.alignment=opt.align;
+  if(opt.border!==false)c.border=X_BORDER;
+  return c;
+}
+function xMergeTitle(ws,row,lastCol,text,fillColor,font){
+  fillColor=fillColor||XC.black; font=font||xfTitle();
+  ws.mergeCells(row,1,row,lastCol);
+  const c=ws.getCell(row,1);
+  c.value=text; c.font=font;
+  c.alignment={horizontal:'left',vertical:'middle',indent:1};
+  ws.getRow(row).height=(fillColor===XC.black?22:18);
+  for(let col=1;col<=lastCol;col++)ws.getCell(row,col).fill=xFill(fillColor);
+}
+function xColLetter(n){let s='';while(n>0){const m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=Math.floor((n-1)/26);}return s;}
+
+async function exportExcel(live=true){
   if(!bonds.length||!bonds[0].rows){toast('Hitung dulu sebelum mengunduh.');return;}
-  const wb=XLSX.utils.book_new();
+  if(typeof ExcelJS==='undefined'){toast('Gagal memuat library ExcelJS (perlu koneksi internet). Coba lagi.');return;}
+  const dlBtn=document.getElementById('dlBtn');
+  const origLabel=dlBtn.innerHTML;
+  dlBtn.disabled=true; dlBtn.innerHTML='Menghasilkan file...';
+  const cv=(formula,staticVal)=>live?{formula}:staticVal;
+  const statusText=s=>s==='aktif'?'Aktif':s==='tempo'?'Jatuh Tempo':s==='jual'?'Dijual':'Belum Dibeli';
+  try{
+    const wb=new ExcelJS.Workbook();
+    wb.creator='Kalkulator Amortisasi Obligasi'; wb.created=new Date();
 
-  /* sheet Summary */
-  const sumAoA=[['name','nominal','purchase_date','maturity_date','purchase','interest','act_amor','carr_amt','fair_value','sell','sell_date','realized_gain(losses)','unrealized_gain(losses)','status']];
-  bonds.forEach(b=>{
-    const statusText = b.status==='aktif'?'Aktif':b.status==='tempo'?'Jatuh Tempo':b.status==='jual'?'Dijual':'Belum Dibeli';
-    sumAoA.push([
-      b.name, b.nominal, fmtDateFull(b.purchaseDate), fmtDateFull(b.maturityDate),
-      b.purchase, b.rate, b.actAmor, b.carrAmt, b.fairValue, b.sell,
-      fmtDateFull(b.sellDate), b.realizedGL, b.unrealizedGL, statusText
-    ]);
-  });
-  sumAoA.push([]);
-  sumAoA.push(['Tanggal Cut-off Valuasi Klik:',fmtDateFull(currentCutoff)]);
-  const wsSummary=XLSX.utils.aoa_to_sheet(sumAoA);
-  XLSX.utils.book_append_sheet(wb,wsSummary,'Summary');
+    /* create sheets up-front so tab order is Ringkasan -> Parameter -> per bond */
+    const wsS=wb.addWorksheet('Ringkasan');
+    const wsP=wb.addWorksheet('Parameter');
 
-  /* detail per obligasi */
-  bonds.forEach(b=>{
-    const aoa=[];
-    aoa.push([String(b.name).toUpperCase()]);
-    aoa.push([]);
-    aoa.push(['nominal', b.nominal, '', 'interest', b.rate]);
-    aoa.push(['purchase', b.purchase, '', 'Jumlah periode', b.rows.length]);
-    aoa.push(['Total amortisasi', (b.nominal-b.purchase), '', 'EIR:', b.eir]);
-    aoa.push(['purchase_date', fmtDateFull(b.purchaseDate), '', 'act_amor', b.actAmor]);
-    aoa.push(['maturity_date', fmtDateFull(b.maturityDate), '', 'carr_amt', b.carrAmt]);
-    aoa.push(['fair_value', b.fairValue !== null ? b.fairValue : '-', '', 'realized_gain(losses)', b.realizedGL]);
-    aoa.push(['sell', b.sell !== null ? b.sell : '-', '', 'unrealized_gain(losses)', b.unrealizedGL]);
-    aoa.push(['sell_date', fmtDateFull(b.sellDate)]);
-    aoa.push([]);
-    aoa.push(['Date','Nominal Interest','Effective Interest','Amortization','Carrying Amount']);
-    b.rows.forEach((r,i)=>{
-      const last=i===b.rows.length-1;
-      aoa.push([fmtDate(r.date),r.nomInt,r.effInt,r.amort,last?0:r.carrying]);
+    wsP.views=[{showGridLines:false}];
+    wsP.columns=[{width:30},{width:22},{width:3},{width:30},{width:22}];
+    xMergeTitle(wsP,1,5,'PARAMETER GLOBAL');
+    xSetCell(wsP,'A3','Tanggal Cut-off Valuasi',{font:xfLabel(true),border:false});
+    xSetCell(wsP,'B3',currentCutoff,{font:xfValue(true),fillColor:XC.inputGray,numFmt:X_DATE});
+    xSetCell(wsP,'A5','Catatan:',{font:xfLabel(true),border:false});
+    wsP.mergeCells('A6:E10');
+    const noteCell=wsP.getCell('A6');
+    noteCell.value = live
+      ? "Sel abu-abu terang = input yang dapat diubah. EIR pada setiap sheet obligasi dihitung di luar Excel (iterative bisection agar Nilai Tercatat = Nominal pada saat jatuh tempo) dan disajikan sebagai nilai 'Computed'. Seluruh angka lain (jadwal amortisasi, nilai tercatat, valuasi cut-off, gain/loss) adalah formula Excel yang hidup dan otomatis re-kalkulasi jika input di atas diubah."
+      : "Versi NILAI STATIS (rumus mati). Seluruh angka (jadwal amortisasi, nilai tercatat, valuasi cut-off, gain/loss) adalah hasil akhir yang sudah dihitung sebelumnya dan TIDAK akan otomatis berubah jika sel input di atas diedit. Untuk versi dengan rumus hidup yang bisa ditelusuri, unduh ulang dengan opsi 'Rumus Hidup'.";
+    noteCell.alignment={wrapText:true,vertical:'top'};
+    noteCell.font={name:'Calibri',size:9,italic:true,color:{argb:'FF595959'}};
+    wsP.getRow(1).height=22;
+
+    const bondMeta=[];
+    const usedNames={};
+
+    bonds.forEach((b,idx)=>{
+      let base=String(b.name).replace(/[\\\/\?\*\[\]:]/g,'').trim();
+      let parts=base.split(/\s+/);
+      base=parts[parts.length-1]||('OBLIGASI'+(idx+1));
+      usedNames[base]=(usedNames[base]||0)+1;
+      const sheetName=(base+'_'+usedNames[base]).substring(0,31);
+
+      const ws=wb.addWorksheet(sheetName);
+      ws.views=[{showGridLines:false}];
+      ws.columns=[{width:34},{width:22},{width:22},{width:22},{width:22},{width:22},{width:22},{width:22}];
+
+      xMergeTitle(ws,1,8,b.name);
+
+      let r=3;
+      xMergeTitle(ws,r,8,'PARAMETER INPUT',XC.darkGray,xfSection());
+      r++;
+      const rowNominal=r;
+      xSetCell(ws,'A'+r,'Nominal',{font:xfLabel()});
+      xSetCell(ws,'B'+r,b.nominal,{font:xfValue(true),fillColor:XC.inputGray,numFmt:X_CUR});
+      xSetCell(ws,'D'+r,'Tanggal Beli (Purchase Date)',{font:xfLabel()});
+      xSetCell(ws,'E'+r,b.purchaseDate,{font:xfValue(true),fillColor:XC.inputGray,numFmt:X_DATE});
+      const rowPurchaseDate=r;
+      r++;
+      const rowPurchase=r;
+      xSetCell(ws,'A'+r,'Harga Beli (Purchase Price)',{font:xfLabel()});
+      xSetCell(ws,'B'+r,b.purchase,{font:xfValue(true),fillColor:XC.inputGray,numFmt:X_CUR});
+      xSetCell(ws,'D'+r,'Tanggal Jatuh Tempo (Maturity)',{font:xfLabel()});
+      xSetCell(ws,'E'+r,b.maturityDate,{font:xfValue(true),fillColor:XC.inputGray,numFmt:X_DATE});
+      const rowMaturityDate=r;
+      r++;
+      const rowRate=r;
+      xSetCell(ws,'A'+r,'Kupon / Interest (p.a.)',{font:xfLabel()});
+      xSetCell(ws,'B'+r,b.rate,{font:xfValue(true),fillColor:XC.inputGray,numFmt:X_PCT3});
+      xSetCell(ws,'D'+r,'Fair Value',{font:xfLabel()});
+      xSetCell(ws,'E'+r,(b.fairValue!==null&&b.fairValue!==undefined&&b.fairValue!=='')?b.fairValue:null,{font:xfValue(true),fillColor:XC.inputGray,numFmt:X_CUR});
+      const rowFairValue=r;
+      r++;
+      xSetCell(ws,'D'+r,'Sell (Harga Jual)',{font:xfLabel()});
+      xSetCell(ws,'E'+r,(b.sell!==null&&b.sell!==undefined&&b.sell!=='')?b.sell:null,{font:xfValue(true),fillColor:XC.inputGray,numFmt:X_CUR});
+      const rowSell=r;
+      r++;
+      xSetCell(ws,'D'+r,'Tanggal Jual (Sell Date)',{font:xfLabel()});
+      xSetCell(ws,'E'+r,b.sellDate?b.sellDate:null,{font:xfValue(true),fillColor:XC.inputGray,numFmt:X_DATE});
+      const rowSellDate=r;
+      r+=2;
+
+      xMergeTitle(ws,r,8,'PARAMETER KOMPUTASI',XC.darkGray,xfSection());
+      r++;
+      const rowEir=r;
+      xSetCell(ws,'A'+r,'EIR - Effective Interest Rate (Computed)',{font:xfLabel()});
+      xSetCell(ws,'B'+r,b.eir,{font:xfResult(),fillColor:XC.midGray,numFmt:X_PCT6});
+      xSetCell(ws,'D'+r,'Jumlah Periode',{font:xfLabel()});
+      r++;
+      const rowCutoff=r;
+      xSetCell(ws,'A'+r,'Tanggal Cut-off (dari sheet Parameter)',{font:xfLabel()});
+      xSetCell(ws,'B'+r,cv('Parameter!B3',currentCutoff),{font:xfValue(),fillColor:XC.white,numFmt:X_DATE});
+      r+=2;
+
+      xMergeTitle(ws,r,8,'JADWAL AMORTISASI (Effective Interest Method)',XC.darkGray,xfSection());
+      r++;
+      const headerRow=r;
+      ['No','Tanggal','Jumlah Hari','Bunga Nominal','Bunga Efektif','Amortisasi','Nilai Tercatat','Cek'].forEach((h,j)=>{
+        const c=ws.getCell(headerRow,j+1);
+        c.value=h; c.font=xfHeader(); c.fill=xFill(XC.lightGray); c.border=X_BORDER;
+        c.alignment={horizontal:'center'};
+      });
+      r++;
+
+      const period0Row=r;
+      xSetCell(ws,'A'+r,0,{font:xfHelper(),fillColor:XC.helperGray});
+      xSetCell(ws,'B'+r,cv('E'+rowPurchaseDate,b.purchaseDate),{font:xfHelper(),fillColor:XC.helperGray,numFmt:X_DATE});
+      xSetCell(ws,'C'+r,'-',{font:xfHelper(),fillColor:XC.helperGray});
+      xSetCell(ws,'D'+r,'-',{font:xfHelper(),fillColor:XC.helperGray});
+      xSetCell(ws,'E'+r,'-',{font:xfHelper(),fillColor:XC.helperGray});
+      xSetCell(ws,'F'+r,'-',{font:xfHelper(),fillColor:XC.helperGray});
+      xSetCell(ws,'G'+r,cv('B'+rowPurchase,b.purchase),{font:xfHelper(),fillColor:XC.helperGray,numFmt:X_CUR});
+      r++;
+
+      const nPeriods=b.schedule.length;
+      const firstPeriodRow=r;
+      for(let i=1;i<=nPeriods;i++){
+        const prow=r, prevRow=prow-1;
+        const pr=b.rows[i-1];
+        xSetCell(ws,'A'+prow,i,{font:xfValue(),fillColor:XC.white,align:{horizontal:'center'}});
+        let dateFormula;
+        if(nPeriods===1) dateFormula='E'+rowMaturityDate;
+        else if(i===1) dateFormula='EOMONTH(B'+prevRow+',0)';
+        else if(i===nPeriods) dateFormula='E'+rowMaturityDate;
+        else dateFormula='EOMONTH(B'+prevRow+',1)';
+        xSetCell(ws,'B'+prow,cv(dateFormula,pr.date),{font:xfValue(),fillColor:XC.white,numFmt:X_DATE});
+        xSetCell(ws,'C'+prow,cv('B'+prow+'-B'+prevRow,pr.days),{font:xfValue(),fillColor:XC.white,numFmt:'0',align:{horizontal:'right'}});
+        xSetCell(ws,'D'+prow,cv('$B$'+rowNominal+'*$B$'+rowRate+'*C'+prow+'/365',pr.nomInt),{font:xfValue(),fillColor:XC.white,numFmt:X_CUR});
+        xSetCell(ws,'E'+prow,cv('G'+prevRow+'*$B$'+rowEir+'*C'+prow+'/365',pr.effInt),{font:xfValue(),fillColor:XC.white,numFmt:X_CUR});
+        xSetCell(ws,'F'+prow,cv('D'+prow+'-E'+prow,pr.amort),{font:xfValue(),fillColor:XC.white,numFmt:X_CUR});
+        xSetCell(ws,'G'+prow,cv('G'+prevRow+'+F'+prow,pr.carrying),{font:xfValue(true),fillColor:XC.white,numFmt:X_CUR});
+        r++;
+      }
+      const lastPeriodRow=r-1;
+      const finalCarrying=b.rows[nPeriods-1].carrying;
+      xSetCell(ws,'H'+lastPeriodRow,cv('IF(ABS(G'+lastPeriodRow+'-B'+rowNominal+')<1000,"OK","CEK")',(Math.abs(finalCarrying-b.nominal)<1000?'OK':'CEK')),{font:xfResult(),fillColor:XC.midGray,align:{horizontal:'center'}});
+      xSetCell(ws,'E'+rowEir,cv('COUNT(A'+firstPeriodRow+':A'+lastPeriodRow+')',nPeriods),{font:xfValue(),fillColor:XC.white,numFmt:'0'});
+
+      const dateRange='B'+period0Row+':B'+lastPeriodRow;
+      const carryRange='G'+period0Row+':G'+lastPeriodRow;
+
+      r+=2;
+      xMergeTitle(ws,r,8,'VALUASI PADA TANGGAL CUT-OFF / TANGGAL JUAL',XC.darkGray,xfSection());
+      r++;
+
+      let rowStatus,rowCarrAmt,rowActAmor,rowRealized,rowUnrealized;
+
+      if(live){
+        function kv(row,label,formula,numFmt,opt){
+          opt=opt||{}; numFmt=numFmt===undefined?X_CUR:numFmt;
+          xSetCell(ws,'A'+row,label,{font:xfLabel(!!opt.result)});
+          const fnt=opt.result?xfResult():(opt.helper?xfHelper():xfValue());
+          const fillC=opt.result?XC.midGray:(opt.helper?XC.helperGray:XC.white);
+          xSetCell(ws,'B'+row,{formula:formula},{font:fnt,fillColor:fillC,numFmt:numFmt});
+        }
+
+        const rowTarget=r;
+        kv(r,'Target Date (Cut-off / Tgl Jual)','IF(ISBLANK(E'+rowSellDate+'),B'+rowCutoff+',E'+rowSellDate+')',X_DATE);
+        r++;
+        rowStatus=r;
+        kv(r,'Status Valuasi',
+          'IF(B'+rowTarget+'<E'+rowPurchaseDate+',"Belum Dibeli",'+
+          'IF(B'+rowTarget+'>=E'+rowMaturityDate+',"Jatuh Tempo",'+
+          'IF(ISBLANK(E'+rowSellDate+'),"Aktif","Dijual")))',null,{result:true});
+        r++;
+        const rowEndDate=r;
+        kv(r,'End Date (helper)','MIN(B'+rowTarget+',E'+rowMaturityDate+')',X_DATE,{helper:true});
+        r++;
+        const rowPrevDate=r;
+        kv(r,'Prev Schedule Date (helper)','LOOKUP(B'+rowEndDate+','+dateRange+','+dateRange+')',X_DATE,{helper:true});
+        r++;
+        const rowPrevCarry=r;
+        kv(r,'Prev Carrying Amount (helper)','LOOKUP(B'+rowEndDate+','+dateRange+','+carryRange+')',X_CUR,{helper:true});
+        r++;
+        const rowEndC=r;
+        kv(r,'Nilai Tercatat @ End Date (helper)',
+          'IF(B'+rowEndDate+'<=E'+rowPurchaseDate+',B'+rowPurchase+','+
+          'IF(B'+rowEndDate+'>=E'+rowMaturityDate+',B'+rowNominal+','+
+          'B'+rowPrevCarry+'+(B'+rowNominal+'*B'+rowRate+'*(B'+rowEndDate+'-B'+rowPrevDate+')/365-'+
+          'B'+rowPrevCarry+'*B'+rowEir+'*(B'+rowEndDate+'-B'+rowPrevDate+')/365)))',X_CUR,{helper:true});
+        r++;
+        const rowYearStart=r;
+        kv(r,'Awal Tahun Berjalan (helper)','DATE(YEAR(B'+rowTarget+')-1,12,31)',X_DATE,{helper:true});
+        r++;
+        const rowBaseStart=r;
+        kv(r,'Base Start Tahun Berjalan (helper)','MAX(B'+rowYearStart+',E'+rowPurchaseDate+')',X_DATE,{helper:true});
+        r++;
+        const rowPrevDate2=r;
+        kv(r,'Prev Schedule Date @ Base Start (helper)','LOOKUP(B'+rowBaseStart+','+dateRange+','+dateRange+')',X_DATE,{helper:true});
+        r++;
+        const rowPrevCarry2=r;
+        kv(r,'Prev Carrying @ Base Start (helper)','LOOKUP(B'+rowBaseStart+','+dateRange+','+carryRange+')',X_CUR,{helper:true});
+        r++;
+        const rowStartC=r;
+        kv(r,'Nilai Tercatat @ Base Start (helper)',
+          'IF(B'+rowBaseStart+'<=E'+rowPurchaseDate+',B'+rowPurchase+','+
+          'IF(B'+rowBaseStart+'>=E'+rowMaturityDate+',B'+rowNominal+','+
+          'B'+rowPrevCarry2+'+(B'+rowNominal+'*B'+rowRate+'*(B'+rowBaseStart+'-B'+rowPrevDate2+')/365-'+
+          'B'+rowPrevCarry2+'*B'+rowEir+'*(B'+rowBaseStart+'-B'+rowPrevDate2+')/365)))',X_CUR,{helper:true});
+        r++;
+        rowCarrAmt=r;
+        kv(r,'Nilai Tercatat (Carrying Amount)','B'+rowEndC,X_CUR,{result:true});
+        r++;
+        rowActAmor=r;
+        kv(r,'Amortisasi Tahun Berjalan','B'+rowEndC+'-B'+rowStartC,X_CUR,{result:true});
+        r++;
+        rowRealized=r;
+        kv(r,'Realized Gain (Loss)','IF(ISBLANK(E'+rowSell+'),"-",E'+rowSell+'-B'+rowCarrAmt+')',X_CUR,{result:true});
+        r++;
+        rowUnrealized=r;
+        kv(r,'Unrealized Gain (Loss)','IF(NOT(ISBLANK(E'+rowSell+')),"-",IF(ISBLANK(E'+rowFairValue+'),"-",E'+rowFairValue+'-B'+rowCarrAmt+'))',X_CUR,{result:true});
+      } else {
+        const targetDate=b.sellDate?b.sellDate:currentCutoff;
+        const rowTarget=r;
+        xSetCell(ws,'A'+r,'Target Date (Cut-off / Tgl Jual)',{font:xfLabel()});
+        xSetCell(ws,'B'+r,targetDate,{font:xfValue(),fillColor:XC.white,numFmt:X_DATE});
+        r++;
+        rowStatus=r;
+        xSetCell(ws,'A'+r,'Status Valuasi',{font:xfLabel(true)});
+        xSetCell(ws,'B'+r,statusText(b.status),{font:xfResult(),fillColor:XC.midGray});
+        r++;
+        rowCarrAmt=r;
+        xSetCell(ws,'A'+r,'Nilai Tercatat (Carrying Amount)',{font:xfLabel(true)});
+        xSetCell(ws,'B'+r,b.carrAmt,{font:xfResult(),fillColor:XC.midGray,numFmt:X_CUR});
+        r++;
+        rowActAmor=r;
+        xSetCell(ws,'A'+r,'Amortisasi Tahun Berjalan',{font:xfLabel(true)});
+        xSetCell(ws,'B'+r,b.actAmor,{font:xfResult(),fillColor:XC.midGray,numFmt:X_CUR});
+        r++;
+        rowRealized=r;
+        xSetCell(ws,'A'+r,'Realized Gain (Loss)',{font:xfLabel(true)});
+        xSetCell(ws,'B'+r,(b.realizedGL!=='-'&&b.realizedGL!==undefined)?b.realizedGL:'-',{font:xfResult(),fillColor:XC.midGray,numFmt:X_CUR});
+        r++;
+        rowUnrealized=r;
+        xSetCell(ws,'A'+r,'Unrealized Gain (Loss)',{font:xfLabel(true)});
+        xSetCell(ws,'B'+r,(b.unrealizedGL!=='-'&&b.unrealizedGL!==undefined)?b.unrealizedGL:'-',{font:xfResult(),fillColor:XC.midGray,numFmt:X_CUR});
+      }
+
+      ws.views=[{state:'frozen',ySplit:headerRow,showGridLines:false}];
+
+      bondMeta.push({sheet:sheetName,bond:b,rowNominal,rowPurchase,rowPurchaseDate,rowMaturityDate,rowRate,
+        rowFairValue,rowSell,rowSellDate,rowEir,rowStatus,rowCarrAmt,rowActAmor,rowRealized,rowUnrealized});
     });
-    const ws=XLSX.utils.aoa_to_sheet(aoa);
-    let sName=String(b.name).replace(/[\\\/\?\*\[\]]/g,'').substring(0,31);
-    if(!sName) sName='Obligasi';
-    let c=1; let fName=sName;
-    while(wb.SheetNames.includes(fName)){ fName=sName.substring(0,28)+'_'+c; c++; }
-    XLSX.utils.book_append_sheet(wb,ws,fName);
-  });
-  XLSX.writeFile(wb,'amortisasi_obligasi.xlsx');
-  toast('File Excel berhasil diunduh.');
+
+    /* ---- Ringkasan content (built after bond sheets so cross-refs exist) ---- */
+    const widths=[30,18,14,14,18,10,12,18,18,18,18,14,18,18,12];
+    wsS.columns=widths.map(w=>({width:w}));
+    xMergeTitle(wsS,1,widths.length,'RINGKASAN PORTOFOLIO OBLIGASI');
+    xSetCell(wsS,'A3','Tanggal Cut-off Valuasi:',{font:xfLabel(true),border:false});
+    xSetCell(wsS,'B3',cv('Parameter!B3',currentCutoff),{font:xfValue(true),fillColor:XC.white,numFmt:X_DATE});
+
+    const headerRow=5;
+    const headers=['Nama Obligasi','Nominal','Tgl Beli','Tgl Jatuh Tempo','Harga Beli','Kupon','EIR',
+      'Nilai Tercatat','Amortisasi Th. Berjalan','Fair Value','Sell','Tgl Jual','Realized G/L','Unrealized G/L','Status'];
+    headers.forEach((h,j)=>{
+      const c=wsS.getCell(headerRow,j+1);
+      c.value=h; c.font=xfHeader(); c.fill=xFill(XC.lightGray); c.border=X_BORDER;
+      c.alignment={horizontal:'center',wrapText:true,vertical:'middle'};
+    });
+    wsS.getRow(headerRow).height=30;
+
+    let row=headerRow+1; const firstDataRow=row;
+    bondMeta.forEach(m=>{
+      const s=m.sheet, b=m.bond;
+      const c1=wsS.getCell(row,1);
+      c1.value=cv("'"+s+"'!A1",b.name); c1.font=xfValue(true); c1.border=X_BORDER; c1.fill=xFill(XC.white);
+      const vals=live?[
+        [2,{formula:"'"+s+"'!B"+m.rowNominal},X_CUR],[3,{formula:"'"+s+"'!E"+m.rowPurchaseDate},X_DATE],
+        [4,{formula:"'"+s+"'!E"+m.rowMaturityDate},X_DATE],[5,{formula:"'"+s+"'!B"+m.rowPurchase},X_CUR],
+        [6,{formula:"'"+s+"'!B"+m.rowRate},X_PCT3],[7,{formula:"'"+s+"'!B"+m.rowEir},X_PCT6],
+        [8,{formula:"'"+s+"'!B"+m.rowCarrAmt},X_CUR],[9,{formula:"'"+s+"'!B"+m.rowActAmor},X_CUR],
+        [10,{formula:"'"+s+"'!E"+m.rowFairValue},X_CUR],[11,{formula:"'"+s+"'!E"+m.rowSell},X_CUR],
+        [12,{formula:"'"+s+"'!E"+m.rowSellDate},X_DATE],[13,{formula:"'"+s+"'!B"+m.rowRealized},X_CUR],
+        [14,{formula:"'"+s+"'!B"+m.rowUnrealized},X_CUR],[15,{formula:"'"+s+"'!B"+m.rowStatus},null],
+      ]:[
+        [2,b.nominal,X_CUR],[3,b.purchaseDate,X_DATE],[4,b.maturityDate,X_DATE],[5,b.purchase,X_CUR],
+        [6,b.rate,X_PCT3],[7,b.eir,X_PCT6],[8,b.carrAmt,X_CUR],[9,b.actAmor,X_CUR],
+        [10,(b.fairValue!==null&&b.fairValue!==undefined&&b.fairValue!=='')?b.fairValue:null,X_CUR],
+        [11,(b.sell!==null&&b.sell!==undefined&&b.sell!=='')?b.sell:null,X_CUR],
+        [12,b.sellDate?b.sellDate:null,X_DATE],
+        [13,(b.realizedGL!=='-'&&b.realizedGL!==undefined)?b.realizedGL:'-',X_CUR],
+        [14,(b.unrealizedGL!=='-'&&b.unrealizedGL!==undefined)?b.unrealizedGL:'-',X_CUR],
+        [15,statusText(b.status),null],
+      ];
+      vals.forEach(([col,val,fmt])=>{
+        const c=wsS.getCell(row,col);
+        c.value=val; c.font=xfValue(); c.border=X_BORDER; c.fill=xFill(XC.white);
+        if(fmt)c.numFmt=fmt;
+        if([3,4,12].includes(col))c.alignment={horizontal:'center'};
+      });
+      row++;
+    });
+    const lastDataRow=row-1;
+    const totalRow=row;
+    wsS.getCell(totalRow,1).value='TOTAL'; wsS.getCell(totalRow,1).font=xfResult();
+    if(live){
+      [2,5,8,9,10,11,13,14].forEach(col=>{
+        const L=xColLetter(col);
+        const c=wsS.getCell(totalRow,col);
+        c.value={formula:'SUM('+L+firstDataRow+':'+L+lastDataRow+')'};
+        c.font=xfResult(); c.numFmt=X_CUR;
+      });
+    }else{
+      const sums={2:0,5:0,8:0,9:0,10:0,11:0,13:0,14:0};
+      bondMeta.forEach(m=>{
+        const b=m.bond;
+        sums[2]+=b.nominal||0; sums[5]+=b.purchase||0;
+        sums[8]+=b.carrAmt||0; sums[9]+=b.actAmor||0;
+        sums[10]+=(b.fairValue!==null&&b.fairValue!==undefined&&b.fairValue!=='')?Number(b.fairValue):0;
+        sums[11]+=(b.sell!==null&&b.sell!==undefined&&b.sell!=='')?Number(b.sell):0;
+        sums[13]+=(b.realizedGL!=='-'&&b.realizedGL!==undefined)?Number(b.realizedGL):0;
+        sums[14]+=(b.unrealizedGL!=='-'&&b.unrealizedGL!==undefined)?Number(b.unrealizedGL):0;
+      });
+      [2,5,8,9,10,11,13,14].forEach(col=>{
+        const c=wsS.getCell(totalRow,col);
+        c.value=sums[col]; c.font=xfResult(); c.numFmt=X_CUR;
+      });
+    }
+    for(let col=1;col<=headers.length;col++){
+      wsS.getCell(totalRow,col).fill=xFill(XC.midGray);
+      wsS.getCell(totalRow,col).border=X_BORDER;
+    }
+    wsS.views=[{state:'frozen',ySplit:headerRow,showGridLines:false}];
+
+    const buf=await wb.xlsx.writeBuffer();
+    const blob=new Blob([buf],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url; a.download=live?'amortisasi_obligasi_live.xlsx':'amortisasi_obligasi_static.xlsx';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    toast(live?'File Excel (rumus hidup, audit trail) berhasil diunduh.':'File Excel (nilai statis) berhasil diunduh.');
+  }catch(err){
+    console.error(err);
+    toast('Gagal membuat file Excel: '+err.message);
+  }finally{
+    dlBtn.disabled=false; dlBtn.innerHTML=origLabel;
+  }
 }
 function downloadTemplate(){
   const aoa=[
@@ -814,7 +1144,10 @@ document.getElementById('tplBtn').addEventListener('click',downloadTemplate);
 document.getElementById('sampleBtn').addEventListener('click',loadSample);
 document.getElementById('cutoff').addEventListener('change',updateCalcBtn);
 document.getElementById('calcBtn').addEventListener('click',calculate);
-document.getElementById('dlBtn').addEventListener('click',exportExcel);
+document.getElementById('dlBtn').addEventListener('click',()=>{
+  const mode=document.querySelector('input[name="dlMode"]:checked').value;
+  exportExcel(mode==='live');
+});
 document.getElementById('bondSelect').addEventListener('change',e=>renderSchedule(+e.target.value));
 
 /* Modal Panduan Events (Fitur Tambahan) */
