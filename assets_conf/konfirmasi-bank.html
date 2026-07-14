@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generator Surat Konfirmasi Audit Bank</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="confirmation-control.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+  :root{
+    --bg:#f5f5f7; --card:#ffffff; --text:#1d1d1f; --muted:#86868b;
+    --border:#d2d2d7; --accent:#0066cc; --accent-dark:#0044aa; --accent-light:#f5f5f7;
+    --success:#1d1d1f; --success-light:#e8e8ed; --danger:#ff3b30; --danger-light:#ffebee;
+    --warn:#ff9500; --warn-light:#fff5e6;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
+    background:var(--bg);color:var(--text);line-height:1.4706;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:#cce4ff;}
+  /* Header */
+  header{
+    background:var(--card);
+    color:var(--text);padding:48px 24px 32px;
+    border-bottom:1px solid #e8e8ed;
+  }
+  .head-inner{max-width:1120px;margin:0 auto;display:flex;align-items:center;gap:20px}
+  .type-back{margin-left:auto;display:inline-flex;align-items:center;gap:8px;padding:10px 17px;border-radius:999px;background:#e8e8ed;color:var(--text);text-decoration:none;font-size:13px;font-weight:600;white-space:nowrap;transition:.18s}
+  .type-back svg{width:16px;height:16px}.type-back:hover{background:#d2d2d7;transform:translateX(-2px)}
+  .logo{
+    width:48px;height:48px;border-radius:12px;flex-shrink:0;
+    background:#1d1d1f;display:flex;align-items:center;justify-content:center;
+    color:#fff;
+  }
+  .logo svg{width:24px;height:24px}
+  header h1{font-size:24px;font-weight:700;letter-spacing:-0.03em}
+  header p{font-size:14px;color:var(--muted);margin-top:4px;font-weight:400}
+  /* Layout */
+  .container{max-width:1120px;margin:32px auto 60px;padding:0 24px;}
+  .card{
+    background:var(--card);border:1px solid #e8e8ed;border-radius:20px;
+    padding:32px;margin-bottom:24px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.02);
+  }
+  .card-head{display:flex;align-items:center;gap:12px;margin-bottom:24px;flex-wrap:wrap}
+  .step-num{
+    width:24px;height:24px;border-radius:50%;background:#1d1d1f;
+    color:#fff;font-weight:600;font-size:12px;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .card-head h2{font-size:18px;font-weight:600;letter-spacing:-0.02em}
+  .card-head .sub{font-size:12px;color:var(--muted);font-weight:400;margin-left:auto;text-align:right}
+  .card-desc{font-size:13px;color:var(--muted);margin:-14px 0 20px;}
+  /* Upload zone */
+  .drop{
+    border:1px solid var(--border);border-radius:16px;padding:48px 24px;text-align:center;
+    cursor:pointer;transition:all 0.2s cubic-bezier(0.25, 1, 0.5, 1);background:#fafafa;
+  }
+  .drop:hover{border-color:var(--text);background:var(--card)}
+  .drop.drag{border-color:var(--accent);background:var(--accent-light);transform:scale(1.005)}
+  .drop svg{width:36px;height:36px;color:var(--text);margin-bottom:12px}
+  .drop .t1{font-size:15px;font-weight:600;letter-spacing:-0.01em}
+  .drop .t2{font-size:13px;color:var(--muted);margin-top:4px}
+  .or{display:flex;align-items:center;gap:16px;color:var(--muted);font-size:13px;margin:20px 0;font-weight:400}
+  .or::before,.or::after{content:"";flex:1;height:1px;background:#e8e8ed}
+  .btn-row{display:flex;gap:12px;flex-wrap:wrap}
+  button{font-family:inherit;cursor:pointer;border:none;transition:all 0.15s ease}
+  .btn{
+    padding:10px 20px;border-radius:30px;font-size:13.5px;font-weight:500;
+    display:inline-flex;align-items:center;gap:8px;letter-spacing:-0.01em;
+  }
+  .btn svg{width:16px;height:16px}
+  .btn-primary{background:#1d1d1f;color:#fff}
+  .btn-primary:hover{background:#3a3a3c}
+  .btn-primary:disabled{background:#e8e8ed;color:#a1a1a6;cursor:not-allowed}
+  .btn-accent{background:var(--accent);color:#fff}
+  .btn-accent:hover{background:var(--accent-dark)}
+  .btn-ghost{background:#e8e8ed;color:var(--text)}
+  .btn-ghost:hover{background:#d2d2d7}
+  .btn-danger{background:transparent;color:var(--danger);padding:6px 10px;}
+  .btn-danger:hover{background:var(--danger-light)}
+  .btn-lg{padding:14px 28px;font-size:16px;font-weight:600;width:100%;justify-content:center;border-radius:30px;margin-bottom:24px}
+  /* fields */
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px 24px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px 24px}
+  .field.full{grid-column:1/-1}
+  .field label{display:block;font-size:13px;font-weight:600;margin-bottom:8px;letter-spacing:-0.01em;color:var(--text)}
+  input[type=text],input[type=date],input[type=email],textarea,select{
+    font-family:inherit;font-size:14px;padding:11px 16px;border:1px solid var(--border);
+    border-radius:12px;background:var(--card);color:var(--text);width:100%;
+    outline:none;-webkit-appearance:none;
+  }
+  input:focus,textarea:focus,select:focus{border-color:var(--text);}
+  textarea{resize:vertical;min-height:70px;font-family:"SF Mono",Menlo,monospace;font-size:12.5px;line-height:1.5}
+  .hint{font-size:12.5px;color:var(--muted);margin-top:6px}
+  /* bank table */
+  .tbl-wrap{overflow:auto;border:1px solid #e8e8ed;border-radius:14px;max-height:560px;background:var(--card)}
+  table{border-collapse:collapse;width:100%;font-size:13px;min-width:1100px}
+  thead th{
+    background:#fafafa;position:sticky;top:0;z-index:2;
+    text-align:left;padding:12px 14px;font-weight:600;color:var(--text);
+    border-bottom:1px solid #e8e8ed;white-space:nowrap;letter-spacing:-0.01em;font-size:11px;
+    text-transform:uppercase;
+  }
+  tbody td{padding:6px 8px;border-bottom:1px solid #f5f5f7;vertical-align:middle;}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:#f5f5f7}
+  tbody td input{border:1px solid transparent;background:transparent;padding:8px 9px;font-size:12.8px;border-radius:8px;}
+  tbody td input:hover{border-color:var(--border);}
+  tbody td input:focus{border-color:var(--text);background:#fff;}
+  .row-no{font-variant-numeric:tabular-nums;color:var(--muted);text-align:center;width:30px;font-size:12px;}
+  /* banner / toast */
+  .banner{border-radius:14px;padding:16px;font-size:13.5px;margin-bottom:24px}
+  .banner.err{background:var(--danger-light);border:1px solid #ffccd0;color:var(--danger)}
+  .banner.warn{background:var(--warn-light);border:1px solid #ffe0b2;color:#b45c00}
+  .banner b{font-weight:600}
+  #toast{
+    position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:rgba(29,29,31,0.96);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);color:#fff;padding:14px 24px;border-radius:30px;font-size:13.5px;
+    opacity:0;transition:all 0.3s cubic-bezier(0.25, 1, 0.5, 1);pointer-events:none;z-index:99;font-weight:500;box-shadow:0 8px 30px rgba(0,0,0,0.15);
+    max-width:90vw;text-align:center;
+  }
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  #toast.error{background:rgba(255,59,48,0.96);}
+  /* stats */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+  .stat{
+    background:var(--card);border:1px solid #e8e8ed;border-radius:16px;padding:20px;
+    box-shadow:0 4px 16px rgba(0,0,0,0.01);
+  }
+  .stat .lbl{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.03em;margin-bottom:8px}
+  .stat .val{font-size:19px;font-weight:700;letter-spacing:-0.03em;font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  /* preview */
+  .letter-frame{background:#fafafa;border:1px solid #e8e8ed;border-radius:16px;overflow:hidden;}
+  .letter-scroll{max-height:76vh;overflow:auto;padding:28px 16px;}
+  #letterPreviewMount{margin:0 auto;position:relative;}
+  .ltr-preview-scale{width:794px;transform-origin:top left;}
+  .empty-state{text-align:center;padding:50px 20px;color:var(--muted);}
+  .empty-state svg{width:32px;height:32px;margin-bottom:10px;opacity:.5;}
+  /* progress */
+  .progress-bar{height:8px;background:#e8e8ed;border-radius:99px;overflow:hidden;}
+  .progress-bar>div{height:100%;width:0%;background:var(--accent);transition:width .2s ease;}
+  .log{margin-top:14px;border:1px solid #e8e8ed;border-radius:14px;max-height:260px;overflow:auto;font-size:12.5px;background:#fafafa;}
+  .log .entry{padding:10px 16px;border-bottom:1px solid #f0f0f0;display:flex;gap:10px;align-items:center;}
+  .log .entry:last-child{border-bottom:none;}
+  .log .entry .status{width:14px;flex:0 0 14px;font-weight:700;}
+  .log .entry .status.ok{color:#1b873f;}
+  .log .entry .status.err{color:var(--danger);}
+  .log .entry .status.pending{color:var(--muted);}
+  .hidden{display:none !important}
+  /* Tab bar (segmented control) */
+  .tabbar{
+    display:flex; gap:4px; background:#e8e8ed; padding:4px; border-radius:14px;
+    margin-bottom:24px; max-width:680px; flex-wrap:wrap;
+  }
+  .tabbtn{
+    flex:1; min-width:140px; padding:10px 14px; border-radius:10px; font-size:13px; font-weight:600;
+    background:transparent; color:var(--muted); display:flex; align-items:center; justify-content:center;
+    gap:8px; letter-spacing:-0.01em; white-space:nowrap;
+  }
+  .tabbtn:hover{color:var(--text);}
+  .tabbtn.active{background:#fff; color:var(--text); box-shadow:0 1px 4px rgba(0,0,0,0.08);}
+  .tabbtn-num{
+    width:18px; height:18px; border-radius:50%; background:#d2d2d7; color:#fff;
+    font-size:10.5px; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .tabbtn.active .tabbtn-num{background:#1d1d1f;}
+  .step-actions{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    margin-top:24px;padding:20px 4px 0;border-top:1px solid #e8e8ed;
+  }
+  .step-actions .btn-next{margin-left:auto;min-width:138px;justify-content:center;}
+  @media(max-width:640px){ .tabbar{max-width:none;} .tabbtn{min-width:calc(50% - 4px);} }
+  footer{text-align:center;font-size:12.5px;color:var(--muted);padding:24px 24px 48px;line-height:1.8;font-weight:400}
+  /* Modal Panduan */
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5); z-index: 999;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
+    backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+  }
+  .modal-overlay.show { opacity: 1; pointer-events: auto; }
+  .modal-card {
+    background: var(--card); width: 90%; max-width: 720px; max-height: 85vh;
+    border-radius: 20px; display: flex; flex-direction: column;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+    transform: translateY(20px); transition: transform 0.2s ease;
+  }
+  .modal-overlay.show .modal-card { transform: translateY(0); }
+  .modal-head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 24px 32px; border-bottom: 1px solid #e8e8ed;
+  }
+  .modal-head h2 { font-size: 20px; font-weight: 600; letter-spacing: -0.02em; }
+  .modal-body {
+    padding: 32px; overflow-y: auto; font-size: 14px; color: var(--text); line-height: 1.6;
+  }
+  .modal-body h4 { font-size: 16px; margin: 24px 0 12px; }
+  .modal-body h4:first-child { margin-top: 0; }
+  .modal-body p{ margin-bottom: 12px; }
+  .modal-body ul { margin-bottom: 16px; padding-left: 20px; }
+  .modal-body li { margin-bottom: 8px; }
+  .modal-body code{ background:#f0f0f0; padding:1px 6px; border-radius:5px; font-size:12.5px; }
+  .modal-body blockquote {
+    background: #f5f5f7; border-left: 4px solid var(--accent);
+    padding: 12px 16px; margin: 16px 0; border-radius: 0 8px 8px 0; font-style: italic;
+  }
+  .close-btn { background: none; border: none; cursor: pointer; color: var(--muted); padding: 4px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: 0.15s;}
+  .close-btn:hover { background: #e8e8ed; color: var(--text); }
+
+  @media(max-width:900px){
+    .grid2,.grid3{grid-template-columns:1fr}
+    .stats{grid-template-columns:repeat(2,1fr)}
+  }
+  @media(max-width:720px){
+    .card{padding:24px}
+    header{padding:32px 24px}
+    .head-inner{flex-wrap:wrap}.type-back{order:3;margin-left:0}.head-inner #openGuideBtn{order:4}
+    .container{padding:0 14px;margin-top:20px}
+    .letter-scroll{padding:14px 8px}
+    .step-actions{position:sticky;bottom:0;z-index:5;background:rgba(255,255,255,.94);backdrop-filter:blur(14px);margin-left:-8px;margin-right:-8px;padding:14px 8px calc(14px + env(safe-area-inset-bottom));}
+  }
+</style>
+<link rel="stylesheet" href="tampilan.css">
+</head>
+<body>
+<header>
+  <div class="head-inner">
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M4 6l8 7 8-7"/><path d="M9 15l3 3 5-6"/></svg>
+    </div>
+    <div>
+      <h1>Generator Surat Konfirmasi Bank</h1>
+      <p>Audit Toolkit &middot; Bulk Import Excel &middot; Word per Bank</p>
+    </div>
+    <a class="type-back" href="../conf_gen.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>Kembali ke Pilihan</a>
+    <button class="btn btn-ghost" id="openGuideBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      Panduan
+    </button>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="tabbar" id="tabbar">
+    <button class="tabbtn active" data-tab="settings"><span class="tabbtn-num">1</span> Pengaturan Umum</button>
+    <button class="tabbtn" data-tab="banks"><span class="tabbtn-num">2</span> Daftar Bank</button>
+    <button class="tabbtn" data-tab="preview"><span class="tabbtn-num">3</span> Pratinjau Surat</button>
+    <button class="tabbtn" data-tab="generate"><span class="tabbtn-num">4</span> Buat &amp; Unduh</button>
+  </div>
+
+  <section class="tabpanel" data-tab="settings">
+  <!-- STEP 1 -->
+  <div class="card">
+    <div class="card-head">
+      <div class="step-num">1</div>
+      <h2>Data Klien &amp; Auditor</h2>
+      <span class="sub">Berlaku untuk seluruh surat</span>
+    </div>
+    <div class="grid2">
+      <div class="field">
+        <label>Nama Klien</label>
+        <input type="text" id="s_clientName" value="PT Asuransi Kredit Indonesia">
+      </div>
+      <div class="field">
+        <label>Tanggal Periode Audit (Cut-off)</label>
+        <input type="date" id="s_auditDate" value="2025-12-31">
+        <div class="hint" id="s_auditDatePreview"></div>
+      </div>
+      <div class="field full">
+        <label>Nama KAP</label>
+        <input type="text" id="s_auditorFirm" value="KAP Amir Abadi Jusuf, Aryanto, Mawar & Rekan (RSM Indonesia)">
+      </div>
+      <div class="field full">
+        <label>Alamat KAP</label>
+        <textarea id="s_auditorAddress" rows="2">Plaza ASIA Level 10, Jl. Jend. Sudirman Kav.59, Jakarta 12190, Indonesia</textarea>
+      </div>
+      <div class="field">
+        <label>Nama Kontak (U.p.)</label>
+        <input type="text" id="s_auditorContact" value="Kurniawan Dwi Saputra">
+      </div>
+      <div class="field">
+        <label>Email Kontak</label>
+        <input type="email" id="s_auditorEmail" value="kurniawan.saputra@rsm.id">
+      </div>
+    </div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="card">
+    <div class="card-head">
+      <div class="step-num">2</div>
+      <h2>Penandatangan &amp; Penomoran Default</h2>
+      <span class="sub">Bisa ditimpa per baris di daftar bank</span>
+    </div>
+    <div class="grid3">
+      <div class="field">
+        <label>Nama Penandatangan (Kiri)</label>
+        <input type="text" id="s_signatoryName" placeholder="cth. Budi Santoso">
+      </div>
+      <div class="field">
+        <label>Jabatan (Kiri)</label>
+        <input type="text" id="s_signatoryTitle" placeholder="cth. Direktur Keuangan">
+      </div>
+      <div class="field">
+        <label>Tanggal Surat</label>
+        <input type="date" id="s_letterDate">
+      </div>
+      <div class="field">
+        <label>Nama Penandatangan (Kanan)</label>
+        <input type="text" id="s_signatoryName2" placeholder="cth. Siti Rahayu (opsional)">
+      </div>
+      <div class="field">
+        <label>Jabatan (Kanan)</label>
+        <input type="text" id="s_signatoryTitle2" placeholder="cth. Komisaris (opsional)">
+      </div>
+      <div class="field"></div>
+      <div class="field full">
+        <label>Format Nomor Surat</label>
+        <input type="text" id="s_numberFormat" value="{seq}/KONF-BANK/AKI/{bulanromawi}/{tahun}">
+        <div class="hint">Placeholder: <code>{seq}</code> nomor urut 3-digit, <code>{bulanromawi}</code> bulan angka romawi, <code>{tahun}</code> tahun surat.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-actions">
+    <span class="hint">Lanjutkan setelah data umum sudah sesuai.</span>
+    <button class="btn btn-primary btn-next" type="button" onclick="goTab('banks')">Next: Daftar Bank <span aria-hidden="true">→</span></button>
+  </div>
+
+  </section>
+
+  <section class="tabpanel hidden" data-tab="banks">
+  <!-- STEP 3 -->
+  <div class="card">
+    <div class="card-head">
+      <div class="step-num">3</div>
+      <h2>Daftar Bank</h2>
+      <span class="sub" id="bankPill">0 bank</span>
+    </div>
+
+    <div class="drop" id="drop">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+      <div class="t1">Pilih atau jatuhkan file Excel di sini</div>
+      <div class="t2">Kolom: NAMA BANK, ALAMAT BANK, NOMOR SURAT, TANGGAL SURAT, PENANDATANGAN KIRI, JABATAN KIRI, PENANDATANGAN KANAN, JABATAN KANAN</div>
+    </div>
+    <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none">
+
+    <div class="or">atau</div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" id="tplBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Unduh Template Excel
+      </button>
+      <button class="btn btn-ghost" id="sampleBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+        Muat Contoh Data
+      </button>
+      <button class="btn btn-ghost" id="addRowBtn" onclick="addRow()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+        Tambah Baris Manual
+      </button>
+      <button class="btn btn-ghost" id="pasteToggleBtn" onclick="togglePaste()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        Tempel Teks
+      </button>
+    </div>
+
+    <div class="paste-box hidden" id="pasteBox" style="margin-top:20px;">
+      <p class="hint" style="margin-bottom:10px;">Urutan kolom: <b>NAMA BANK, ALAMAT BANK, NOMOR SURAT, TANGGAL SURAT, PENANDATANGAN KIRI, JABATAN KIRI, PENANDATANGAN KANAN, JABATAN KANAN</b> — satu bank per baris, dipisah tab. Hanya Nama Bank yang wajib.</p>
+      <textarea id="pasteArea" rows="6" placeholder="Bank Mandiri (Persero) Tbk&#9;Plaza Mandiri, Jl. Jend. Gatot Subroto Kav. 36-38, Jakarta 12190&#9;001/KONF-BANK/AKI/VII/2026&#9;14 Juli 2026&#9;Budi Santoso&#9;Direktur Keuangan&#9;Siti Rahayu&#9;Komisaris&#10;Bank Central Asia Tbk&#9;Menara BCA, Jl. MH Thamrin No. 1, Jakarta 10310"></textarea>
+      <div style="margin-top:10px; display:flex; gap:10px;">
+        <button class="btn btn-primary" onclick="applyPaste()">Tambahkan ke Daftar</button>
+        <button class="btn btn-ghost" onclick="togglePaste()">Batal</button>
+      </div>
+    </div>
+
+    <div class="tbl-wrap" style="margin-top:20px;">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th style="min-width:190px;">Nama Bank</th>
+            <th style="min-width:230px;">Alamat Bank</th>
+            <th style="min-width:190px;">Nomor Surat</th>
+            <th style="min-width:120px;">Tanggal Surat</th>
+            <th style="min-width:150px;">Penandatangan Kiri</th>
+            <th style="min-width:140px;">Jabatan Kiri</th>
+            <th style="min-width:150px;">Penandatangan Kanan</th>
+            <th style="min-width:140px;">Jabatan Kanan</th>
+            <th style="width:50px;"></th>
+          </tr>
+        </thead>
+        <tbody id="bankTbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="step-actions">
+    <button class="btn btn-ghost" type="button" onclick="goTab('settings')"><span aria-hidden="true">←</span> Kembali</button>
+    <button class="btn btn-primary btn-next" type="button" onclick="goTab('preview')">Next: Pratinjau <span aria-hidden="true">→</span></button>
+  </div>
+
+  </section>
+
+  <section class="tabpanel hidden" data-tab="preview">
+  <!-- STEP 4 -->
+  <div class="card">
+    <div class="card-head">
+      <div class="step-num">4</div>
+      <h2>Pratinjau Surat</h2>
+    </div>
+    <div class="field" style="max-width:420px; margin-bottom:20px;">
+      <label>Pilih bank</label>
+      <select id="previewSelect" onchange="renderPreview()"></select>
+    </div>
+    <div id="previewEmpty" class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 4h16v16H4z"/><path d="M8 9h8M8 13h8M8 17h4"/></svg>
+      <div>Belum ada bank pada daftar. Tambahkan bank terlebih dahulu di Langkah 3.</div>
+    </div>
+    <div class="letter-frame hidden" id="letterFrame">
+      <div class="letter-scroll">
+        <div id="letterPreviewMount"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-actions">
+    <button class="btn btn-ghost" type="button" onclick="goTab('banks')"><span aria-hidden="true">←</span> Kembali</button>
+    <button class="btn btn-primary btn-next" type="button" onclick="goTab('generate')">Next: Buat &amp; Unduh <span aria-hidden="true">→</span></button>
+  </div>
+
+  </section>
+
+  <section class="tabpanel hidden" data-tab="generate">
+  <!-- STEP 5 -->
+  <div class="stats">
+    <div class="stat"><div class="lbl">Bank Terdaftar</div><div class="val" id="statBanks">0</div></div>
+    <div class="stat"><div class="lbl">Klien</div><div class="val" id="statClient">—</div></div>
+    <div class="stat"><div class="lbl">Siap Diproses</div><div class="val" id="genCount">0</div></div>
+    <div class="stat"><div class="lbl">Berkas Dihasilkan</div><div class="val" id="genFiles">0</div></div>
+  </div>
+
+  <button class="btn btn-primary btn-lg" id="genBtn" onclick="generateAll()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"/></svg>
+    Buat &amp; Unduh Word
+  </button>
+
+  <button class="btn btn-ghost btn-lg" type="button" onclick="downloadBankControl()">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4zM8 9h8M8 13h8M8 17h5"/></svg>
+    Unduh Confirmation Control (Excel)
+  </button>
+
+  <div class="progress-wrap hidden" id="progressWrap">
+    <div class="progress-bar"><div id="progressBarInner"></div></div>
+    <div class="log" id="genLog"></div>
+  </div>
+
+  <div class="step-actions">
+    <button class="btn btn-ghost" type="button" onclick="goTab('preview')"><span aria-hidden="true">←</span> Kembali ke Pratinjau</button>
+  </div>
+
+  </section>
+
+  <footer>Word (.docx) dihasilkan langsung dari template resmi &middot; data tersimpan hanya selama sesi ini terbuka.</footer>
+</div>
+
+<div class="modal-overlay" id="guideModal">
+  <div class="modal-card">
+    <div class="modal-head">
+      <h2>Panduan Penggunaan</h2>
+      <button class="close-btn" id="closeGuideBtn">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p>Aplikasi ini membantu membuat surat konfirmasi audit bank secara massal, langsung dari template Word resmi, untuk sejumlah bank sekaligus.</p>
+
+      <h4>1. Langkah 1 &amp; 2 — Data Klien, Auditor, Penandatangan</h4>
+      <p>Isi nama klien, tanggal cut-off audit, data KAP, serta nama &amp; jabatan penandatangan default. Nilai ini otomatis dipakai semua bank kecuali ditimpa per baris.</p>
+      <ul>
+        <li>Isi <b>Penandatangan Kiri</b> dan <b>Kanan</b> untuk tanda tangan berdampingan.</li>
+        <li>Isi salah satu saja untuk tampilan satu tanda tangan yang ditengahkan.</li>
+        <li>Kosongkan keduanya untuk memakai placeholder bawaan template.</li>
+      </ul>
+
+      <h4>2. Langkah 3 — Daftar Bank</h4>
+      <p>Ada tiga cara mengisi daftar bank:</p>
+      <ul>
+        <li><b>Unggah Excel</b> — jatuhkan atau pilih file .xlsx dengan kolom: <code>NAMA BANK, ALAMAT BANK, NOMOR SURAT, TANGGAL SURAT, PENANDATANGAN KIRI, JABATAN KIRI, PENANDATANGAN KANAN, JABATAN KANAN</code>. Klik <b>Unduh Template Excel</b> untuk format siap pakai.</li>
+        <li><b>Tempel Teks</b> — salin kolom yang sama dari Excel lalu tempel langsung.</li>
+        <li><b>Tambah Baris Manual</b> — isi satu per satu langsung di tabel.</li>
+      </ul>
+      <blockquote>Hanya kolom Nama Bank yang wajib diisi; kolom lain yang dikosongkan otomatis memakai nilai bawaan dari Langkah 1 &amp; 2.</blockquote>
+
+      <h4>3. Langkah 4 — Pratinjau</h4>
+      <p>Pilih salah satu bank dari daftar untuk melihat pratinjau surat sebelum diunduh.</p>
+
+      <h4>4. Buat &amp; Unduh</h4>
+      <p>Klik <b>Buat &amp; Unduh Word</b> untuk menghasilkan berkas .docx setiap bank. Satu bank akan langsung mengunduh satu berkas Word; lebih dari satu bank dikemas otomatis dalam satu berkas ZIP.</p>
+      <p>Klik <b>Unduh Confirmation Control (Excel)</b> untuk membuat daftar kontrol seluruh bank yang sudah diinput, termasuk kolom status pengiriman, tanggal diterima, PIC, exception, tindak lanjut, dan catatan.</p>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ================= Embedded original Word template (base64, runs pre-merged, justified + column widths tuned) ================= */
+const TEMPLATE_DOCX_B64 = "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";
+
+/* ================= State ================= */
+let banks = []; // {id, bankName, bankAddress, letterNumber, letterDate, signatoryName, signatoryTitle}
+let nextId = 1;
+
+const MONTHS_ID = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+const MONTHS_EN = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const ROMAN_MONTHS = ["I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII"];
+
+function pad2(n){ return n<10 ? "0"+n : ""+n; }
+
+function resolveRow(settings, row){
+  return Object.assign({}, row, {
+    signatoryName: (row.signatoryName && row.signatoryName.trim()) || settings.signatoryName || "",
+    signatoryTitle: (row.signatoryTitle && row.signatoryTitle.trim()) || settings.signatoryTitle || "",
+    signatoryName2: (row.signatoryName2 && row.signatoryName2.trim()) || settings.signatoryName2 || "",
+    signatoryTitle2: (row.signatoryTitle2 && row.signatoryTitle2.trim()) || settings.signatoryTitle2 || "",
+    letterDate: (row.letterDate && row.letterDate.trim()) || fmtDateID(settings.letterDateIso || settings.auditDateIso) || ""
+  });
+}
+
+function fmtDateID(isoStr){
+  if(!isoStr) return "";
+  const [y,m,d] = isoStr.split("-").map(Number);
+  if(!y||!m||!d) return "";
+  return `${d} ${MONTHS_ID[m-1]} ${y}`;
+}
+function fmtDateEN(isoStr){
+  if(!isoStr) return "";
+  const [y,m,d] = isoStr.split("-").map(Number);
+  if(!y||!m||!d) return "";
+  return `${MONTHS_EN[m-1]} ${d}, ${y}`;
+}
+
+function escapeXml(str){
+  return String(str==null?"":str)
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;");
+}
+function escapeHtml(str){
+  return String(str==null?"":str)
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;");
+}
+
+function getSettings(){
+  return {
+    clientName: val("s_clientName") || "PT Asuransi Kredit Indonesia",
+    auditDateIso: val("s_auditDate"),
+    auditorFirm: val("s_auditorFirm") || "KAP Amir Abadi Jusuf, Aryanto, Mawar & Rekan (RSM Indonesia)",
+    auditorAddress: val("s_auditorAddress") || "Plaza ASIA Level 10, Jl. Jend. Sudirman Kav.59, Jakarta 12190, Indonesia",
+    auditorContact: val("s_auditorContact") || "Kurniawan Dwi Saputra",
+    auditorEmail: val("s_auditorEmail") || "kurniawan.saputra@rsm.id",
+    signatoryName: val("s_signatoryName"),
+    signatoryTitle: val("s_signatoryTitle"),
+    signatoryName2: val("s_signatoryName2"),
+    signatoryTitle2: val("s_signatoryTitle2"),
+    letterDateIso: val("s_letterDate"),
+    numberFormat: val("s_numberFormat") || "{seq}/KONF-BANK/AKI/{bulanromawi}/{tahun}"
+  };
+}
+function val(id){ const el = document.getElementById(id); return el ? el.value.trim() : ""; }
+
+function buildLetterNumber(settings, index){
+  const dateIso = settings.letterDateIso || settings.auditDateIso || new Date().toISOString().slice(0,10);
+  const [y,m] = dateIso.split("-").map(Number);
+  return settings.numberFormat
+    .replace("{seq}", pad2(index+1).length<3 ? String(index+1).padStart(3,"0") : String(index+1))
+    .replace("{bulanromawi}", ROMAN_MONTHS[(m||1)-1])
+    .replace("{tahun}", y || new Date().getFullYear());
+}
+
+/* ================= Row management ================= */
+function addRow(prefill){
+  const s = getSettings();
+  const idx = banks.length;
+  const defaults = {
+    id: nextId++,
+    bankName: "",
+    bankAddress: "",
+    letterNumber: buildLetterNumber(s, idx),
+    letterDate: fmtDateID(s.letterDateIso || s.auditDateIso),
+    signatoryName: s.signatoryName,
+    signatoryTitle: s.signatoryTitle,
+    signatoryName2: s.signatoryName2,
+    signatoryTitle2: s.signatoryTitle2
+  };
+  const clean = {};
+  if(prefill){
+    Object.keys(prefill).forEach(k => { if(prefill[k]) clean[k] = prefill[k]; });
+  }
+  const row = Object.assign(defaults, clean);
+  banks.push(row);
+  renderTable();
+  renderPreviewOptions();
+  updateCounts();
+}
+
+function deleteRow(id){
+  banks = banks.filter(b => b.id !== id);
+  renderTable();
+  renderPreviewOptions();
+  updateCounts();
+}
+
+function updateRowField(id, field, value){
+  const row = banks.find(b => b.id === id);
+  if(row){ row[field] = value; }
+  updateCounts();
+  renderPreviewOptions(true);
+}
+
+function togglePaste(){
+  document.getElementById("pasteBox").classList.toggle("hidden");
+}
+
+function applyPaste(){
+  const raw = document.getElementById("pasteArea").value;
+  const lines = raw.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  if(!lines.length){ showToast("Tidak ada data untuk ditambahkan.", true); return; }
+  let count = 0;
+  lines.forEach(line => {
+    const parts = line.split("\t");
+    const bankName = (parts[0]||"").trim();
+    if(!bankName) return;
+    addRow({
+      bankName,
+      bankAddress: (parts[1]||"").trim(),
+      letterNumber: (parts[2]||"").trim(),
+      letterDate: (parts[3]||"").trim(),
+      signatoryName: (parts[4]||"").trim(),
+      signatoryTitle: (parts[5]||"").trim(),
+      signatoryName2: (parts[6]||"").trim(),
+      signatoryTitle2: (parts[7]||"").trim()
+    });
+    count++;
+  });
+  document.getElementById("pasteArea").value = "";
+  togglePaste();
+  showToast(count ? `${count} bank ditambahkan.` : "Tidak ada baris dengan Nama Bank yang valid.", !count);
+}
+
+function resyncNumbersAndDates(){
+  const s = getSettings();
+  banks.forEach((row, idx) => {
+    row.letterNumber = buildLetterNumber(s, idx);
+    row.letterDate = fmtDateID(s.letterDateIso || s.auditDateIso);
+    if(!row.signatoryName) row.signatoryName = s.signatoryName;
+    if(!row.signatoryTitle) row.signatoryTitle = s.signatoryTitle;
+    if(!row.signatoryName2) row.signatoryName2 = s.signatoryName2;
+    if(!row.signatoryTitle2) row.signatoryTitle2 = s.signatoryTitle2;
+  });
+  renderTable();
+  renderPreviewOptions(true);
+  showToast("Nomor surat & tanggal default diterapkan ke semua baris.");
+}
+
+function renderTable(){
+  const tbody = document.getElementById("bankTbody");
+  if(!banks.length){
+    tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; padding:36px 0; color:var(--muted);">Belum ada data bank. Unggah Excel, tempel teks, atau klik "Tambah Baris Manual".</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = banks.map((row, i) => `
+    <tr>
+      <td class="row-no">${i+1}</td>
+      <td><input type="text" value="${escapeHtml(row.bankName)}" oninput="updateRowField(${row.id},'bankName',this.value)" placeholder="Nama bank"></td>
+      <td><input type="text" value="${escapeHtml(row.bankAddress)}" oninput="updateRowField(${row.id},'bankAddress',this.value)" placeholder="Alamat bank"></td>
+      <td><input type="text" value="${escapeHtml(row.letterNumber)}" oninput="updateRowField(${row.id},'letterNumber',this.value)"></td>
+      <td><input type="text" value="${escapeHtml(row.letterDate)}" oninput="updateRowField(${row.id},'letterDate',this.value)"></td>
+      <td><input type="text" value="${escapeHtml(row.signatoryName)}" oninput="updateRowField(${row.id},'signatoryName',this.value)" placeholder="Nama (kiri)"></td>
+      <td><input type="text" value="${escapeHtml(row.signatoryTitle)}" oninput="updateRowField(${row.id},'signatoryTitle',this.value)" placeholder="Jabatan (kiri)"></td>
+      <td><input type="text" value="${escapeHtml(row.signatoryName2)}" oninput="updateRowField(${row.id},'signatoryName2',this.value)" placeholder="Nama (kanan, opsional)"></td>
+      <td><input type="text" value="${escapeHtml(row.signatoryTitle2)}" oninput="updateRowField(${row.id},'signatoryTitle2',this.value)" placeholder="Jabatan (kanan, opsional)"></td>
+      <td>
+        <button class="btn-danger" title="Hapus baris" onclick="deleteRow(${row.id})" style="border-radius:8px;">
+          <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0l-1 14a2 2 0 01-2 2H7a2 2 0 01-2-2L4 6h16z"/></svg>
+        </button>
+      </td>
+    </tr>
+  `).join("");
+}
+
+function updateCounts(){
+  document.getElementById("bankPill").textContent = `${banks.length} bank`;
+  document.getElementById("statBanks").textContent = banks.length;
+  document.getElementById("statClient").textContent = val("s_clientName") || "—";
+  document.getElementById("genCount").textContent = banks.length;
+  const preview = document.getElementById("s_auditDatePreview");
+  if(preview){
+    const iso = val("s_auditDate");
+    preview.textContent = iso ? `${fmtDateID(iso)}  /  ${fmtDateEN(iso)}` : "";
+  }
+}
+
+function downloadBankControl(){
+  const s=getSettings();
+  downloadConfirmationControl({
+    type:"Konfirmasi Bank",
+    client:s.clientName,
+    cutoff:fmtDateID(s.auditDateIso),
+    rows:banks.map(row=>{const r=resolveRow(s,row);return{
+      name:r.bankName,address:r.bankAddress,number:r.letterNumber,letterDate:r.letterDate,
+      signName:r.signatoryName,signTitle:r.signatoryTitle,
+      signName2:r.signatoryName2,signTitle2:r.signatoryTitle2
+    }})
+  });
+}
+
+/* ================= Tab navigation ================= */
+function goTab(name){
+  document.querySelectorAll(".tabpanel").forEach(p => {
+    p.classList.toggle("hidden", p.dataset.tab !== name);
+  });
+  document.querySelectorAll(".tabbtn").forEach(b => {
+    b.classList.toggle("active", b.dataset.tab === name);
+  });
+  if(name === "preview") renderPreviewOptions();
+  if(name === "generate") updateCounts();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function attachTabEvents(){
+  document.querySelectorAll(".tabbtn").forEach(btn => {
+    btn.addEventListener("click", () => goTab(btn.dataset.tab));
+  });
+}
+
+/* ================= Toast ================= */
+let toastTimer = null;
+function showToast(msg, isError){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = "toast show" + (isError ? " error" : "");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.className = "toast"; }, 3200);
+}
+
+/* ================= Letter HTML (preview + PDF source) ================= */
+function letterHtml(settings, row){
+  const clientName = escapeHtml(settings.clientName);
+  const auditID = escapeHtml(fmtDateID(settings.auditDateIso));
+  const auditEN = escapeHtml(fmtDateEN(settings.auditDateIso));
+  const bankName = escapeHtml(row.bankName || "[Nama Bank]");
+  const bankAddress = escapeHtml(row.bankAddress || "[Alamat Bank]");
+  const letterNumber = escapeHtml(row.letterNumber);
+  const letterDate = escapeHtml(row.letterDate);
+  const auditorFirm = escapeHtml(settings.auditorFirm);
+  const auditorAddress = escapeHtml(settings.auditorAddress);
+  const auditorContact = escapeHtml(settings.auditorContact);
+  const auditorEmail = escapeHtml(settings.auditorEmail);
+
+  const sig1Has = !!((row.signatoryName && row.signatoryName.trim()) || (row.signatoryTitle && row.signatoryTitle.trim()));
+  const sig2Has = !!((row.signatoryName2 && row.signatoryName2.trim()) || (row.signatoryTitle2 && row.signatoryTitle2.trim()));
+  let signatureRowsHtml;
+  if(!sig1Has && !sig2Has){
+    signatureRowsHtml = `
+      <tr><td style="padding-top:22px;">[Nama Penandatangan]</td><td class="en"><i>[Name of Signatory]</i></td></tr>
+      <tr><td>[Jabatan]</td><td class="en"><i>[Title]</i></td></tr>`;
+  } else if(sig1Has && sig2Has){
+    signatureRowsHtml = `
+      <tr><td style="padding-top:22px;">${escapeHtml(row.signatoryName)}</td><td class="en">${escapeHtml(row.signatoryName2)}</td></tr>
+      <tr><td>${escapeHtml(row.signatoryTitle)}</td><td class="en">${escapeHtml(row.signatoryTitle2)}</td></tr>`;
+  } else {
+    const soloName = sig1Has ? row.signatoryName : row.signatoryName2;
+    const soloTitle = sig1Has ? row.signatoryTitle : row.signatoryTitle2;
+    signatureRowsHtml = `
+      <tr><td colspan="2" style="text-align:center; padding-top:22px;">${escapeHtml(soloName)}</td></tr>
+      <tr><td colspan="2" style="text-align:center;">${escapeHtml(soloTitle)}</td></tr>`;
+  }
+
+  return `
+  <div class="ltr-page ltr-cover">
+    <table class="ltr-bi ltr-head">
+      <tr><td>${letterNumber}</td><td class="en">${letterDate}</td></tr>
+    </table>
+    <table class="ltr-bi" style="margin-top:14px;">
+      <tr><td>Kepada Yth.</td><td class="en"><i>To:</i></td></tr>
+      <tr><td><b>${bankName}</b></td><td class="en"><i><b>${bankName}</b></i></td></tr>
+      <tr><td>${bankAddress}</td><td class="en"><i>${bankAddress}</i></td></tr>
+    </table>
+    <table class="ltr-bi" style="margin-top:14px;">
+      <tr><td>U.p. Bagian Layanan Nasabah</td><td class="en"><i>Attn: Customer Service Department</i></td></tr>
+      <tr><td><b>Perihal: Konfirmasi Audit</b></td><td class="en"><i><b>Re: Audit Confirmation</b></i></td></tr>
+    </table>
+
+    <table class="ltr-bi" style="margin-top:18px;">
+      <tr><td>Dengan hormat,</td><td class="en"><i>Dear Sir or Madam,</i></td></tr>
+    </table>
+
+    <table class="ltr-bi" style="margin-top:12px;">
+      <tr>
+        <td>Sehubungan dengan audit laporan keuangan ${clientName} untuk tahun yang berakhir pada tanggal ${auditID}, mohon untuk memberikan informasi secara langsung kepada auditor eksternal kami:</td>
+        <td class="en"><i>In connection with the audit of ${clientName} financial statements for the year ended ${auditEN}, please providing the information directly to our external auditors:</i></td>
+      </tr>
+    </table>
+
+    <div class="ltr-auditor-box">
+      <div class="b">${auditorFirm}</div>
+      <div>${auditorAddress}</div>
+      <div>U.p. ${auditorContact} (${auditorEmail})</div>
+    </div>
+
+    <table class="ltr-bi" style="margin-top:12px;">
+      <tr>
+        <td>Mohon konfirmasi rincian berikut ini sesuai dengan catatan Bank pada tanggal ${auditID}:</td>
+        <td class="en"><i>Please confirm the following details according to Bank records as of on ${auditEN}:</i></td>
+      </tr>
+    </table>
+
+    <table class="ltr-bi ltr-list" style="margin-top:6px;">
+      <tr><td><b>1.</b> Saldo Rekening: Saldo dari seluruh rekening (Giro, Deposito, Tabungan, dll.) atas nama kami.</td>
+          <td class="en"><i><b>1.</b> Account Balances: Balances of all accounts (Current, Time Deposits, Savings, etc.) held in our name.</i></td></tr>
+      <tr><td><b>2.</b> Pinjaman: Rincian pinjaman langsung atau fasilitas kredit lainnya (termasuk saldo pokok, tingkat suku bunga, jaminan, dan tanggal jatuh tempo).</td>
+          <td class="en"><i><b>2.</b> Loans: Details of direct loans or other credit facilities (including principal balance, interest rate, collateral, and maturity date).</i></td></tr>
+      <tr><td><b>3.</b> Kewajiban Kontinjensi: Rincian kewajiban kontinjensi, termasuk Letter of Credit (L/C), Bank Garansi, atau penjaminan lainnya.</td>
+          <td class="en"><i><b>3.</b> Contingent Liabilities: Details of contingent liabilities, including Letters of Credit (L/C), Bank Guarantees, or other endorsements.</i></td></tr>
+      <tr><td><b>4.</b> Lain-lain: Aset lain yang disimpan dalam penguasaan Bank (jika ada).</td>
+          <td class="en"><i><b>4.</b> Others: Other assets held in the Bank's custody (if any).</i></td></tr>
+    </table>
+
+    <table class="ltr-bi" style="margin-top:12px;">
+      <tr><td>Mohon kirimkan jawaban langsung ke alamat auditor yang tercantum di atas. Amplop berperangko yang telah ditulis alamat auditor telah kami lampirkan.</td>
+          <td class="en"><i>Please send the direct reply to the auditor's address listed above. We have enclosed a stamped, self-addressed envelope for the auditor.</i></td></tr>
+      <tr><td style="padding-top:8px;">Jika tidak ada informasi yang perlu dilaporkan untuk butir-butir di atas, mohon nyatakan "NIHIL" dalam jawaban Anda.</td>
+          <td class="en" style="padding-top:8px;"><i>If there is no information to report for any of the above items, please state "NONE" in your reply.</i></td></tr>
+      <tr><td style="padding-top:8px;">Atas perhatian dan kerja sama Anda, kami ucapkan terima kasih.</td>
+          <td class="en" style="padding-top:8px;"><i>Thank you for your attention and cooperation.</i></td></tr>
+    </table>
+
+    <table class="ltr-bi" style="margin-top:20px;">
+      <tr><td>Hormat kami,</td><td class="en"><i>Sincerely,</i></td></tr>
+      <tr><td>${clientName}</td><td></td></tr>${signatureRowsHtml}
+    </table>
+  </div>
+
+  <div class="ltr-page ltr-attach">
+    <table class="ltr-bi" style="margin-top:0;">
+      <tr><td><b>LAMPIRAN/ <i>ATTACHMENT</i></b></td><td class="en" style="text-align:right;"><i><b>NO : ${letterNumber}</b></i></td></tr>
+    </table>
+    <table class="ltr-bi" style="margin-top:10px;">
+      <tr><td>Nama Klien: ${clientName}</td><td class="en"><i>Client Name: ${clientName}</i></td></tr>
+      <tr><td>Tanggal: ${auditID}</td><td class="en"><i>Date: ${auditEN}</i></td></tr>
+    </table>
+
+    <div class="ltr-sec">
+      <div class="ltr-sec-title"><b>1. Saldo rekening (Giro, Tabungan, Deposito)</b><span class="en"><i>Account balances (Current, Saving, Time Deposits)</i></span></div>
+      <table class="ltr-grid">
+        <colgroup>
+          <col style="width:14.32%"><col style="width:13.36%"><col style="width:9.55%"><col style="width:11.45%">
+          <col style="width:10.50%"><col style="width:16.41%"><col style="width:12.21%"><col style="width:12.21%">
+        </colgroup>
+        <tr><th>Nomor Rekening</th><th>Jenis Rekening</th><th>Mata Uang</th><th>Tingkat Bunga</th><th>Jaminan</th><th>Tanggal Awal dan Akhir</th><th>Saldo</th><th>Keterangan</th></tr>
+        ${Array(12).fill("<tr>"+"<td>&nbsp;</td>".repeat(8)+"</tr>").join("")}
+      </table>
+    </div>
+
+    <div class="ltr-sec">
+      <div class="ltr-sec-title"><b>2. Pinjaman &amp; fasilitas kredit (Modal kerja, Investasi, dll)</b><span class="en"><i>Loan &amp; credit facilities (Working capital, Investment, etc)</i></span></div>
+      <table class="ltr-grid">
+        <colgroup>
+          <col style="width:14.28%"><col style="width:14.29%"><col style="width:13.39%"><col style="width:15.18%">
+          <col style="width:14.29%"><col style="width:14.29%"><col style="width:14.29%">
+        </colgroup>
+        <tr><th>Nomor Fasilitas</th><th>Jenis Fasilitas</th><th>Plafon</th><th>Saldo Terhutang</th><th>Tingkat Bunga</th><th>Jaminan</th><th>Jatuh Tempo</th></tr>
+        ${Array(6).fill("<tr>"+"<td>&nbsp;</td>".repeat(7)+"</tr>").join("")}
+      </table>
+    </div>
+
+    <div class="ltr-sec">
+      <div class="ltr-sec-title"><b>3. Kewajiban kontigensi (Bank garansi, L/C)</b><span class="en"><i>Contingent liabilities (Bank guarantee, L/C)</i></span></div>
+      <table class="ltr-grid">
+        <colgroup>
+          <col style="width:16.67%"><col style="width:16.67%"><col style="width:16.67%">
+          <col style="width:16.67%"><col style="width:16.66%"><col style="width:16.66%">
+        </colgroup>
+        <tr><th>Jenis Kewajiban</th><th>Nama Penerima Manfaat</th><th>Mata Uang</th><th>Jumlah</th><th>Tanggal Terbit</th><th>Tanggal Berakhir</th></tr>
+        ${Array(9).fill("<tr>"+"<td>&nbsp;</td>".repeat(6)+"</tr>").join("")}
+      </table>
+    </div>
+
+    <div class="ltr-sec">
+      <div class="ltr-sec-title"><b>4. Lain-lain (Titipan efek, Kuasa pendandatangan, dll)</b><span class="en"><i>Others (Custodies, Authorized signatories, etc)</i></span></div>
+      <div class="ltr-dots">................................................................................................................</div>
+      <div class="ltr-dots">................................................................................................................</div>
+    </div>
+
+    <table class="ltr-bi" style="margin-top:14px;">
+      <tr><td>Dengan ini kami mengonfirmasi bahwa informasi di atas adalah benar sesuai dengan catatan kami pada tanggal pisah batas yang disebutkan.</td>
+          <td class="en"><i>We hereby confirm that the above information is correct and in accordance with our records as of the stated cut-off date.</i></td></tr>
+    </table>
+
+    <table class="ltr-bi" style="margin-top:22px;">
+      <tr><td>Nama Bank / <i>Bank Name:</i></td><td></td></tr>
+      <tr><td style="padding-top:6px;">Tanda Tangan Petugas Bank &amp; Stempel / <i>Authorized Signature &amp; Bank Stamp:</i></td><td></td></tr>
+      <tr><td style="padding-top:26px;">Nama Jelas / <i>Printed Name:</i></td><td></td></tr>
+      <tr><td>Jabatan / <i>Title:</i></td><td></td></tr>
+    </table>
+  </div>
+  `;
+}
+
+function letterStyleTag(){
+  return `<style>
+    .ltr-page{ width:794px; min-height:1123px; padding:52px 62px; margin:0 0 28px; font-family:Arial, Helvetica, "Liberation Sans", sans-serif; font-size:12.5px; line-height:1.38; color:#1a1a1a; background:#fff; box-shadow:0 8px 30px rgba(0,0,0,.12); overflow:hidden; }
+    .ltr-page:last-child{margin-bottom:0;}
+    .ltr-attach{ break-before:page; }
+    .ltr-page table{ min-width:0; max-width:100%; }
+    .ltr-bi{ width:100%; min-width:0; max-width:100%; table-layout:fixed; border-collapse:collapse; }
+    .ltr-bi td{ width:50%; vertical-align:top; padding:1px 0; }
+    .ltr-bi td.en{ padding-left:18px; color:#222; }
+    .ltr-bi td, .ltr-bi th{ overflow-wrap:anywhere; word-break:normal; }
+    .ltr-head td{ font-weight:600; text-align:left; }
+    .ltr-list td{ padding-top:7px; }
+    .ltr-auditor-box{ margin-top:10px; padding:8px 0 8px 2px; font-weight:600; }
+    .ltr-auditor-box div{ font-weight:400; }
+    .ltr-auditor-box .b{ font-weight:700; }
+    .ltr-attach-title{ text-align:center; margin-bottom:4px; }
+    .ltr-attach-title, .ltr-attach-title .en{ text-align:center; }
+    .ltr-sec{ margin-top:11px; }
+    .ltr-sec-title{ display:flex; justify-content:space-between; gap:20px; font-size:11.5px; margin-bottom:6px; }
+    .ltr-sec-title .en{ text-align:right; }
+    table.ltr-grid{ width:100%; min-width:0; max-width:100%; border-collapse:collapse; font-size:8.3px; table-layout:fixed; }
+    table.ltr-grid th, table.ltr-grid td{ border:1px solid #999; padding:3px 3px; text-align:left; word-wrap:break-word; line-height:1.25; }
+    table.ltr-grid th{ background:#f0f0f0; font-weight:600; }
+    table.ltr-grid td{ height:14px; }
+    .ltr-dots{ font-size:11px; color:#999; margin-top:8px; letter-spacing:1px; }
+  </style>`;
+}
+
+/* ================= Excel import (drag & drop, template, sample) ================= */
+const EXCEL_HEADERS = ["NAMA BANK","ALAMAT BANK","NOMOR SURAT","TANGGAL SURAT","PENANDATANGAN KIRI","JABATAN KIRI","PENANDATANGAN KANAN","JABATAN KANAN"];
+
+function normHeader(s){
+  return String(s === undefined || s === null ? "" : s).toLowerCase().replace(/[\s_]/g, "").trim();
+}
+
+function excelSerialToIsoMaybe(v){
+  // Accepts a JS Date (from cellDates:true), an Excel serial number, or a plain string and
+  // returns a human ID-formatted date string when it looks like a date, otherwise the original text.
+  if(v instanceof Date && !isNaN(v)){
+    const iso = `${v.getFullYear()}-${String(v.getMonth()+1).padStart(2,"0")}-${String(v.getDate()).padStart(2,"0")}`;
+    return fmtDateID(iso);
+  }
+  return String(v === undefined || v === null ? "" : v).trim();
+}
+
+function parseBankWorkbook(buf){
+  const wb = XLSX.read(buf, { type: "array", cellDates: true });
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const aoa = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, blankrows: false });
+  if(!aoa.length) throw new Error("Berkas Excel kosong.");
+
+  let headerRowIdx = -1;
+  for(let i = 0; i < Math.min(aoa.length, 5); i++){
+    const set = aoa[i].map(normHeader);
+    if(set.includes("namabank")){ headerRowIdx = i; break; }
+  }
+
+  const rows = [];
+  if(headerRowIdx === -1){
+    // No recognizable header — treat every row as data in the documented column order.
+    aoa.forEach(r => rows.push(r));
+  } else {
+    const headers = aoa[headerRowIdx].map(normHeader);
+    const find = (...keys) => { for(const k of keys){ const idx = headers.indexOf(k); if(idx >= 0) return idx; } return -1; };
+    const col = {
+      bankName: find("namabank", "nama"),
+      bankAddress: find("alamatbank", "alamat"),
+      letterNumber: find("nomorsurat", "nomor"),
+      letterDate: find("tanggalsurat", "tanggal"),
+      signatoryName: find("penandatangankiri", "penandatangan"),
+      signatoryTitle: find("jabatankiri", "jabatan"),
+      signatoryName2: find("penandatangankanan"),
+      signatoryTitle2: find("jabatankanan")
+    };
+    for(let i = headerRowIdx + 1; i < aoa.length; i++){
+      const r = aoa[i];
+      const get = idx => idx >= 0 && idx < r.length ? r[idx] : "";
+      rows.push([get(col.bankName), get(col.bankAddress), get(col.letterNumber), get(col.letterDate),
+                 get(col.signatoryName), get(col.signatoryTitle), get(col.signatoryName2), get(col.signatoryTitle2)]);
+    }
+  }
+
+  return rows
+    .map(r => ({
+      bankName: excelSerialToIsoMaybe(r[0]),
+      bankAddress: excelSerialToIsoMaybe(r[1]),
+      letterNumber: excelSerialToIsoMaybe(r[2]),
+      letterDate: excelSerialToIsoMaybe(r[3]),
+      signatoryName: excelSerialToIsoMaybe(r[4]),
+      signatoryTitle: excelSerialToIsoMaybe(r[5]),
+      signatoryName2: excelSerialToIsoMaybe(r[6]),
+      signatoryTitle2: excelSerialToIsoMaybe(r[7])
+    }))
+    .filter(r => r.bankName);
+}
+
+function handleExcelFile(file){
+  const reader = new FileReader();
+  reader.onload = e => {
+    try{
+      const records = parseBankWorkbook(e.target.result);
+      if(!records.length){
+        showToast("Tidak ditemukan baris dengan Nama Bank yang valid di berkas ini.", true);
+        return;
+      }
+      records.forEach(r => addRow(r));
+      showToast(`${records.length} bank berhasil diimpor dari Excel.`);
+    } catch(err){
+      console.error(err);
+      showToast("Gagal membaca berkas Excel: " + (err.message || err), true);
+    }
+  };
+  reader.onerror = () => showToast("Gagal membaca berkas.", true);
+  reader.readAsArrayBuffer(file);
+}
+
+function downloadExcelTemplate(){
+  const aoa = [
+    EXCEL_HEADERS,
+    ["Bank Mandiri (Persero) Tbk", "Plaza Mandiri, Jl. Jend. Gatot Subroto Kav. 36-38, Jakarta 12190", "", "", "", "", "", ""],
+    ["Bank Central Asia Tbk", "Menara BCA, Jl. MH Thamrin No. 1, Jakarta 10310", "", "", "", "", "", ""]
+  ];
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  ws["!cols"] = [{wch:28},{wch:40},{wch:22},{wch:16},{wch:20},{wch:18},{wch:20},{wch:18}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Daftar Bank");
+  XLSX.writeFile(wb, "template_daftar_bank.xlsx");
+  showToast("Template Excel berhasil diunduh.");
+}
+
+function loadSampleBanks(){
+  addRow({ bankName: "Bank Negara Indonesia (Persero) Tbk", bankAddress: "Grha BNI, Jl. Jend. Sudirman Kav. 1, Jakarta 10220" });
+  addRow({ bankName: "Bank Rakyat Indonesia (Persero) Tbk", bankAddress: "Gedung BRI I, Jl. Jend. Sudirman Kav. 44-46, Jakarta 10210" });
+  showToast("Contoh data ditambahkan.");
+}
+
+function attachExcelEvents(){
+  const drop = document.getElementById("drop");
+  const fileInput = document.getElementById("fileInput");
+  if(!drop || !fileInput) return;
+
+  drop.addEventListener("click", () => fileInput.click());
+  fileInput.addEventListener("change", e => {
+    if(e.target.files[0]) handleExcelFile(e.target.files[0]);
+    fileInput.value = "";
+  });
+  ["dragenter","dragover"].forEach(ev => drop.addEventListener(ev, e => {
+    e.preventDefault(); drop.classList.add("drag");
+  }));
+  ["dragleave","drop"].forEach(ev => drop.addEventListener(ev, e => {
+    e.preventDefault(); drop.classList.remove("drag");
+  }));
+  drop.addEventListener("drop", e => {
+    if(e.dataTransfer.files[0]) handleExcelFile(e.dataTransfer.files[0]);
+  });
+
+  const tplBtn = document.getElementById("tplBtn");
+  const sampleBtn = document.getElementById("sampleBtn");
+  if(tplBtn) tplBtn.addEventListener("click", downloadExcelTemplate);
+  if(sampleBtn) sampleBtn.addEventListener("click", loadSampleBanks);
+}
+
+/* ================= Guide modal ================= */
+function attachGuideModalEvents(){
+  const guideModal = document.getElementById("guideModal");
+  const openGuideBtn = document.getElementById("openGuideBtn");
+  const closeGuideBtn = document.getElementById("closeGuideBtn");
+  if(!guideModal || !openGuideBtn || !closeGuideBtn) return;
+
+  openGuideBtn.addEventListener("click", () => guideModal.classList.add("show"));
+  closeGuideBtn.addEventListener("click", () => guideModal.classList.remove("show"));
+  guideModal.addEventListener("click", e => {
+    if(e.target === guideModal) guideModal.classList.remove("show");
+  });
+}
+/* ================= Preview ================= */
+function renderPreviewOptions(keepSelection){
+  const sel = document.getElementById("previewSelect");
+  const prevVal = sel.value;
+  sel.innerHTML = banks.map(b => `<option value="${b.id}">${escapeHtml(b.bankName || "(tanpa nama)")} — ${escapeHtml(b.letterNumber)}</option>`).join("");
+  if(keepSelection && banks.some(b => String(b.id) === prevVal)){
+    sel.value = prevVal;
+  }
+  renderPreview();
+}
+
+function renderPreview(){
+  const empty = document.getElementById("previewEmpty");
+  const frame = document.getElementById("letterFrame");
+  if(!banks.length){
+    empty.classList.remove("hidden");
+    frame.classList.add("hidden");
+    return;
+  }
+  empty.classList.add("hidden");
+  frame.classList.remove("hidden");
+  const sel = document.getElementById("previewSelect");
+  const rawRow = banks.find(b => String(b.id) === sel.value) || banks[0];
+  const settings = getSettings();
+  const row = resolveRow(settings, rawRow);
+  const mount = document.getElementById("letterPreviewMount");
+  mount.innerHTML = letterStyleTag() + `<div class="ltr-preview-scale">` + letterHtml(settings, row) + `</div>`;
+  requestAnimationFrame(fitPreviewToScreen);
+}
+
+function fitPreviewToScreen(){
+  const scroll = document.querySelector(".letter-scroll");
+  const mount = document.getElementById("letterPreviewMount");
+  const preview = mount && mount.querySelector(".ltr-preview-scale");
+  if(!scroll || !mount || !preview) return;
+  const availableWidth = Math.max(240, scroll.clientWidth - 16);
+  const scale = Math.min(1, availableWidth / 794);
+  preview.style.transform = `scale(${scale})`;
+  mount.style.width = `${794 * scale}px`;
+  mount.style.height = `${preview.scrollHeight * scale}px`;
+}
+
+/* ================= DOCX generation (based on original template) ================= */
+function buildCenterSignatureRow(text){
+  const t = escapeXml(text || "");
+  return `<w:tr><w:tc><w:tcPr><w:tcW w:w="5000" w:type="pct"/><w:gridSpan w:val="4"/><w:tcBorders><w:top w:val="nil"/><w:left w:val="nil"/><w:bottom w:val="nil"/><w:right w:val="nil"/></w:tcBorders></w:tcPr><w:p><w:pPr><w:jc w:val="center"/><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:pPr><w:r><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial" w:cs="Arial"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr><w:t xml:space="preserve">${t}</w:t></w:r></w:p></w:tc></w:tr>`;
+}
+
+function replaceRowContaining(xml, marker, newRowXml){
+  const idx = xml.indexOf(marker);
+  if(idx === -1) return xml;
+  const start = xml.lastIndexOf("<w:tr ", idx);
+  const end = xml.indexOf("</w:tr>", idx) + "</w:tr>".length;
+  if(start === -1 || end === -1) return xml;
+  return xml.slice(0, start) + newRowXml + xml.slice(end);
+}
+
+function applySignatureRows(xml, row){
+  const has1 = !!((row.signatoryName && row.signatoryName.trim()) || (row.signatoryTitle && row.signatoryTitle.trim()));
+  const has2 = !!((row.signatoryName2 && row.signatoryName2.trim()) || (row.signatoryTitle2 && row.signatoryTitle2.trim()));
+
+  if(!has1 && !has2){
+    // Neither side filled - leave the template's own bracket placeholders visible.
+    return xml;
+  }
+  if(has1 && has2){
+    // Both sides filled - keep the existing side-by-side layout, substitute in place.
+    xml = xml.split("[Nama Penandatangan]").join(escapeXml(row.signatoryName));
+    xml = xml.split("[Jabatan]").join(escapeXml(row.signatoryTitle));
+    xml = xml.split("[Name of Signatory]").join(escapeXml(row.signatoryName2));
+    xml = xml.split("[Title]").join(escapeXml(row.signatoryTitle2));
+    return xml;
+  }
+  // Exactly one side filled - collapse both rows into a single centered cell.
+  const name = has1 ? row.signatoryName : row.signatoryName2;
+  const title = has1 ? row.signatoryTitle : row.signatoryTitle2;
+  xml = replaceRowContaining(xml, "[Nama Penandatangan]", buildCenterSignatureRow(name));
+  xml = replaceRowContaining(xml, "[Jabatan]", buildCenterSignatureRow(title));
+  return xml;
+}
+
+async function buildDocxBlob(settings, rawRow){
+  const row = resolveRow(settings, rawRow);
+  const zip = await JSZip.loadAsync(TEMPLATE_DOCX_B64, { base64: true });
+  let xml = await zip.file("word/document.xml").async("string");
+
+  const auditID = fmtDateID(settings.auditDateIso);
+  const auditEN = fmtDateEN(settings.auditDateIso);
+
+  const replacements = [
+    ["PT Asuransi Kredit Indonesia", escapeXml(settings.clientName)],
+    ["31 Desember 2025", escapeXml(auditID)],
+    ["December 31, 2025", escapeXml(auditEN)],
+    ["KAP Amir Abadi Jusuf, Aryanto, Mawar &amp; Rekan (RSM Indonesia)", escapeXml(settings.auditorFirm)],
+    ["Plaza ASIA Level 10, Jl. Jend. Sudirman Kav.59, Jakarta 12190, Indonesia", escapeXml(settings.auditorAddress)],
+    ["Kurniawan Dwi Saputra (kurniawan.saputra@rsm.id)", `${escapeXml(settings.auditorContact)} (${escapeXml(settings.auditorEmail)})`],
+    ["[Nomor]", escapeXml(row.letterNumber)],
+    ["[Tanggal]", escapeXml(row.letterDate)],
+    ["[Nama Bank]", escapeXml(row.bankName)],
+    ["[Alamat Bank]", escapeXml(row.bankAddress)],
+    ["[Bank Name]", escapeXml(row.bankName)],
+    ["[Bank Address]", escapeXml(row.bankAddress)],
+    ["[NO]", escapeXml(row.letterNumber)],
+  ];
+  replacements.forEach(([find, replace]) => {
+    xml = xml.split(find).join(replace);
+  });
+  xml = applySignatureRows(xml, row);
+  // The source template highlights fillable fields in yellow so they're easy to
+  // spot while editing; once real data has been substituted the highlight is
+  // no longer wanted on a finished letter, so strip it.
+  xml = xml.split('<w:highlight w:val="yellow"/>').join("");
+
+  zip.file("word/document.xml", xml);
+  return await zip.generateAsync({
+    type: "blob",
+    mimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+  });
+}
+
+function safeFileName(str){
+  return String(str || "Bank")
+    .replace(/[\\/:*?"<>|]/g, "-")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 80);
+}
+
+function triggerDownload(blob, filename){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+}
+
+/* ================= Bulk generate ================= */
+async function generateAll(){
+  if(!banks.length){ showToast("Tambahkan minimal satu bank terlebih dahulu.", true); return; }
+  const btn = document.getElementById("genBtn");
+  const wrap = document.getElementById("progressWrap");
+  const bar = document.getElementById("progressBarInner");
+  const log = document.getElementById("genLog");
+  btn.disabled = true;
+  wrap.classList.remove("hidden");
+  log.innerHTML = "";
+  bar.style.width = "0%";
+
+  const settings = getSettings();
+  const anySignatory = banks.some(b => {
+    const r = resolveRow(settings, b);
+    return r.signatoryName || r.signatoryTitle || r.signatoryName2 || r.signatoryTitle2;
+  });
+  const anyDate = banks.some(b => resolveRow(settings, b).letterDate);
+  if(!anySignatory || !anyDate){
+    showToast("Perhatian: Nama Penandatangan/Tanggal Surat belum diisi (di Pengaturan atau per baris) — kolom itu akan memakai placeholder bawaan.", true);
+  }
+
+  const total = banks.length;
+  const singleMode = total === 1;
+  const zip = singleMode ? null : new JSZip();
+  let fileCount = 0;
+  let singleBlob = null, singleLabel = "";
+
+  for(let i = 0; i < banks.length; i++){
+    const row = banks[i];
+    const label = row.bankName || `Bank ${i+1}`;
+    const entry = document.createElement("div");
+    entry.className = "entry";
+    entry.innerHTML = `<span class="status pending">●</span><span>${escapeHtml(label)} — memproses...</span>`;
+    log.appendChild(entry);
+    log.scrollTop = log.scrollHeight;
+
+    try{
+      const docxBlob = await buildDocxBlob(settings, row);
+      fileCount++;
+      if(singleMode){
+        singleBlob = docxBlob;
+        singleLabel = label;
+      } else {
+        const folder = zip.folder(safeFileName(label) || `Bank_${i+1}`);
+        folder.file(`Surat Konfirmasi Bank - ${safeFileName(label)}.docx`, docxBlob);
+      }
+      entry.innerHTML = `<span class="status ok">✓</span><span>${escapeHtml(label)} — Word selesai</span>`;
+    } catch(err){
+      console.error(err);
+      entry.innerHTML = `<span class="status err">✕</span><span>${escapeHtml(label)} — gagal: ${escapeHtml(err.message||err)}</span>`;
+    }
+
+    document.getElementById("genFiles").textContent = fileCount;
+    bar.style.width = Math.round(((i+1)/total)*100) + "%";
+  }
+
+  if(singleMode && singleBlob){
+    triggerDownload(singleBlob, `Surat Konfirmasi Bank - ${safeFileName(singleLabel)}.docx`);
+    showToast(`Selesai — 1 berkas Word diunduh.`);
+  } else if(!singleMode){
+    showToast("Mengemas berkas ZIP...");
+    const zipBlob = await zip.generateAsync({ type: "blob" });
+    const zipName = `Surat Konfirmasi Bank - ${safeFileName(settings.clientName)}.zip`;
+    triggerDownload(zipBlob, zipName);
+    showToast(`Selesai — ${total} bank, ${fileCount} berkas Word diunduh.`);
+  } else {
+    showToast("Tidak ada berkas yang berhasil dibuat.", true);
+  }
+  btn.disabled = false;
+}
+
+/* ================= Init ================= */
+function attachSettingsListeners(){
+  ["s_clientName","s_auditDate","s_auditorFirm","s_auditorAddress","s_auditorContact","s_auditorEmail",
+   "s_signatoryName","s_signatoryTitle","s_signatoryName2","s_signatoryTitle2","s_letterDate","s_numberFormat"].forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.addEventListener("input", () => { updateCounts(); renderPreview(); });
+  });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  attachSettingsListeners();
+  attachExcelEvents();
+  attachGuideModalEvents();
+  attachTabEvents();
+  updateCounts();
+  renderTable();
+  renderPreviewOptions();
+  // seed with two example rows to demonstrate the workflow
+  addRow({ bankName: "Bank Mandiri (Persero) Tbk", bankAddress: "Plaza Mandiri, Jl. Jend. Gatot Subroto Kav. 36-38, Jakarta 12190" });
+  addRow({ bankName: "Bank Central Asia Tbk", bankAddress: "Menara BCA, Jl. MH Thamrin No. 1, Jakarta 10310" });
+});
+window.addEventListener("resize", fitPreviewToScreen);
+</script>
+
+</body>
+</html>
