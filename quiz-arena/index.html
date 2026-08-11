@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Quiz Arena - Audit Tools</title>
+  <style>
+    :root {
+      --ink: #171530;
+      --purple: #6754e8;
+      --purple-dark: #4c3bc4;
+      --cream: #fbfaf6;
+      --line: #e9e6e0;
+      --muted: #706d7e;
+      --orange: #ff7a59;
+      --green: #31b8a0;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--cream);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    .topbar {
+      height: 78px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 5vw;
+      border-bottom: 1px solid var(--line);
+      background: rgba(251, 250, 246, .92);
+      backdrop-filter: blur(12px);
+      position: sticky;
+      top: 0;
+      z-index: 30;
+    }
+    .brand {
+      border: 0;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      font-size: 20px;
+      font-weight: 750;
+      color: var(--ink);
+      text-decoration: none;
+    }
+    .brand span:last-child span { color: var(--purple); }
+    .brand-mark {
+      width: 35px;
+      height: 35px;
+      border-radius: 11px;
+      background: var(--purple);
+      color: white;
+      display: grid;
+      place-items: center;
+      font-weight: 850;
+      transform: rotate(-4deg);
+      box-shadow: 0 6px 14px rgba(103, 84, 232, .28);
+    }
+    nav { display: flex; gap: 34px; align-self: stretch; }
+    nav button {
+      border: 0;
+      background: none;
+      color: #767382;
+      font-size: 14px;
+      position: relative;
+    }
+    nav button.active, nav button:hover { color: var(--ink); }
+    nav button.active::after {
+      content: "";
+      position: absolute;
+      height: 2px;
+      background: var(--purple);
+      bottom: 0;
+      left: 5px;
+      right: 5px;
+    }
+    .header-actions { display: flex; gap: 10px; }
+    .primary, .ghost {
+      border: 0;
+      border-radius: 11px;
+      padding: 13px 19px;
+      font-weight: 700;
+      transition: .2s ease;
+    }
+    .primary {
+      color: white;
+      background: var(--purple);
+      box-shadow: 0 7px 18px rgba(103, 84, 232, .23);
+    }
+    .primary:hover { background: var(--purple-dark); transform: translateY(-1px); }
+    .primary:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+    .primary.small { padding: 11px 16px; }
+    .ghost { background: transparent; color: var(--ink); }
+    .ghost.outlined { border: 1px solid #d9d5ce; background: white; }
+    .hero {
+      max-width: 1240px;
+      min-height: 610px;
+      margin: auto;
+      padding: 76px 44px 68px;
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 90px;
+      align-items: center;
+    }
+    .eyebrow, .section-kicker {
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1.8px;
+      color: var(--purple);
+      text-transform: uppercase;
+    }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #efecff;
+      border-radius: 100px;
+      padding: 8px 13px;
+    }
+    .eyebrow span { color: #ff9a3d; font-size: 9px; }
+    .hero h1 {
+      font-size: 68px;
+      line-height: 1.02;
+      letter-spacing: -3px;
+      margin: 20px 0;
+      font-weight: 760;
+    }
+    .hero h1 em { color: var(--purple); font-style: normal; }
+    .hero-copy > p { color: var(--muted); max-width: 570px; font-size: 18px; line-height: 1.7; }
+    .hero-buttons { display: flex; align-items: center; gap: 18px; margin-top: 29px; }
+    .large { padding: 16px 22px; }
+    .text-button { border: 0; background: none; color: var(--ink); font-weight: 700; padding: 14px; }
+    .play {
+      width: 29px;
+      height: 29px;
+      border-radius: 50%;
+      background: white;
+      box-shadow: 0 4px 15px #ddd;
+      display: inline-grid;
+      place-items: center;
+      margin-left: 8px;
+      font-size: 10px;
+      color: var(--purple);
+    }
+    .trust { display: flex; align-items: center; color: #817d89; font-size: 12px; margin-top: 42px; }
+    .trust b { color: var(--ink); margin: 0 4px 0 12px; }
+    .avatars { display: flex; }
+    .avatars span {
+      width: 29px;
+      height: 29px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: white;
+      font-size: 9px;
+      font-weight: 800;
+      border: 2px solid var(--cream);
+      margin-left: -6px;
+      background: #7568e9;
+    }
+    .avatars span:nth-child(2) { background: #fb8b69; }
+    .avatars span:nth-child(3) { background: #34bda2; }
+    .join-card {
+      background: white;
+      border: 1px solid #eeeae3;
+      border-radius: 20px;
+      box-shadow: 0 24px 60px rgba(39, 30, 91, .11);
+      padding: 37px;
+      position: relative;
+      overflow: hidden;
+    }
+    .join-card::before {
+      content: "";
+      position: absolute;
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      background: #f0edff;
+      right: -45px;
+      top: -45px;
+    }
+    .join-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 15px;
+      background: #edeaff;
+      color: var(--purple);
+      display: grid;
+      place-items: center;
+      font-size: 28px;
+      font-weight: 800;
+      margin-bottom: 20px;
+      position: relative;
+    }
+    .label { font-size: 10px; color: var(--purple); letter-spacing: 1.7px; font-weight: 800; }
+    .join-card h2 { margin: 8px 0; font-size: 27px; letter-spacing: -1px; }
+    .muted { color: var(--muted); font-size: 13px; margin: 0 0 24px; }
+    .join-card label, .modal label { font-size: 11px; font-weight: 750; display: block; margin: 15px 0 7px; }
+    .join-card input, .modal input, .modal select {
+      width: 100%;
+      border: 1px solid #dedbe3;
+      background: #fcfbfa;
+      border-radius: 10px;
+      padding: 13px 14px;
+      outline: none;
+      color: var(--ink);
+    }
+    .join-card input:focus, .modal input:focus, .modal select:focus {
+      border-color: var(--purple);
+      box-shadow: 0 0 0 3px #eeeaff;
+    }
+    .pin-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; }
+    .pin-row input { letter-spacing: 3px; font-weight: 700; }
+    .pin-row button { background: var(--ink); color: white; border: 0; border-radius: 10px; padding: 0 17px; font-weight: 700; }
+    .error { color: #d7524c; font-size: 11px; margin: 8px 0; min-height: 16px; }
+    .demo-pin {
+      margin-top: 20px;
+      padding: 11px 13px;
+      background: #f6f4ef;
+      border-radius: 8px;
+      font-size: 9px;
+      letter-spacing: 1px;
+      color: #85818b;
+      display: flex;
+      justify-content: space-between;
+    }
+    .demo-pin b { color: var(--ink); letter-spacing: 2px; }
+    .feature-strip {
+      background: var(--ink);
+      color: white;
+      min-height: 116px;
+      padding: 25px max(5vw, calc((100vw - 1150px) / 2));
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      align-items: center;
+      gap: 35px;
+    }
+    .feature-strip article { display: flex; gap: 15px; align-items: center; border-right: 1px solid rgba(255, 255, 255, .14); }
+    .feature-strip article:last-child { border: 0; }
+    .feature-strip b { font-size: 14px; }
+    .feature-strip p { font-size: 11px; color: #aaa6ba; margin: 5px 0; }
+    .feature-icon { width: 43px; height: 43px; display: grid; place-items: center; border-radius: 13px; }
+    .purple { background: #6754e8; }
+    .orange { background: #d55e43; }
+    .green { background: #279b88; }
+    .how {
+      max-width: 1150px;
+      margin: auto;
+      padding: 90px 40px;
+      display: grid;
+      grid-template-columns: .8fr 1.2fr;
+      gap: 90px;
+    }
+    .how h2 { font-size: 37px; line-height: 1.25; letter-spacing: -1px; }
+    .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px; }
+    .steps span { color: #aaa6b6; font-weight: 700; font-size: 12px; }
+    .steps b { display: block; margin: 22px 0 8px; }
+    .steps p { font-size: 12px; line-height: 1.65; color: var(--muted); }
+    .view { display: none; }
+    .view.active { display: block; }
+    .game-shell { min-height: calc(100vh - 78px); max-width: 950px; margin: auto; padding: 30px 30px 70px; }
+    .game-top { display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 750; color: #787484; }
+    .live-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #ef5e55; margin-right: 5px; box-shadow: 0 0 0 5px #ffe5e3; }
+    .player-chip { display: flex; align-items: center; gap: 8px; }
+    .player-chip span { width: 30px; height: 30px; border-radius: 9px; background: var(--purple); color: white; display: grid; place-items: center; }
+    .game-progress { height: 5px; background: #e9e6df; border-radius: 5px; margin: 25px 0 35px; overflow: hidden; }
+    .game-progress span { height: 100%; background: linear-gradient(90deg, var(--purple), #9b8ffc); display: block; transition: .4s; }
+    .question-meta { display: flex; justify-content: space-between; color: #898592; font-size: 11px; letter-spacing: 1.3px; font-weight: 800; }
+    .question-meta b { font-size: 18px; color: var(--purple); }
+    .question-meta b.danger { color: #e14f48; }
+    .question-card { margin-top: 13px; background: white; border: 1px solid var(--line); border-radius: 20px; padding: 38px; box-shadow: 0 18px 45px rgba(42, 32, 88, .07); }
+    .question-category { display: inline-block; background: #efecff; color: var(--purple); padding: 6px 10px; border-radius: 7px; font-size: 10px; font-weight: 750; }
+    .question-card h1 { font-size: 30px; line-height: 1.35; letter-spacing: -1px; max-width: 760px; margin: 18px 0 30px; }
+    .options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .options button { min-height: 68px; text-align: left; border: 1px solid #e4e1dc; background: #fbfaf8; border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; gap: 13px; color: var(--ink); font-size: 13px; }
+    .options button:hover:not(.dim) { border-color: var(--purple); background: #f7f5ff; }
+    .options button span { flex: 0 0 31px; height: 31px; display: grid; place-items: center; border-radius: 8px; background: white; border: 1px solid #ddd9d3; font-weight: 750; }
+    .options button i { margin-left: auto; font-style: normal; font-size: 18px; }
+    .options button.correct { background: #edf9f5; border-color: #4db79f; color: #167c68; }
+    .options button.wrong { background: #fff0ed; border-color: #eb786a; color: #bd443a; }
+    .options button.dim { opacity: .47; }
+    .feedback { margin-top: 20px; border-radius: 13px; padding: 15px 16px 15px 18px; display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; }
+    .feedback.ok { background: #eaf8f3; color: #207a67; }
+    .feedback.no { background: #fff0ed; color: #a63f36; }
+    .feedback p { font-size: 11px; margin: 0; line-height: 1.5; }
+    .feedback button { border: 0; background: var(--ink); color: white; padding: 10px 13px; border-radius: 8px; font-size: 11px; font-weight: 700; }
+    .result-page { text-align: center; max-width: 730px; margin: auto; padding: 65px 25px; }
+    .result-page h1 { font-size: 43px; letter-spacing: -1px; margin: 10px; }
+    .result-page > p:not(.section-kicker) { color: var(--muted); }
+    .score-ring { width: 190px; height: 190px; border-radius: 50%; margin: 34px auto; display: grid; place-items: center; background: conic-gradient(var(--purple) 0 80%, #e9e5de 80%); position: relative; }
+    .score-ring::before { content: ""; position: absolute; inset: 13px; background: var(--cream); border-radius: 50%; }
+    .score-ring div { position: relative; display: flex; flex-direction: column; }
+    .score-ring b { font-size: 45px; }
+    .score-ring span { font-size: 8px; letter-spacing: 1.2px; color: var(--muted); }
+    .result-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; background: white; border: 1px solid var(--line); border-radius: 15px; padding: 20px; }
+    .result-stats div { border-right: 1px solid var(--line); display: flex; flex-direction: column; gap: 6px; }
+    .result-stats div:last-child { border: 0; }
+    .result-stats span { font-size: 9px; letter-spacing: 1px; color: var(--muted); }
+    .result-stats b { font-size: 23px; }
+    .result-actions { display: flex; justify-content: center; gap: 10px; margin-top: 25px; }
+    .dashboard { max-width: 1180px; margin: auto; padding: 55px 35px 80px; }
+    .dash-heading { display: flex; justify-content: space-between; align-items: flex-end; }
+    .dash-heading h1 { font-size: 36px; letter-spacing: -1px; margin: 9px 0; }
+    .dash-heading > div > p:last-child { color: var(--muted); font-size: 13px; }
+    .metric-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin: 35px 0; }
+    .metric-grid article { background: white; border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: grid; gap: 9px; }
+    .metric-grid span { font-size: 9px; letter-spacing: 1px; color: var(--muted); font-weight: 750; }
+    .metric-grid b { font-size: 29px; }
+    .metric-grid i { font-size: 10px; color: #389b83; font-style: normal; }
+    .dash-grid { display: grid; grid-template-columns: 1.4fr .8fr; gap: 16px; }
+    .panel { background: white; border: 1px solid var(--line); border-radius: 16px; padding: 23px; }
+    .panel-title { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .panel-title h2 { font-size: 16px; margin: 0; }
+    .panel-title button, .panel-title span { border: 0; background: none; color: var(--purple); font-size: 10px; font-weight: 700; }
+    .quiz-item { display: grid; grid-template-columns: auto 1fr auto auto; align-items: center; gap: 13px; padding: 14px 0; border-top: 1px solid #efede9; }
+    .quiz-item > button { border: 0; background: none; color: #aaa; }
+    .quiz-item div b { font-size: 12px; }
+    .quiz-item div p { font-size: 10px; color: var(--muted); margin: 4px 0; }
+    .quiz-item > strong { font-size: 9px; padding: 5px 8px; background: #f1f0ed; border-radius: 10px; color: #777; }
+    .quiz-item > strong.live { background: #e7f7f2; color: #258b75; }
+    .quiz-badge { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; color: white; font-weight: 800; }
+    .violet { background: #6e5ae9; }
+    .mint { background: #3caf99; }
+    .gold { background: #e6a84c; }
+    .pink { background: #e7678f; }
+    .leader { display: grid; grid-template-columns: auto auto 1fr auto; gap: 10px; align-items: center; padding: 13px 0; border-top: 1px solid #efede9; }
+    .leader > b { font-size: 10px; color: #aca8b2; }
+    .leader-avatar { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; color: white; font-weight: 800; }
+    .leader div { display: flex; flex-direction: column; }
+    .leader strong { font-size: 11px; }
+    .leader small { font-size: 9px; color: var(--muted); margin-top: 3px; }
+    .leader em { font-size: 11px; font-style: normal; font-weight: 700; }
+    .insight { margin-top: 16px; background: var(--ink); color: white; display: flex; justify-content: space-between; align-items: center; padding: 27px 30px; }
+    .insight h2 { font-size: 20px; margin: 8px 0; }
+    .insight > div > p:last-child { color: #aaa6b9; font-size: 11px; max-width: 590px; }
+    .insight button { background: #ffcb77; border: 0; padding: 12px 15px; border-radius: 9px; font-weight: 750; color: var(--ink); }
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(22, 19, 44, .55); z-index: 50; display: none; place-items: center; padding: 20px; backdrop-filter: blur(3px); }
+    .modal-backdrop.active { display: grid; }
+    .modal { background: white; border-radius: 20px; width: min(470px, 100%); padding: 33px; position: relative; box-shadow: 0 30px 100px rgba(0, 0, 0, .25); }
+    .close { position: absolute; right: 20px; top: 16px; border: 0; background: none; font-size: 25px; color: #888; }
+    .modal-icon { width: 43px; height: 43px; border-radius: 13px; background: #efecff; color: var(--purple); display: grid; place-items: center; margin-bottom: 15px; }
+    .modal h2 { font-size: 27px; margin: 8px 0; }
+    .modal > p:not(.section-kicker) { font-size: 12px; color: var(--muted); line-height: 1.5; }
+    .modal select { appearance: none; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 9px; margin-top: 24px; }
+    @media (max-width: 800px) {
+      .topbar { padding: 0 18px; }
+      .topbar nav, .header-actions .ghost { display: none; }
+      .hero { grid-template-columns: 1fr; padding: 48px 22px; gap: 45px; }
+      .hero h1 { font-size: 51px; letter-spacing: -2px; }
+      .join-card { padding: 27px; }
+      .feature-strip { grid-template-columns: 1fr; padding: 28px 25px; gap: 20px; }
+      .feature-strip article { border-right: 0; border-bottom: 1px solid rgba(255, 255, 255, .13); padding-bottom: 18px; }
+      .how { grid-template-columns: 1fr; padding: 65px 23px; gap: 25px; }
+      .steps { grid-template-columns: 1fr; }
+      .steps div { border-top: 1px solid var(--line); padding-top: 18px; }
+      .steps b { display: inline-block; margin: 0 10px; }
+      .options { grid-template-columns: 1fr; }
+      .question-card { padding: 23px; }
+      .question-card h1 { font-size: 23px; }
+      .feedback { grid-template-columns: 1fr; }
+      .dash-heading { align-items: flex-start; gap: 20px; }
+      .metric-grid { grid-template-columns: 1fr 1fr; }
+      .dash-grid { grid-template-columns: 1fr; }
+      .insight { align-items: flex-start; gap: 20px; }
+      .result-stats { padding: 15px; }
+      .game-shell { padding: 25px 16px; }
+      .hero-buttons { align-items: flex-start; flex-direction: column; }
+      .trust { line-height: 1.5; }
+      .dashboard { padding: 40px 17px; }
+      .dash-heading h1 { font-size: 30px; }
+    }
+    @media (max-width: 520px) {
+      .metric-grid { grid-template-columns: 1fr 1fr; }
+      .dash-heading { flex-direction: column; }
+      .dash-heading .primary { width: 100%; }
+      .insight { flex-direction: column; }
+      .result-page h1 { font-size: 34px; }
+      .question-card h1 { font-size: 21px; }
+      .game-top { font-size: 10px; }
+      .feedback button { width: 100%; }
+      .quiz-item { grid-template-columns: auto 1fr auto; }
+      .quiz-item > strong { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <button class="brand" data-view="home" aria-label="Kembali ke beranda Quiz Arena">
+      <span class="brand-mark">Q</span>
+      <span>Quiz<span>Arena</span></span>
+    </button>
+    <nav>
+      <button class="active" data-view="home">Beranda</button>
+      <button data-view="host">Dashboard host</button>
+    </nav>
+    <div class="header-actions">
+      <button class="ghost" data-view="host">Masuk</button>
+      <button class="primary small" id="openCreateTop">+ Buat kuis</button>
+    </div>
+  </header>
+
+  <main>
+    <section id="home" class="view active">
+      <div class="hero">
+        <div class="hero-copy">
+          <div class="eyebrow"><span>*</span> Belajar terasa seperti bermain</div>
+          <h1>Kuis seru.<br><em>Insight nyata.</em></h1>
+          <p>Buat sesi belajar yang hidup, ukur pemahaman secara real-time, dan jadikan setiap jawaban berarti.</p>
+          <div class="hero-buttons">
+            <button class="primary large" id="openCreateHero">Buat kuis gratis <span>-></span></button>
+            <button class="text-button" id="startDemo">Coba kuis demo <span class="play">▶</span></button>
+          </div>
+          <div class="trust">
+            <div class="avatars"><span>AP</span><span>RD</span><span>DK</span></div>
+            <b>2.400+</b> sesi kuis dimainkan minggu ini
+          </div>
+        </div>
+
+        <div class="join-card">
+          <div class="join-icon">~</div>
+          <p class="label">MASUK KE SESI</p>
+          <h2>Punya PIN kuis?</h2>
+          <p class="muted">Masukkan PIN dari host untuk mulai bermain.</p>
+          <label for="playerName">Nama panggilan</label>
+          <input id="playerName" placeholder="Contoh: Kurniawan">
+          <label for="sessionPin">PIN sesi</label>
+          <div class="pin-row">
+            <input id="sessionPin" placeholder="000 000" inputmode="numeric" maxlength="7">
+            <button id="joinQuiz">Gabung -></button>
+          </div>
+          <p class="error" id="joinError"></p>
+          <div class="demo-pin">PIN DEMO <b>482 917</b></div>
+        </div>
+      </div>
+
+      <div class="feature-strip">
+        <article><span class="feature-icon purple">⚡</span><div><b>Real-time</b><p>Skor dan peringkat langsung</p></div></article>
+        <article><span class="feature-icon orange">◎</span><div><b>Insight mendalam</b><p>Lihat topik yang perlu ditingkatkan</p></div></article>
+        <article><span class="feature-icon green">✓</span><div><b>Siap dalam menit</b><p>Buat, bagikan, dan mulai</p></div></article>
+      </div>
+
+      <div class="how">
+        <div><p class="section-kicker">Cara Kerja</p><h2>Dari ide menjadi arena<br>dalam tiga langkah.</h2></div>
+        <div class="steps">
+          <div><span>01</span><b>Buat kuis</b><p>Tulis soal sendiri atau gunakan bank soal siap pakai.</p></div>
+          <div><span>02</span><b>Bagikan PIN</b><p>Peserta cukup membuka link dan memasukkan PIN.</p></div>
+          <div><span>03</span><b>Lihat insight</b><p>Pantau skor, akurasi, dan materi yang belum dikuasai.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="play" class="view game-shell">
+      <div class="game-top">
+        <div><span class="live-dot"></span>LIVE - Audit Challenge</div>
+        <div class="player-chip"><span id="playerInitial">K</span><strong id="playerChip">Kurniawan</strong></div>
+      </div>
+      <div class="game-progress"><span id="progressBar"></span></div>
+      <div class="question-meta"><span id="questionMeta"></span><b id="timer">30s</b></div>
+      <div class="question-card">
+        <div class="question-category" id="questionCategory"></div>
+        <h1 id="questionText"></h1>
+        <div class="options" id="options"></div>
+        <div class="feedback" id="feedback" hidden>
+          <b id="feedbackTitle"></b>
+          <p id="feedbackText"></p>
+          <button id="nextQuestion">Soal berikutnya -></button>
+        </div>
+      </div>
+    </section>
+
+    <section id="result" class="view result-page">
+      <p class="section-kicker">Kuis Selesai</p>
+      <h1 id="resultTitle">Kerja bagus!</h1>
+      <p>Kamu menguasai sebagian besar materi audit dasar.</p>
+      <div class="score-ring"><div><b id="resultCorrect">0/5</b><span>JAWABAN BENAR</span></div></div>
+      <div class="result-stats">
+        <div><span>SKOR</span><b id="resultScore">0</b></div>
+        <div><span>AKURASI</span><b id="resultAccuracy">0%</b></div>
+        <div><span>PERINGKAT</span><b id="resultRank">#4</b></div>
+      </div>
+      <div class="result-actions">
+        <button class="primary" id="playAgain">Main lagi</button>
+        <button class="ghost outlined" data-view="home">Kembali ke beranda</button>
+      </div>
+    </section>
+
+    <section id="host" class="view dashboard">
+      <div class="dash-heading">
+        <div><p class="section-kicker">Dashboard Host</p><h1>Selamat datang, Kurniawan.</h1><p>Pantau kuis dan perkembangan peserta dari satu tempat.</p></div>
+        <button class="primary" id="openCreateDash">+ Buat kuis baru</button>
+      </div>
+      <div class="metric-grid">
+        <article><span>KUIS AKTIF</span><b>3</b><i>+1 bulan ini</i></article>
+        <article><span>TOTAL PESERTA</span><b>128</b><i>naik 18%</i></article>
+        <article><span>RATA-RATA SKOR</span><b>84%</b><i>naik 6%</i></article>
+        <article><span>SESI SELESAI</span><b>24</b><i>Semua waktu</i></article>
+      </div>
+      <div class="dash-grid">
+        <div class="panel quiz-list">
+          <div class="panel-title"><h2>Kuis terbaru</h2><button>Lihat semua</button></div>
+          <div id="createdQuiz"></div>
+          <div class="quiz-item"><span class="quiz-badge violet">A</span><div><b>Audit Challenge 2026</b><p>5 soal - 48 peserta</p></div><strong class="live">Aktif</strong><button>...</button></div>
+          <div class="quiz-item"><span class="quiz-badge mint">P</span><div><b>PSAK 109 - ECL</b><p>20 soal - 36 peserta</p></div><strong>Selesai</strong><button>...</button></div>
+          <div class="quiz-item"><span class="quiz-badge gold">I</span><div><b>Internal Control Basics</b><p>15 soal - 44 peserta</p></div><strong>Selesai</strong><button>...</button></div>
+        </div>
+        <div class="panel leaderboard">
+          <div class="panel-title"><h2>Leaderboard</h2><span>Minggu ini</span></div>
+          <div id="leaders"></div>
+        </div>
+      </div>
+      <div class="panel insight">
+        <div><p class="section-kicker">Insight Minggu Ini</p><h2>Asersi audit perlu perhatian.</h2><p>Hanya 62% peserta menjawab topik completeness dengan benar. Pertimbangkan sesi remedial singkat.</p></div>
+        <button id="remedial">Mulai sesi remedial -></button>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal-backdrop" id="createModal">
+    <div class="modal">
+      <button class="close" id="closeModal" aria-label="Tutup">x</button>
+      <div class="modal-icon">*</div>
+      <p class="section-kicker">Kuis Baru</p>
+      <h2>Apa judul kuismu?</h2>
+      <p>Mulai dari judul. Soal dapat ditambahkan setelah kuis dibuat.</p>
+      <label for="quizTitle">Judul kuis</label>
+      <input id="quizTitle" placeholder="Contoh: Audit Kas dan Bank">
+      <label for="quizCategory">Kategori</label>
+      <select id="quizCategory"><option>Audit dan Akuntansi</option><option>Pelatihan umum</option><option>Pengetahuan produk</option></select>
+      <div class="modal-actions">
+        <button class="ghost outlined" id="cancelCreate">Batal</button>
+        <button class="primary" id="createQuiz" disabled>Buat dan lanjutkan -></button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const questions = [
+      { category: "Audit Dasar", question: "Prosedur mana yang paling tepat untuk menguji keberadaan saldo bank?", options: ["Rekalkulasi bunga", "Konfirmasi langsung ke bank", "Vouching biaya bank", "Analisis tren saldo"], answer: 1, explanation: "Konfirmasi eksternal yang dikendalikan auditor memberikan bukti langsung atas keberadaan saldo bank." },
+      { category: "PSAK 109", question: "Kenaikan risiko kredit signifikan umumnya memindahkan aset ke stage berapa?", options: ["Stage 1", "Stage 2", "Stage 3", "Tidak berpindah stage"], answer: 1, explanation: "Aset dengan SICR berpindah ke Stage 2 dan ECL diukur sepanjang umur instrumen." },
+      { category: "Asersi", question: "Asersi utama untuk kewajiban yang berisiko tidak dicatat adalah...", options: ["Existence", "Accuracy", "Completeness", "Valuation"], answer: 2, explanation: "Risiko kewajiban tidak dicatat berkaitan langsung dengan kelengkapan atau completeness." },
+      { category: "Kas dan Bank", question: "Outstanding cheque dalam rekonsiliasi bank berarti...", options: ["Cek telah dicatat perusahaan tetapi belum didebit bank", "Setoran belum dicatat perusahaan", "Biaya bank belum dicatat", "Cek ditolak pelanggan"], answer: 0, explanation: "Outstanding cheque sudah dicatat sebagai pengeluaran oleh perusahaan, namun belum diproses oleh bank." },
+      { category: "Bukti Audit", question: "Bukti audit mana yang umumnya memiliki reliabilitas paling tinggi?", options: ["Penjelasan lisan manajemen", "Dokumen internal tanpa kontrol", "Konfirmasi pihak eksternal", "Analisis auditor tahun lalu"], answer: 2, explanation: "Bukti dari sumber independen di luar entitas umumnya lebih andal dibanding bukti internal." }
+    ];
+    const leaders = [
+      { name: "Alya P.", score: 4850, accuracy: "100%", color: "#ff7a59" },
+      { name: "Raka D.", score: 4620, accuracy: "96%", color: "#7c6cf2" },
+      { name: "Dimas K.", score: 4310, accuracy: "92%", color: "#31b8a0" }
+    ];
+
+    let playerName = "Kurniawan";
+    let step = 0;
+    let selected = null;
+    let answers = [];
+    let time = 30;
+    let timerId = null;
+
+    const views = document.querySelectorAll(".view");
+    const navButtons = document.querySelectorAll("[data-view]");
+    const modal = document.getElementById("createModal");
+    const quizTitle = document.getElementById("quizTitle");
+    const createQuiz = document.getElementById("createQuiz");
+    const createdQuiz = document.getElementById("createdQuiz");
+
+    function showView(view) {
+      views.forEach((item) => item.classList.toggle("active", item.id === view));
+      document.querySelectorAll("nav button").forEach((button) => button.classList.toggle("active", button.dataset.view === view));
+      if (view !== "play") stopTimer();
+      window.scrollTo(0, 0);
+    }
+
+    function openModal() {
+      modal.classList.add("active");
+      quizTitle.focus();
+    }
+
+    function closeModal() {
+      modal.classList.remove("active");
+    }
+
+    function startQuiz(name) {
+      playerName = name && name.trim() ? name.trim() : "Peserta";
+      step = 0;
+      selected = null;
+      answers = [];
+      time = 30;
+      document.getElementById("playerChip").textContent = playerName;
+      document.getElementById("playerInitial").textContent = playerName.slice(0, 1).toUpperCase();
+      showView("play");
+      renderQuestion();
+    }
+
+    function stopTimer() {
+      if (timerId) window.clearInterval(timerId);
+      timerId = null;
+    }
+
+    function startTimer() {
+      stopTimer();
+      timerId = window.setInterval(() => {
+        if (selected !== null) return;
+        time -= 1;
+        updateTimer();
+        if (time <= 0) choose(-1);
+      }, 1000);
+    }
+
+    function updateTimer() {
+      const timer = document.getElementById("timer");
+      timer.textContent = time + "s";
+      timer.classList.toggle("danger", time < 8);
+    }
+
+    function renderQuestion() {
+      const question = questions[step];
+      selected = null;
+      time = 30;
+      document.getElementById("progressBar").style.width = ((step + 1) / questions.length * 100) + "%";
+      document.getElementById("questionMeta").textContent = "SOAL " + (step + 1) + " DARI " + questions.length;
+      document.getElementById("questionCategory").textContent = question.category;
+      document.getElementById("questionText").textContent = question.question;
+      document.getElementById("feedback").hidden = true;
+      updateTimer();
+
+      const options = document.getElementById("options");
+      options.innerHTML = "";
+      question.options.forEach((option, index) => {
+        const button = document.createElement("button");
+        button.innerHTML = "<span>" + String.fromCharCode(65 + index) + "</span>" + option + "<i></i>";
+        button.addEventListener("click", () => choose(index));
+        options.appendChild(button);
+      });
+      startTimer();
+    }
+
+    function choose(index) {
+      if (selected !== null) return;
+      selected = index;
+      stopTimer();
+      const question = questions[step];
+      document.querySelectorAll("#options button").forEach((button, optionIndex) => {
+        const state = question.answer === optionIndex ? "correct" : selected === optionIndex ? "wrong" : "dim";
+        button.classList.add(state);
+        button.querySelector("i").textContent = state === "correct" ? "✓" : state === "wrong" ? "x" : "";
+      });
+      const feedback = document.getElementById("feedback");
+      const isCorrect = selected === question.answer;
+      feedback.className = "feedback " + (isCorrect ? "ok" : "no");
+      document.getElementById("feedbackTitle").textContent = isCorrect ? "Tepat!" : selected === -1 ? "Waktu habis" : "Belum tepat";
+      document.getElementById("feedbackText").textContent = question.explanation;
+      document.getElementById("nextQuestion").textContent = step === questions.length - 1 ? "Lihat hasil ->" : "Soal berikutnya ->";
+      feedback.hidden = false;
+    }
+
+    function nextQuestion() {
+      answers.push(selected === null ? -1 : selected);
+      if (step === questions.length - 1) {
+        renderResult();
+        showView("result");
+      } else {
+        step += 1;
+        renderQuestion();
+      }
+    }
+
+    function renderResult() {
+      const correct = answers.filter((answer, index) => answer === questions[index].answer).length;
+      const score = correct * 900 + Math.max(0, 500 - (questions.length * 30 - answers.length * 20));
+      document.getElementById("resultTitle").textContent = "Kerja bagus, " + playerName + "!";
+      document.getElementById("resultCorrect").textContent = correct + "/" + questions.length;
+      document.getElementById("resultScore").textContent = score.toLocaleString("id-ID");
+      document.getElementById("resultAccuracy").textContent = Math.round(correct / questions.length * 100) + "%";
+      document.getElementById("resultRank").textContent = correct === questions.length ? "#1" : "#4";
+    }
+
+    function renderLeaders() {
+      const target = document.getElementById("leaders");
+      target.innerHTML = leaders.map((leader, index) => (
+        '<div class="leader"><b>0' + (index + 1) + '</b><span class="leader-avatar" style="background:' + leader.color + '">' + leader.name[0] + '</span><div><strong>' + leader.name + '</strong><small>' + leader.accuracy + ' akurasi</small></div><em>' + leader.score.toLocaleString("id-ID") + '</em></div>'
+      )).join("");
+    }
+
+    navButtons.forEach((button) => button.addEventListener("click", () => showView(button.dataset.view)));
+    document.getElementById("startDemo").addEventListener("click", () => startQuiz("Kurniawan"));
+    document.getElementById("joinQuiz").addEventListener("click", () => {
+      const pin = document.getElementById("sessionPin").value.replace(/\s/g, "");
+      if (pin !== "482917") {
+        document.getElementById("joinError").textContent = "PIN belum tepat. Coba PIN demo 482 917.";
+        return;
+      }
+      document.getElementById("joinError").textContent = "";
+      startQuiz(document.getElementById("playerName").value);
+    });
+    document.getElementById("nextQuestion").addEventListener("click", nextQuestion);
+    document.getElementById("playAgain").addEventListener("click", () => startQuiz(playerName));
+    document.getElementById("remedial").addEventListener("click", () => startQuiz("Kurniawan"));
+    document.querySelectorAll("#openCreateTop, #openCreateHero, #openCreateDash").forEach((button) => button.addEventListener("click", openModal));
+    document.getElementById("closeModal").addEventListener("click", closeModal);
+    document.getElementById("cancelCreate").addEventListener("click", closeModal);
+    modal.addEventListener("mousedown", (event) => {
+      if (event.target === modal) closeModal();
+    });
+    quizTitle.addEventListener("input", () => {
+      createQuiz.disabled = !quizTitle.value.trim();
+    });
+    createQuiz.addEventListener("click", () => {
+      const title = quizTitle.value.trim();
+      if (!title) return;
+      createdQuiz.innerHTML = '<div class="quiz-item"><span class="quiz-badge pink">N</span><div><b>' + title.replace(/[<>&]/g, "") + '</b><p>0 soal - Baru dibuat</p></div><strong>Draf</strong><button>...</button></div>';
+      closeModal();
+      showView("host");
+    });
+    renderLeaders();
+  </script>
+</body>
+</html>
